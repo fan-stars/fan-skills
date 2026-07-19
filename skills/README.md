@@ -30,6 +30,7 @@
 | `workflow` | 工作流 — 规划质询、领域建模、架构词汇与技能发现 | 7 | [README](workflow/README.md) |
 | `mcp` | MCP — MCP Server 构建与评估 | 1 | [README](mcp/README.md) |
 | `testing` | 测试 — Web 应用自动化测试 | 2 | [README](testing/README.md) |
+| `fan` | Fan 自研 — Fan 团队自行编写、非来自公开开源项目的 skills | 2 | [README](fan/README.md) |
 
 ## 维护
 

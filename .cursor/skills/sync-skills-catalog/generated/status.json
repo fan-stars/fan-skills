@@ -38,6 +38,7 @@
     "xlsx": "f38e1245e48604aada998d989633de07e4c4fb9a8ddc0872219d2d36e6c538b6"
   },
   "reusable": [
+    "agent-browser",
     "ant-design",
     "antd",
     "codebase-design",
@@ -45,7 +46,9 @@
     "create-specification",
     "docx",
     "domain-modeling",
+    "extract-design-system",
     "f-java-springboot",
+    "f-project-runtime-manager",
     "find-skills",
     "frontend-design",
     "grill-me",
@@ -55,6 +58,7 @@
     "java-springboot",
     "mcp-builder",
     "next",
+    "next-browser",
     "nuxt",
     "openspec-archiving",
     "openspec-context-loading",
@@ -71,12 +75,7 @@
     "webapp-testing",
     "xlsx"
   ],
-  "needGenerate": [
-    "agent-browser",
-    "extract-design-system",
-    "f-project-runtime-manager",
-    "next-browser"
-  ],
+  "needGenerate": [],
   "invalid": [],
   "docsPath": ".cursor/skills/sync-skills-catalog/generated/skill-docs.json"
 }

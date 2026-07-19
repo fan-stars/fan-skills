@@ -36,6 +36,10 @@
     "testing": {
       "title": "测试",
       "description": "Web 应用自动化测试"
+    },
+    "fan": {
+      "title": "Fan 自研",
+      "description": "Fan 团队自行编写、非来自公开开源项目的 skills"
     }
   },
   "skills": {
@@ -104,14 +108,16 @@
     },
     "f-java-springboot": {
       "categories": [
-        "java"
+        "java",
+        "fan"
       ],
       "skillsShUrl": null,
       "githubUrl": null
     },
     "f-project-runtime-manager": {
       "categories": [
-        "workflow"
+        "workflow",
+        "fan"
       ],
       "skillsShUrl": null,
       "githubUrl": null
