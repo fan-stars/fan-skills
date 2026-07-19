@@ -1,0 +1,261 @@
+{
+  "version": 1,
+  "skills": {
+    "ant-design": {
+      "summary": "antd 6.x 与 Pro/X 组件选型、主题与 CLI 决策指南，偏官方 API 而非教程。",
+      "capabilities": "覆盖组件选型、Design Token 主题、SSR、无障碍、性能、路由权限与 CRUD、Ant Design X 对话 UI，以及通过 `@ant-design/cli` 离线查询 API、示例、迁移与用法分析。强调先查官方元数据再写代码，避免凭记忆臆造 API。",
+      "scenarios": "在 React 18/19 项目中编写或改造 antd 代码、排查组件行为、做主题定制或版本迁移、分析仓库中 antd 用法时启用。也适用于需要 ProComponents 或 Ant Design X 的中后台与 AI 聊天界面。",
+      "coverage": "目标栈为 antd 6、Ant Design Pro 5/ProComponents、Ant Design X v2；包含 ConfigProvider、tokens/`classNames`/`styles`、CLI 的 info/demo/doc/lint/doctor 等工作流，以及迁移与 changelog 查阅。",
+      "notes": "决策向指南，不是终端用户教程；只依据官方文档，勿耦合内部 `.ant-*` 类名。改代码前后应用 CLI 查 API 与 lint；版本需与本地 node_modules 或 `--version` 对齐。",
+      "contentHash": "263b6d59b572a7bcd144bcd58601221ff830c4b3e1054299d5bec8d34c91a974"
+    },
+    "antd": {
+      "summary": "基于 @ant-design/cli 的离线 antd 知识库：查 API、示例、文档、诊断与迁移。",
+      "capabilities": "在本地用 `antd` CLI 查询组件 props、demo、semantic 样式、design token、完整文档，并支持项目分析、调试与跨版本迁移。全部元数据离线可用，输出统一要求 `--format json` 便于程序解析。",
+      "scenarios": "写 antd 组件前查 API、需要完整中英文文档、代码行为异常需对照官方能力、做 v4/v5/v6 迁移或批量检查仓库用法时使用。",
+      "coverage": "涵盖 info/demo/semantic/token/doc、调试流程、迁移与项目分析命令；内置 v4/v5/v6 元数据。首次使用需安装 `@ant-design/cli`，发现更新提示时应先升级 CLI。",
+      "notes": "不要凭记忆写 props；始终加 `--format json`。本 skill 侧重 CLI 操作，更广的选型与架构决策可配合 `ant-design` skill。",
+      "contentHash": "a16dbdd57ff869e7ae2589258ba6ea84268e4c134409ec920ee0064be905ecd0"
+    },
+    "codebase-design": {
+      "summary": "用「深模块」词汇设计小接口、大行为、可测试的代码接缝与边界。",
+      "capabilities": "提供 Module/Interface/Implementation/Depth/Seam/Adapter 等统一术语，指导把大量行为藏在小接口后、选对接缝、提升可测性与 AI 可导航性。帮助识别浅模块与加深机会，而非只改命名。",
+      "scenarios": "设计或重构模块接口、决定边界落点、提升可测试性、让代码更易被 AI 理解，或其他 skill 需要统一「深模块」语言时启用。",
+      "coverage": "术语表、深度与浅度判断、接缝选择、适配器与实现区分、面向调用方杠杆与维护局部性的设计原则。刻意避免用 component/service/API 等含糊替代词。",
+      "notes": "这是共享设计词汇，不是具体框架教程。讨论时必须沿用文中术语，避免自创近义词导致沟通漂移。",
+      "contentHash": "c46b49303a81c7fc8934d0f4fbc44382cdecb73942d85d8d7db3523407fff8fa"
+    },
+    "create-agentsmd": {
+      "summary": "按 agents.md 规范为仓库生成面向编码 Agent 的 AGENTS.md 上下文文件。",
+      "capabilities": "指导在仓库根（或 monorepo 子项目）创建完整、准确的 AGENTS.md：项目概览、技术栈、结构、命令、约定与 Agent 注意事项，作为给人看的 README 的补充。",
+      "scenarios": "新建或补齐 Agent 指引、让多种编码工具共享同一套仓库约定、需要把构建/测试/风格规则写成机器友好说明时使用。",
+      "coverage": "AGENTS.md 定位与原则、推荐章节结构、与 README 的分工、跨 20+ 工具兼容的开放格式写法。",
+      "notes": "内容面向 Agent 技术细节，勿整份替代人类 README。结构可按项目裁剪，但应放在可预期路径并保持可维护。",
+      "contentHash": "662324d79669b706091b2c4871861c376cc01ca5870816232ff69a136e28968d"
+    },
+    "create-specification": {
+      "summary": "编写面向生成式 AI 消费的、结构清晰的解决方案规格说明文件。",
+      "capabilities": "按模板在 `/spec/` 下创建自包含规格：需求、约束、接口、术语与示例边界，使用明确无歧义语言与结构化 Markdown，便于后续 AI 实现。",
+      "scenarios": "需要为 schema、工具、数据、基础设施、流程、架构或设计等主题立规格，或要把口头需求固化成机器可读文档时启用。",
+      "coverage": "命名约定 `spec-[purpose]-….md`、front matter、章节模板、AI-ready 写作实践（精确措辞、区分需求/约束/建议、定义缩写）。",
+      "notes": "规格须自包含，少依赖外部上下文。命名 purpose 须落在约定集合内；保存路径与格式需严格遵循 skill 模板。",
+      "contentHash": "2691201865f91d6b5042e4f739d71a6e521f63dd432adaebef7f0cd39fadcf4c"
+    },
+    "docx": {
+      "summary": "创建、编辑、读取 Word 文档与模板，处理版式、修订、图片与内容重组。",
+      "capabilities": "用 docx-js 新建专业 .docx/.dotx；用解压改 XML 编辑已有文档；用 pandoc 提取内容。覆盖目录、页眉页脚、表格、列表、图片、批注与修订等常见办公排版需求。",
+      "scenarios": "用户要报告、备忘录、信函、模板等 Word 交付物，或对现有 .docx/.dotx 做抽取、替换、插图、重组时使用。不用于 PDF/表格/谷歌文档。",
+      "coverage": "创建脚本当注意的页尺寸、横向、表格双宽度、底纹、编号、分页与 TOC 等陷阱；编辑路径与读取路径分流。",
+      "notes": "docx-js 不能可靠打开再编辑已有文件，编辑请走 unzip/XML。勿把 PDF 或电子表格任务误用本 skill。",
+      "contentHash": "7d67716c32e093e685627dca5e7f8622e8865e26ff0db941172406929797d47a"
+    },
+    "domain-modeling": {
+      "summary": "主动打磨项目领域模型：统一语言、边界场景与架构决策落盘。",
+      "capabilities": "在设计过程中质询术语、发明边界场景，并把词汇表与 ADR 写到 CONTEXT.md / docs/adr；支持单上下文或多上下文（CONTEXT-MAP）仓库。",
+      "scenarios": "要钉死领域用语、记录架构决策，或其他 skill 需要同步维护领域模型时使用。仅阅读词汇表不算本 skill，改模型才算。",
+      "coverage": "文件布局、会话中挑战模糊语言、及时落盘 glossary 与 ADR、多限界上下文映射。",
+      "notes": "文件应惰性创建：有内容再写。术语冲突要立刻对齐；决策写 ADR，日常用语写 CONTEXT.md。",
+      "contentHash": "40afc20cd49261811d7fe377fff53c1804f5e27644b42adb65469c7fc305a3a2"
+    },
+    "f-java-springboot": {
+      "summary": "Fan 后端 Spring Boot 硬性约定：MyBatis-Plus、Lombok 日志与仓库外本地配置。",
+      "capabilities": "在通用 Spring Boot 实践上强制三项：数据层用 MyBatis-Plus（LambdaQueryWrapper、单表优先、少 XML）；日志用 Lombok `@Slf4j`；开发配置写仓库外并启动加载，禁止改 Git 内配置。",
+      "scenarios": "编写或修改 Fan 项目后端 Java 代码时启用；与上游 `java-springboot` 冲突时以本 skill 为准。",
+      "coverage": "按领域分包、构造器注入、Mapper/`BaseMapper`、仓库外 application-local 加载方式、Maven/Gradle 与相关 starter 选择。",
+      "notes": "常规 CRUD 不要引入 JPA。勿把个人路径或密钥写进仓库内 yml。新增配置前先确认项目是否已有 `.fan-local-config` 约定。",
+      "contentHash": "cedffacd0b5722b43181bcfc63d9a17f1556c31d664e974da34582b82fbde2cb"
+    },
+    "find-skills": {
+      "summary": "从开放 skills 生态检索并安装可扩展 Agent 能力的技能包。",
+      "capabilities": "在用户想找「会不会有现成 skill」时，用 `npx skills find/add/update` 与 skills.sh 排行榜发现、安装与更新技能，把需求映射到领域与任务再搜索。",
+      "scenarios": "用户问「怎么做 X」「有没有 skill」「能否扩展能力」，或希望为设计/测试/部署等领域寻找现成包时使用。",
+      "coverage": "Skills CLI 关键命令、先看排行榜再 CLI 搜索、安装来源与更新流程、帮助用户判断任务是否足够常见。",
+      "notes": "先理解领域与任务再搜，避免盲目安装。安装后仍需按目标项目约定放入正确 skills 目录并必要时更新 lock。",
+      "contentHash": "b146008599c31057cef1c145774cea5d5afb30e8f43fa802e47a4b461419aaaf"
+    },
+    "frontend-design": {
+      "summary": "做有辨识度的前端视觉设计：排版、调色与布局避免模板感默认解。",
+      "capabilities": "以设计主导视角做有主见的美学选择：锚定题材与受众、英雄区命题、字体配对、氛围背景与动效层次，刻意规避常见 AI 模板审美。",
+      "scenarios": "新建页面或重塑现有 UI、需要独特视觉方向而非通用后台皮肤、落地页与品牌向界面设计时启用。",
+      "coverage": "题材锚定、英雄区原则、字体与色彩方向、减少卡片/杂讯、用动效建立层级等设计原则。",
+      "notes": "若已有设计系统，应服从现有语言。先钉死产品题材再开做；不要堆无意义的渐变与徽章。",
+      "contentHash": "665c585455decbcb02116bc928adf5148b9cd0f67b7eb4908c8c0d647c00f68a"
+    },
+    "grill-me": {
+      "summary": "启动一轮严厉质询会话，压力测试计划或设计直至达成共识。",
+      "capabilities": "作为入口触发 `/grilling` 流程：逐个决策追问、给出推荐答案、走完决策树依赖，直到双方共享理解后再行动。",
+      "scenarios": "用户明确要求 grill/质询、或要对方案做压力测试且只需会话、不强制同步写文档时使用。",
+      "coverage": "仅作为启动 grilling 会话的薄封装入口；具体追问规则、单问单答与共识门槛见 grilling skill 正文。",
+      "notes": "实质规则在 `grilling`。需要边问边写 ADR/词汇表时改用 `grill-with-docs`。",
+      "contentHash": "000514e9633b1a2df8bef98549e99b6eaf1a8c3fabfad0e3b328440b3b226c90"
+    },
+    "grill-with-docs": {
+      "summary": "严厉质询方案的同时，用领域建模把 ADR 与词汇表边问边写下来。",
+      "capabilities": "组合 `/grilling` 与 `/domain-modeling`：一边拆决策树，一边把固化术语与架构决策写入 CONTEXT.md 与 ADR。",
+      "scenarios": "既要压力测试计划或设计，又希望会话结束留下可复用领域词汇表与架构决策记录（ADR）时使用。",
+      "coverage": "质询节奏与领域建模落盘纪律的联合工作流；术语写入 CONTEXT.md，决策写入 docs/adr，细节仍分别遵循两个基础 skill。",
+      "notes": "必须同时遵循 grilling 与 domain-modeling。事实可查环境，决策须等人确认；未达成共识前不要开写实现。",
+      "contentHash": "84554e18aac963e26214159bfb522ddbd72dab710f43176727ca14f432033567"
+    },
+    "grilling": {
+      "summary": "一次只问一个问题，沿决策树严厉追问计划，直到达成共享理解。",
+      "capabilities": "对计划、决策或想法做无情面试：逐分支澄清依赖、每题给推荐答案、等人回复再继续；可查的事实自己查，决策留给用户。",
+      "scenarios": "用户要 stress-test 想法，或使用 grill 类触发语；在动手实现前需要把模糊方案问清楚时启用。",
+      "coverage": "单问单答节奏、决策树遍历、推荐答案、环境探查与决策提问的分工、确认共识前不得擅自执行。",
+      "notes": "禁止一次抛多个问题以免干扰决策。未确认双方已达成共享理解之前，不要开始改代码或落地实现。",
+      "contentHash": "35963aa4abbdae92eb75d8c2dc69eaa70126315a642aba1e5371bd4a9305fb2a"
+    },
+    "java-refactoring-extract-method": {
+      "summary": "按范例在 Java 中安全实施 Extract Method，理清意图与类型边界。",
+      "capabilities": "以专家重构视角演示如何把长方法拆成意图清晰的小方法，包括空值/非法 ID 校验抽取、命名改进与保持行为等价。",
+      "scenarios": "Java 方法过长、条件嵌套或重复逻辑需要提取方法，且希望对照前后示例做等价重构时使用。",
+      "coverage": "多组 before/after 示例，强调可读命名、早期返回与类型封装（如用领域 ID 代替原始 int）。",
+      "notes": "示例是模式启发而非可粘贴业务代码。重构后应保持对外行为与测试通过，避免借机改需求。",
+      "contentHash": "ef7f530544c0d02f8a2d12283e170ddb603b462f13f378732bbe86c90119f1c4"
+    },
+    "java-springboot": {
+      "summary": "Spring Boot 应用通用最佳实践：结构、注入、配置、数据访问与测试。",
+      "capabilities": "指导用 starter 与按领域分包搭建项目，构造器注入、外部化配置与 Profiles、类型安全 `@ConfigurationProperties`、持久化与测试等惯用做法。",
+      "scenarios": "编写或评审通用 Spring Boot 应用、引入标准分层与配置管理、尚无 Fan 特殊约束时使用。",
+      "coverage": "Maven/Gradle、组件注解、配置与密钥、常见 starter 选型及质量实践概要。",
+      "notes": "Fan 仓库优先遵循 `f-java-springboot`（MyBatis-Plus 与仓库外配置）。本 skill 偏通用 JPA/配置习惯，冲突时以项目定制 skill 为准。",
+      "contentHash": "dfb77c16fa1ee64d6b6a3fadd10bca425c72c7da8696952fb066f59eeb10aa17"
+    },
+    "mcp-builder": {
+      "summary": "设计并实现高质量 MCP Server，让模型通过优质工具调用外部服务。",
+      "capabilities": "覆盖从调研规划到实现评估的全流程：工具命名与可发现性、工作流工具与 API 覆盖平衡、分页过滤、可操作错误信息，以及 Python FastMCP / Node MCP SDK 实现指引。",
+      "scenarios": "要把外部 API 或服务暴露给 LLM、新建或重构 MCP Server、评估工具设计是否利于完成真实任务时启用。",
+      "coverage": "四阶段工作流（调研规划、设计、实现、评估）、工具命名与错误信息原则；强调以真实任务完成度而非端点堆砌作为质量标尺。",
+      "notes": "优先清晰前缀与面向动作的命名。返回宜精炼可过滤；错误信息要给出下一步建议，避免无上下文失败。",
+      "contentHash": "5a904ea67e691bc7454cc2a631f24a52f3a95f397d76862cdfc6a9370d79363d"
+    },
+    "next": {
+      "summary": "用 @json-render/next 把 JSON 规格渲染成带路由与 SSR 的 Next.js 应用。",
+      "capabilities": "将 NextAppSpec（metadata、layouts、routes、page elements）转为完整 Next 应用，支持布局槽位、多页面路由、SSR 与元数据，适合 AI 生成多页应用。",
+      "scenarios": "使用 `@json-render/next`、从 JSON 规格搭建 Next 应用，或需要程序化生成多路由页面时使用。",
+      "coverage": "依赖安装、spec 结构、createNextApp 用法、布局与路由声明、与 core/react 包的配合。",
+      "notes": "需要同时理解 json-render 元素模型与 Next App Router 约定。规格错误会导致路由/布局缺失，改 spec 后应验证页面可构建。",
+      "contentHash": "4a609d04a169e0292feff34b22150044fdda0e75de17c03dd30b38fed1786a90"
+    },
+    "nuxt": {
+      "summary": "Nuxt 4 全栈 Vue：目录约定、路由、数据获取、模块与混合渲染。",
+      "capabilities": "提供 Nuxt 4.x 权威向参考：`app/` srcDir、文件路由、useFetch/useAsyncData、中间件、Nitro 服务端、模块与混合渲染部署等，并链到细分 references。",
+      "scenarios": "开发或改造 Nuxt 应用、写 server routes、配置 SSR/混合渲染、排查自动导入与别名问题时使用。",
+      "coverage": "目录与别名、nuxt.config、CLI、路由、数据获取、模块、部署等核心主题索引（基于 Nuxt 4，默认 srcDir 为 app/）。",
+      "notes": "`~`/`@` 指向 `app/`，根目录用 `~~`/`@@`。细节以 references 为准；勿按 Nuxt 2/3 旧目录假设落文件。",
+      "contentHash": "e142fa5c8c70c97cae023af58cd9156379af235ab4911e37d84c92f5cecb23ae"
+    },
+    "openspec-archiving": {
+      "summary": "归档已完成变更，并将规范差异合并进长期有效的 living specs。",
+      "capabilities": "在实现与部署确认后，合并 ADDED/MODIFIED/REMOVED 到 `spec/specs`，并把 change 目录移入带时间戳的 archive，校验 living spec 结构。",
+      "scenarios": "变更已上线或可归档、需要「openspec archive / merge specs / finalize」时使用。",
+      "coverage": "完成度检查、delta 审阅、时间戳归档目录、三类合并操作、移动 change 与结构校验清单。",
+      "notes": "仍有未完成任务或尚未部署时不要归档。归档表示完成与部署语义，合并 living specs 前须先取得用户明确同意。",
+      "contentHash": "df652ac8e4d3c5b3d12658e0fa905c677b1e51031796377a7bf099983841a44a"
+    },
+    "openspec-context-loading": {
+      "summary": "发现并加载项目 specs、进行中变更与需求，回答「现在有什么」。",
+      "capabilities": "列出 living specs、active/archived changes，搜索能力与 Requirement，汇总项目规范上下文，支撑后续提案或实现。",
+      "scenarios": "用户询问现有规范、进行中或已归档变更、系统能力边界，或需要「spec 里有什么」这类项目上下文发现时使用。",
+      "coverage": "发现命令模式（find/grep/tree/ls）、搜索 Requirement 与能力目录、阅读后摘要的基本套路，避免无目标整库灌入。",
+      "notes": "先搜索再精读，避免整库灌入上下文。本仓库若忽略 `spec/`，仍按本地约定路径操作。",
+      "contentHash": "075bbc70a7e77f7f9167c2aa81ea5c685e4f56fb12324628d447d98835476207"
+    },
+    "openspec-implementation": {
+      "summary": "按已批准提案逐项实现任务，每步测试验证后再勾选完成。",
+      "capabilities": "读取 proposal/tasks/spec deltas，用 Todo 跟踪，严格顺序执行：实现→测试→验证→更新规范（如需）→标记实现完成。",
+      "scenarios": "用户要求 openspec implement、执行 tasks、按批准计划开发功能时启用。",
+      "coverage": "加载提案与任务、Todo 跟踪、按序实现与验收、必要时更新 living specs、标记实现完成等完整检查清单。",
+      "notes": "禁止跳过任务或未经验证就标完成。每一项完成后应留下可观察证据（测试、行为或产物）再进入下一项。",
+      "contentHash": "5b9487c1664f117042bc742220b09960403769128bcef552350c4896ab2ba118"
+    },
+    "openspec-proposal-creation": {
+      "summary": "用英文 OpenSpec 流程创建提案、任务清单与 EARS 风格规范差异。",
+      "capabilities": "脚手架 change 目录，产出 proposal.md、tasks.md 与 ADDED/MODIFIED/REMOVED 的 spec deltas，供审批后再实现。",
+      "scenarios": "规划新功能、破坏性变更或架构更新，触发 create proposal / spec feature 等英文流程时使用。",
+      "coverage": "审阅现有规范、生成 change-id、Why/What/Impact、任务清单、EARS 需求写法与结构校验。",
+      "notes": "中文团队日常规划优先 `openspec-proposal-creation-cn`（tasks.json 等差异）。提案需用户批准后再进入实现。",
+      "contentHash": "cec3595c036ef9a00ab01698cdd36801a1d0ef360eb78995f8f00c06c086ccea"
+    },
+    "openspec-proposal-creation-cn": {
+      "summary": "中文 OpenSpec 提案：proposal、tasks.json 与规范差异，面向规划与审批。",
+      "capabilities": "按中文工作流生成变更目录、proposal.md、tasks.json 与 spec-delta（ADDED/MODIFIED/REMOVED），并用清单校验后提交用户审批。",
+      "scenarios": "用户说「openspec提案」「规划变更」「新功能/新需求」等中文触发词，要用规范驱动方式开干前先立提案时使用。",
+      "coverage": "变更 ID 约定、目录脚手架、提案三要素、tasks.json 模板、规范差异与展示审批步骤。",
+      "notes": "与英文版提案 skill 并行存在，字段/任务格式以中文版模板为准。未审批前不要开始大规模实现。",
+      "contentHash": "22e527c99186ef43372b18937870e56624632759b6c107437481533c3a48b928"
+    },
+    "pdf": {
+      "summary": "处理 PDF：读写提取、合并拆分、表单、水印、加密与 OCR 等全套操作。",
+      "capabilities": "用 pypdf 等库与命令行完成文本/表格提取、合并拆分、旋转、水印、新建 PDF、填表、加解密、抽图与扫描件 OCR，复杂场景见 REFERENCE/FORMS。",
+      "scenarios": "用户提到 .pdf、需要从 PDF 提取内容、合并拆分页面，或生成/加密/填表/OCR 等任何 PDF 加工请求时启用。",
+      "coverage": "Quick start 与 pypdf 合并拆分、元数据与旋转；表单见 FORMS.md，进阶特性与更多示例见 REFERENCE.md 索引。",
+      "notes": "填表先读 FORMS.md。扫描件需 OCR 才能检索；大文件注意内存与逐页处理。",
+      "contentHash": "6a01b6dc757b8856d7eba5e9985d8550783f946d7afdf86402ba324b93239fc0"
+    },
+    "pptx": {
+      "summary": "创建、编辑与分析 PowerPoint：新建幻灯片、改模板、抽取与校验。",
+      "capabilities": "用 pptxgenjs 新建演示文稿；解压改 XML 编辑已有/模板；用 markitdown 与缩略图脚本阅读；提供加页、清理与校验脚本。",
+      "scenarios": "涉及 .pptx/.potx、deck/slides/presentation 的创建、修改、合并拆分或内容抽取时使用。",
+      "coverage": "创建陷阱、编辑工作流、thumbnail/add_slide/clean/validate 等脚本职责。",
+      "notes": "从模板派生的文件校验需传 `--original`。编辑后保持关系与内容类型一致，避免手工漏改 rels。",
+      "contentHash": "542c716c50714598b19d12ba977d6c878d650b5798a8588026700d11bcd854bf"
+    },
+    "vben": {
+      "summary": "Vben Admin 5.0 中后台开发：Vue3、Vite、路由权限与 Monorepo 约定。",
+      "capabilities": "指导在 Vben 5 Monorepo 中开发 Ant Design Vue / Element Plus / Naive 应用：路由菜单 meta、权限模式、请求与状态、常用 pnpm 脚本。",
+      "scenarios": "基于 Vben Admin 5 做中后台页面、权限路由、多 UI 库应用或 mock 联调时使用。",
+      "coverage": "apps/packages 结构、dev/build 命令、路由模块写法、权限与布局相关核心指南。",
+      "notes": "按实际选用的 UI 应用（antd/ele/naive）启动对应脚本。路由 meta 字段需与框架约定一致，勿混用旧版 Vben 结构。",
+      "contentHash": "9a299daa7d891f200b0098a065d27e46e13fcb7570960d56ec9703ae37ab7eb2"
+    },
+    "vercel-composition-patterns": {
+      "summary": "用组合式 React 模式消除布尔 props 膨胀，构建灵活可维护组件 API。",
+      "capabilities": "提供 compound components、状态上提、Context 接口与 React 19 相关模式，按优先级组织 architecture/state/patterns 规则，利于人与 AI 共同维护组件库。",
+      "scenarios": "重构布尔开关过多的组件、设计可复用组件库 API、审查 compound components 或 Context 组合式架构时启用。",
+      "coverage": "避免 boolean props、复合组件、Provider 解耦状态、泛型 context 接口、React 19 API 等规则条目。",
+      "notes": "优先改架构而非继续加 flag。规则按影响优先级应用；与性能向的 `vercel-react-best-practices` 互补而非替代。",
+      "contentHash": "646f870906914c3787efa7403ec4716dfddf78fc17a12ec1f0556caf2143ac66"
+    },
+    "vercel-react-best-practices": {
+      "summary": "Vercel 出品的 React/Next 性能规则集：消除瀑布、瘦包与渲染优化。",
+      "capabilities": "按影响优先级提供约 70 条规则，覆盖异步瀑布、包体积、服务端与客户端取数、重渲染、渲染与 JS 性能及高级模式，指导编写与评审。",
+      "scenarios": "写或重构 React/Next 页面与数据获取、优化包体与加载、做性能向 code review 时使用。",
+      "coverage": "八大类别前缀（async/bundle/server/client/rerender 等）及快速参考条目。",
+      "notes": "按 CRITICAL→LOW 优先改高影响项。规则多，宜针对当前改动子集应用，避免一次机械套用全部。",
+      "contentHash": "e3f2294574b469c7c198373a443a86571012769d0bbeed68854bd55642ec0d7b"
+    },
+    "vercel-react-view-transitions": {
+      "summary": "用 React View Transition API 做原生感页面与元素过渡动画。",
+      "capabilities": "指导用 `<ViewTransition>`、过渡类型与 CSS 伪元素实现共享元素、Suspense 显现、列表身份、进出场与路由级转场；不支持的浏览器优雅降级。",
+      "scenarios": "要做路由动画、共享元素、列表重排、前进后退方向动画，或在 Next 中集成 view transitions 时启用。",
+      "notes": "每个过渡都应表达空间关系或连续性；说不清语义就不要加。按优先级实现适用模式，而非只挑一个花活。",
+      "coverage": "何时动画、共享元素/Suspense/列表/进出场/路由优先级、导航方向类型、CSS 控制方式以及与 startTransition/useDeferredValue 的配合。",
+      "contentHash": "f2091cf41cb650bfaefd42dc8ad5253cb52378c35b22531dd0317b14912e1822"
+    },
+    "web-design-guidelines": {
+      "summary": "对照最新 Web Interface Guidelines 审查 UI 代码的可访问性与体验。",
+      "capabilities": "每次审查前拉取 Vercel web-interface-guidelines 最新规则，按文件检查并输出简洁的 file:line 发现项。",
+      "scenarios": "用户要求 review UI、查无障碍、审计设计/UX、对照最佳实践检查站点时使用。",
+      "coverage": "拉取最新指南、读取用户指定文件或模式、按全部规则对照检查，并按规定格式输出；未指定范围时先询问审查文件。",
+      "notes": "必须用 WebFetch 拉取新鲜远程规则，勿只靠记忆版清单。输出保持指南要求的简洁 file:line 格式，便于逐条修复。",
+      "contentHash": "f3bc47f890f42a44db1007ab390709ec368e4b8c089baee6b0007182236ac474"
+    },
+    "webapp-testing": {
+      "summary": "用 Playwright 与辅助脚本测试本地 Web 应用：交互、截图与日志。",
+      "capabilities": "编写原生 Python Playwright 脚本验证前端行为；用 with_server 管理服务生命周期；先侦察 DOM/截图再定位选择器执行操作。",
+      "scenarios": "需要验证本地前端功能、调试交互异常、捕获页面截图，或查看浏览器控制台日志以定位问题时使用。",
+      "coverage": "静态 HTML vs 动态应用决策树、服务器已启动/未启动分支、with_server 用法与脚本优先 `--help` 的约定。",
+      "notes": "先跑脚本 `--help`，勿一上来通读巨大脚本源码。选择器应来自实际渲染结果，避免臆造。",
+      "contentHash": "abfaf4cc6cf572346e22fed42dc0cfaacd2f64c5d9667f44a94b02ea0d3b1342"
+    },
+    "xlsx": {
+      "summary": "创建与编辑电子表格：公式、格式、清洗数据及 csv/tsv 与 xlsx 互转。",
+      "capabilities": "用 openpyxl 做带公式与格式的创建编辑，用 pandas 做批量读写，用 markitdown 快速预览；强调公式可重算、专业字体与零公式错误。",
+      "scenarios": "以 xlsx/xlsm/csv/tsv 为主要输入或交付物、清洗畸形表、按用户列名与公式规格出表时使用。",
+      "coverage": "工具选型表、输出质量要求、公式与值双次加载等常见陷阱；配套 recalc 等脚本。",
+      "notes": "交付物必须是表格文件。用公式而非写死结果；严格遵循用户给定的表名与列头。Word/HTML 主交付勿用本 skill。",
+      "contentHash": "f38e1245e48604aada998d989633de07e4c4fb9a8ddc0872219d2d36e6c538b6"
+    }
+  }
+}

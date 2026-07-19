@@ -40,194 +40,227 @@
   },
   "skills": {
     "ant-design": {
-      "categories": ["web/react"],
-      "descriptionZh": "Ant Design 体系与 CLI/文档侧开发指导",
+      "categories": [
+        "web/react"
+      ],
       "skillsShUrl": "https://skills.sh/ant-design/antd-skill/ant-design",
       "githubUrl": "https://github.com/ant-design/antd-skill/blob/main/skills/ant-design/SKILL.md"
     },
     "antd": {
-      "categories": ["web/react"],
-      "descriptionZh": "antd 组件选择、API、主题与中后台 UI 用法",
+      "categories": [
+        "web/react"
+      ],
       "skillsShUrl": "https://skills.sh/ant-design/antd-skill/antd",
       "githubUrl": "https://github.com/ant-design/antd-skill/blob/main/skills/antd/SKILL.md"
     },
     "codebase-design": {
-      "categories": ["workflow"],
-      "descriptionZh": "深度模块与接口、seam、可测试性等架构设计词汇",
+      "categories": [
+        "workflow"
+      ],
       "skillsShUrl": "https://skills.sh/mattpocock/skills/codebase-design",
       "githubUrl": "https://github.com/mattpocock/skills/blob/main/skills/engineering/codebase-design/SKILL.md"
     },
     "create-agentsmd": {
-      "categories": ["spec"],
-      "descriptionZh": "为仓库生成面向 Agent 的 AGENTS.md",
+      "categories": [
+        "spec"
+      ],
       "skillsShUrl": "https://skills.sh/github/awesome-copilot/create-agentsmd",
       "githubUrl": "https://github.com/github/awesome-copilot/blob/main/skills/create-agentsmd/SKILL.md"
     },
     "create-specification": {
-      "categories": ["spec"],
-      "descriptionZh": "创建面向生成式 AI 消费的结构化规格文档",
+      "categories": [
+        "spec"
+      ],
       "skillsShUrl": "https://skills.sh/github/awesome-copilot/create-specification",
       "githubUrl": "https://github.com/github/awesome-copilot/blob/main/skills/create-specification/SKILL.md"
     },
     "docx": {
-      "categories": ["docs"],
-      "descriptionZh": "Word（.docx/.dotx）读写、编辑与修订处理",
+      "categories": [
+        "docs"
+      ],
       "skillsShUrl": "https://skills.sh/anthropics/skills/docx",
       "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/docx/SKILL.md"
     },
     "domain-modeling": {
-      "categories": ["workflow"],
-      "descriptionZh": "领域术语、统一语言与架构决策记录",
+      "categories": [
+        "workflow"
+      ],
       "skillsShUrl": "https://skills.sh/mattpocock/skills/domain-modeling",
       "githubUrl": "https://github.com/mattpocock/skills/blob/main/skills/engineering/domain-modeling/SKILL.md"
     },
     "f-java-springboot": {
-      "categories": ["java"],
-      "descriptionZh": "Fan 项目 Spring Boot 规范：MyBatis-Plus、Lombok 日志、仓库外配置",
+      "categories": [
+        "java"
+      ],
       "skillsShUrl": null,
       "githubUrl": null
     },
     "find-skills": {
-      "categories": ["workflow"],
-      "descriptionZh": "在 skills 生态中发现并安装合适的 Agent Skills",
+      "categories": [
+        "workflow"
+      ],
       "skillsShUrl": "https://skills.sh/vercel-labs/skills/find-skills",
       "githubUrl": "https://github.com/vercel-labs/skills/blob/main/skills/find-skills/SKILL.md"
     },
     "frontend-design": {
-      "categories": ["web/react", "web/design"],
-      "descriptionZh": "有辨识度的前端视觉设计，避免模板化默认 UI",
+      "categories": [
+        "web/react",
+        "web/design"
+      ],
       "skillsShUrl": "https://skills.sh/anthropics/skills/frontend-design",
       "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md"
     },
     "grill-me": {
-      "categories": ["workflow"],
-      "descriptionZh": "启动 grilling 会话，对方案/决策进行压力测试",
+      "categories": [
+        "workflow"
+      ],
       "skillsShUrl": "https://skills.sh/mattpocock/skills/grill-me",
       "githubUrl": "https://github.com/mattpocock/skills/blob/main/skills/productivity/grill-me/SKILL.md"
     },
     "grill-with-docs": {
-      "categories": ["workflow"],
-      "descriptionZh": "质询方案并同步产出 ADR/术语表等文档",
+      "categories": [
+        "workflow"
+      ],
       "skillsShUrl": "https://skills.sh/mattpocock/skills/grill-with-docs",
       "githubUrl": "https://github.com/mattpocock/skills/blob/main/skills/engineering/grill-with-docs/SKILL.md"
     },
     "grilling": {
-      "categories": ["workflow"],
-      "descriptionZh": "逐项追问计划、决策或想法直至达成共识",
+      "categories": [
+        "workflow"
+      ],
       "skillsShUrl": "https://skills.sh/mattpocock/skills/grilling",
       "githubUrl": "https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md"
     },
     "java-refactoring-extract-method": {
-      "categories": ["java"],
-      "descriptionZh": "Java 提取方法重构，改善可读性与可测性",
+      "categories": [
+        "java"
+      ],
       "skillsShUrl": "https://skills.sh/github/awesome-copilot/java-refactoring-extract-method",
       "githubUrl": "https://github.com/github/awesome-copilot/blob/main/skills/java-refactoring-extract-method/SKILL.md"
     },
     "java-springboot": {
-      "categories": ["java"],
-      "descriptionZh": "Spring Boot 通用最佳实践（与 Fan 规范冲突时以 f-java-springboot 为准）",
+      "categories": [
+        "java"
+      ],
       "skillsShUrl": "https://skills.sh/github/awesome-copilot/java-springboot",
       "githubUrl": "https://github.com/github/awesome-copilot/blob/main/skills/java-springboot/SKILL.md"
     },
     "mcp-builder": {
-      "categories": ["mcp"],
-      "descriptionZh": "高质量 MCP Server 设计、实现与评估",
+      "categories": [
+        "mcp"
+      ],
       "skillsShUrl": "https://skills.sh/anthropics/skills/mcp-builder",
       "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/mcp-builder/SKILL.md"
     },
     "next": {
-      "categories": ["web/react"],
-      "descriptionZh": "json-render Next.js 渲染器：由 JSON spec 生成多页应用",
+      "categories": [
+        "web/react"
+      ],
       "skillsShUrl": "https://skills.sh/vercel-labs/json-render/next",
       "githubUrl": "https://github.com/vercel-labs/json-render/blob/main/skills/next/SKILL.md"
     },
     "nuxt": {
-      "categories": ["web/vue"],
-      "descriptionZh": "Nuxt 全栈 Vue：SSR、路由、auto-imports 与 Nitro",
+      "categories": [
+        "web/vue"
+      ],
       "skillsShUrl": "https://skills.sh/antfu/skills/nuxt",
       "githubUrl": "https://github.com/antfu/skills/blob/main/skills/nuxt/SKILL.md"
     },
     "openspec-archiving": {
-      "categories": ["spec"],
-      "descriptionZh": "归档已完成变更并将规范差异合并到常驻文档",
+      "categories": [
+        "spec"
+      ],
       "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-archiving",
       "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-archiving/SKILL.md"
     },
     "openspec-context-loading": {
-      "categories": ["spec"],
-      "descriptionZh": "加载项目规范上下文、列出能力与进行中变更",
+      "categories": [
+        "spec"
+      ],
       "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-context-loading",
       "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-context-loading/SKILL.md"
     },
     "openspec-implementation": {
-      "categories": ["spec"],
-      "descriptionZh": "按序实施已批准的 OpenSpec 提案并验证",
+      "categories": [
+        "spec"
+      ],
       "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-implementation",
       "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-implementation/SKILL.md"
     },
     "openspec-proposal-creation": {
-      "categories": ["spec"],
-      "descriptionZh": "创建结构化 OpenSpec 变更提案（英文）",
+      "categories": [
+        "spec"
+      ],
       "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-proposal-creation",
       "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-proposal-creation/SKILL.md"
     },
     "openspec-proposal-creation-cn": {
-      "categories": ["spec"],
-      "descriptionZh": "创建结构化 OpenSpec 变更提案（中文）",
+      "categories": [
+        "spec"
+      ],
       "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-proposal-creation-cn",
       "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-proposal-creation-cn/SKILL.md"
     },
     "pdf": {
-      "categories": ["docs"],
-      "descriptionZh": "PDF 提取、合并拆分、表单、水印、加密与 OCR",
+      "categories": [
+        "docs"
+      ],
       "skillsShUrl": "https://skills.sh/anthropics/skills/pdf",
       "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/pdf/SKILL.md"
     },
     "pptx": {
-      "categories": ["docs"],
-      "descriptionZh": "PowerPoint（.pptx/.potx）创建、编辑与视觉 QA",
+      "categories": [
+        "docs"
+      ],
       "skillsShUrl": "https://skills.sh/anthropics/skills/pptx",
       "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/pptx/SKILL.md"
     },
     "vben": {
-      "categories": ["web/vue"],
-      "descriptionZh": "Vben Admin 5.0 中后台开发指导",
+      "categories": [
+        "web/vue"
+      ],
       "skillsShUrl": "https://skills.sh/vbenjs/skills/vben",
       "githubUrl": "https://github.com/vbenjs/skills/blob/main/skills/SKILL.md"
     },
     "vercel-composition-patterns": {
-      "categories": ["web/react"],
-      "descriptionZh": "React 组合式组件模式，避免布尔 props 膨胀",
+      "categories": [
+        "web/react"
+      ],
       "skillsShUrl": "https://skills.sh/vercel-labs/agent-skills/vercel-composition-patterns",
       "githubUrl": "https://github.com/vercel-labs/agent-skills/blob/main/skills/composition-patterns/SKILL.md"
     },
     "vercel-react-best-practices": {
-      "categories": ["web/react"],
-      "descriptionZh": "React/Next.js 性能最佳实践（瀑布请求、包体积、重渲染等）",
+      "categories": [
+        "web/react"
+      ],
       "skillsShUrl": "https://skills.sh/vercel-labs/agent-skills/vercel-react-best-practices",
       "githubUrl": "https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md"
     },
     "vercel-react-view-transitions": {
-      "categories": ["web/react"],
-      "descriptionZh": "React View Transitions 页面/元素过渡动画",
+      "categories": [
+        "web/react"
+      ],
       "skillsShUrl": "https://skills.sh/vercel-labs/agent-skills/vercel-react-view-transitions",
       "githubUrl": "https://github.com/vercel-labs/agent-skills/blob/main/skills/react-view-transitions/SKILL.md"
     },
     "web-design-guidelines": {
-      "categories": ["web/design"],
-      "descriptionZh": "对照 Web Interface Guidelines 审查 UI/UX/无障碍",
+      "categories": [
+        "web/design"
+      ],
       "skillsShUrl": "https://skills.sh/vercel-labs/agent-skills/web-design-guidelines",
       "githubUrl": "https://github.com/vercel-labs/agent-skills/blob/main/skills/web-design-guidelines/SKILL.md"
     },
     "webapp-testing": {
-      "categories": ["testing"],
-      "descriptionZh": "使用 Playwright 测试本地 Web 应用",
+      "categories": [
+        "testing"
+      ],
       "skillsShUrl": "https://skills.sh/anthropics/skills/webapp-testing",
       "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/webapp-testing/SKILL.md"
     },
     "xlsx": {
-      "categories": ["docs"],
-      "descriptionZh": "表格（.xlsx/.csv/.tsv）读写、公式、图表与清洗",
+      "categories": [
+        "docs"
+      ],
       "skillsShUrl": "https://skills.sh/anthropics/skills/xlsx",
       "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/xlsx/SKILL.md"
     }

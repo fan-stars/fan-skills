@@ -1,19 +1,20 @@
 # Skills 分类目录
 
-本目录是仓库的 **只读派生产物**：内容由 `.agents/skills`（经 `skills-lock.json` 更新）按 `skills-catalog.json` **全量清空后重建**。
+本目录是仓库的 **只读派生产物**：内容由 `.agents/skills`（经 `skills-lock.json` 更新）按 `skills-catalog.json` **全量清空后重建**；中文简介与详细说明由 AI 生成。
 
 ## 约定
 
 - **真相源**：`.agents/skills/` + `skills-lock.json`
+- **分类元数据**：`skills-catalog.json`（不含中文文案）
+- **AI 说明缓存**：`.cursor/skills/sync-skills-catalog/generated/skill-docs.json`
 - **派生产物**：本目录 `skills/`（禁止手改）
-- **多分类**：同一 skill 可出现在多个分类下（完整副本）
-- **同步方式**：使用 `.cursor/skills/sync-skills-catalog/` 运维 skill（该 skill 不会同步到本目录）
-- **第一期**：不提供按框架的 presets 预设包；请按分类手工拷贝所需 skill
+- **同步方式**：使用 `.cursor/skills/sync-skills-catalog/` 运维 skill
+- **第一期**：不提供 presets 预设包
 
 ## 如何给新项目拷贝
 
-1. 打开对应分类目录（或本页下方链接）
-2. 将需要的 skill 文件夹复制到目标项目的 `.agents/skills/`（或该项目约定的 skills 目录）
+1. 打开对应分类目录，阅读总览表与详细介绍
+2. 将需要的 skill 文件夹复制到目标项目的 `.agents/skills/`
 3. 如目标项目使用 `skills-lock.json`，请按需补齐 lock 条目
 
 ## 分类索引
@@ -33,9 +34,8 @@
 ## 维护
 
 ```bash
-# 1) 按 lock 更新 .agents/skills（可选）
-npx skills update -y
-
-# 2) 全量重建 skills/ 与中文 README
-python3 .cursor/skills/sync-skills-catalog/scripts/sync.py
+npx skills update -y   # 可选
+python3 .cursor/skills/sync-skills-catalog/scripts/sync.py status
+# 按运维 skill：为 NEED_GENERATE 列表生成/更新 skill-docs.json
+python3 .cursor/skills/sync-skills-catalog/scripts/sync.py render
 ```
