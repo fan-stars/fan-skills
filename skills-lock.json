@@ -13,6 +13,12 @@
       "skillPath": "skills/antd/SKILL.md",
       "computedHash": "5e26c8042060bb811118927b5daf637af7929a00fa973dd8f5f804f3ba6e2bf2"
     },
+    "create-agentsmd": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/create-agentsmd/SKILL.md",
+      "computedHash": "2eeb41f47261c2e8e92514645a1375c8c1133318c75d660eb77da5863609e1bc"
+    },
     "create-specification": {
       "source": "github/awesome-copilot",
       "sourceType": "github",
