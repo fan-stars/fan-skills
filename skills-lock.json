@@ -13,6 +13,12 @@
       "skillPath": "skills/antd/SKILL.md",
       "computedHash": "5e26c8042060bb811118927b5daf637af7929a00fa973dd8f5f804f3ba6e2bf2"
     },
+    "codebase-design": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/codebase-design/SKILL.md",
+      "computedHash": "6d9d51d8caa01633fd00cf87089c5618c982321f942ac69f62565dc001c6b22f"
+    },
     "create-agentsmd": {
       "source": "github/awesome-copilot",
       "sourceType": "github",
@@ -37,11 +43,23 @@
       "skillPath": "skills/engineering/domain-modeling/SKILL.md",
       "computedHash": "363cb0f53b0b431e7c00086ad1f823500b7e1b70b5616ee969c979f0934e9e6e"
     },
+    "f-java-springboot": {
+      "source": "fan-stars/fan-skills",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/f-java-springboot/SKILL.md",
+      "computedHash": "84160ddd530eb880450cc2dfa28791c854eaf507f4e708a0d02fda41a992102d"
+    },
     "find-skills": {
       "source": "vercel-labs/skills",
       "sourceType": "github",
       "skillPath": "skills/find-skills/SKILL.md",
       "computedHash": "913b9d37d0d54047dd65222bb8c67b2bf04e3cb87dcad1729068d7a8b2c8c396"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "computedHash": "4eabc66183767153e404b39d1b839b1c37f2d82d86f0a0d7e880a579d8d62336"
     },
     "grill-me": {
       "source": "mattpocock/skills",
@@ -72,6 +90,12 @@
       "sourceType": "github",
       "skillPath": "skills/java-springboot/SKILL.md",
       "computedHash": "574898202ce298557226c49d35036a6e9e66a1cb205ea15c44db298e6d74e3bd"
+    },
+    "mcp-builder": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/mcp-builder/SKILL.md",
+      "computedHash": "826e46adf81e1372282e205c34e1a2ee876e72148007726e4a2512599d2fef7b"
     },
     "next": {
       "source": "vercel-labs/json-render",
@@ -150,6 +174,18 @@
       "sourceType": "github",
       "skillPath": "skills/react-view-transitions/SKILL.md",
       "computedHash": "c8952fc9127fa0564d0cb71dccb4215a5608ac933b5831104f09173a97a46f85"
+    },
+    "web-design-guidelines": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/web-design-guidelines/SKILL.md",
+      "computedHash": "f3bc47f890f42a44db1007ab390709ec368e4b8c089baee6b0007182236ac474"
+    },
+    "webapp-testing": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/webapp-testing/SKILL.md",
+      "computedHash": "ad5b1fc52807e9afa4635e59218a026b164dc58b6c3f41b0f7c644dcd6ccf572"
     },
     "xlsx": {
       "source": "anthropics/skills",
