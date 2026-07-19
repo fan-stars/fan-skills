@@ -43,6 +43,18 @@
       "skillPath": "skills/java-springboot/SKILL.md",
       "computedHash": "574898202ce298557226c49d35036a6e9e66a1cb205ea15c44db298e6d74e3bd"
     },
+    "next": {
+      "source": "vercel-labs/json-render",
+      "sourceType": "github",
+      "skillPath": "skills/next/SKILL.md",
+      "computedHash": "4a609d04a169e0292feff34b22150044fdda0e75de17c03dd30b38fed1786a90"
+    },
+    "nuxt": {
+      "source": "antfu/skills",
+      "sourceType": "github",
+      "skillPath": "skills/nuxt/SKILL.md",
+      "computedHash": "96dbdbfc06bf7045aeb9a463b972d5c0b5679d6dadf196d8ef6b98dc6defed2d"
+    },
     "openspec-archiving": {
       "source": "forztf/open-skilled-sdd",
       "sourceType": "github",
@@ -72,6 +84,12 @@
       "sourceType": "github",
       "skillPath": "skills/openspec-proposal-creation-cn/SKILL.md",
       "computedHash": "49392b0868376bf851ede067a7faaa4408b8c6764169fa4b0608e35593b2e050"
+    },
+    "vben": {
+      "source": "vbenjs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/SKILL.md",
+      "computedHash": "f16333f70dd30504f16aee4f6d74563f4259559186cdf6ace3e1840fe7dfe2ed"
     }
   }
 }
