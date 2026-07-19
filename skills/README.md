@@ -21,15 +21,15 @@
 
 | 分类 | 说明 | Skill 数量 | 入口 |
 | --- | --- | ---: | --- |
-| `web/react` | Web / React — React、Next.js 与 Ant Design 相关 skills | 7 | [README](web/react/README.md) |
+| `web/react` | Web / React — React、Next.js 与 Ant Design 相关 skills | 8 | [README](web/react/README.md) |
 | `web/vue` | Web / Vue — Vue、Nuxt 与 Vben Admin 相关 skills | 2 | [README](web/vue/README.md) |
-| `web/design` | Web / 设计 — 前端视觉设计与 Web 界面规范审查 | 2 | [README](web/design/README.md) |
+| `web/design` | Web / 设计 — 前端视觉设计与 Web 界面规范审查 | 3 | [README](web/design/README.md) |
 | `java` | Java — Spring Boot、Fan 后端与 Java 重构 | 3 | [README](java/README.md) |
 | `spec` | 规范 / Spec — OpenSpec 与规格文档相关 skills | 7 | [README](spec/README.md) |
 | `docs` | 文档与办公 — Word、PDF、PPT、表格处理 | 4 | [README](docs/README.md) |
-| `workflow` | 工作流 — 规划质询、领域建模、架构词汇与技能发现 | 6 | [README](workflow/README.md) |
+| `workflow` | 工作流 — 规划质询、领域建模、架构词汇与技能发现 | 7 | [README](workflow/README.md) |
 | `mcp` | MCP — MCP Server 构建与评估 | 1 | [README](mcp/README.md) |
-| `testing` | 测试 — Web 应用自动化测试 | 1 | [README](testing/README.md) |
+| `testing` | 测试 — Web 应用自动化测试 | 2 | [README](testing/README.md) |
 
 ## 维护
 

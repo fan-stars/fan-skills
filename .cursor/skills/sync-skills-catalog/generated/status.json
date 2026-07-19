@@ -1,5 +1,6 @@
 {
   "hashes": {
+    "agent-browser": "ecc7641aea05f85ca3b11e7759d32aaf52fe05946ab4b63739c7bf78a41237a2",
     "ant-design": "263b6d59b572a7bcd144bcd58601221ff830c4b3e1054299d5bec8d34c91a974",
     "antd": "a16dbdd57ff869e7ae2589258ba6ea84268e4c134409ec920ee0064be905ecd0",
     "codebase-design": "c46b49303a81c7fc8934d0f4fbc44382cdecb73942d85d8d7db3523407fff8fa",
@@ -7,7 +8,9 @@
     "create-specification": "2691201865f91d6b5042e4f739d71a6e521f63dd432adaebef7f0cd39fadcf4c",
     "docx": "7d67716c32e093e685627dca5e7f8622e8865e26ff0db941172406929797d47a",
     "domain-modeling": "40afc20cd49261811d7fe377fff53c1804f5e27644b42adb65469c7fc305a3a2",
+    "extract-design-system": "945947a3a85d4113ac35e55247fcb8f46eac44eb477a3498b5e56ffedfdb65f9",
     "f-java-springboot": "cedffacd0b5722b43181bcfc63d9a17f1556c31d664e974da34582b82fbde2cb",
+    "f-project-runtime-manager": "71ec1f8f9ed16530b22965fe68ad29605409a5eb2902140f6e75414051f9256d",
     "find-skills": "b146008599c31057cef1c145774cea5d5afb30e8f43fa802e47a4b461419aaaf",
     "frontend-design": "665c585455decbcb02116bc928adf5148b9cd0f67b7eb4908c8c0d647c00f68a",
     "grill-me": "000514e9633b1a2df8bef98549e99b6eaf1a8c3fabfad0e3b328440b3b226c90",
@@ -17,6 +20,7 @@
     "java-springboot": "dfb77c16fa1ee64d6b6a3fadd10bca425c72c7da8696952fb066f59eeb10aa17",
     "mcp-builder": "5a904ea67e691bc7454cc2a631f24a52f3a95f397d76862cdfc6a9370d79363d",
     "next": "4a609d04a169e0292feff34b22150044fdda0e75de17c03dd30b38fed1786a90",
+    "next-browser": "f15defd084c3eba70e264f159f248bf84bfedb431ec30e19e2e4419b63a8c1cd",
     "nuxt": "e142fa5c8c70c97cae023af58cd9156379af235ab4911e37d84c92f5cecb23ae",
     "openspec-archiving": "df652ac8e4d3c5b3d12658e0fa905c677b1e51031796377a7bf099983841a44a",
     "openspec-context-loading": "075bbc70a7e77f7f9167c2aa81ea5c685e4f56fb12324628d447d98835476207",
@@ -67,7 +71,12 @@
     "webapp-testing",
     "xlsx"
   ],
-  "needGenerate": [],
+  "needGenerate": [
+    "agent-browser",
+    "extract-design-system",
+    "f-project-runtime-manager",
+    "next-browser"
+  ],
   "invalid": [],
   "docsPath": ".cursor/skills/sync-skills-catalog/generated/skill-docs.json"
 }

@@ -39,6 +39,13 @@
     }
   },
   "skills": {
+    "agent-browser": {
+      "categories": [
+        "testing"
+      ],
+      "skillsShUrl": "https://skills.sh/vercel-labs/agent-browser/agent-browser",
+      "githubUrl": "https://github.com/vercel-labs/agent-browser/blob/main/skills/agent-browser/SKILL.md"
+    },
     "ant-design": {
       "categories": [
         "web/react"
@@ -88,9 +95,23 @@
       "skillsShUrl": "https://skills.sh/mattpocock/skills/domain-modeling",
       "githubUrl": "https://github.com/mattpocock/skills/blob/main/skills/engineering/domain-modeling/SKILL.md"
     },
+    "extract-design-system": {
+      "categories": [
+        "web/design"
+      ],
+      "skillsShUrl": "https://skills.sh/arvindrk/extract-design-system/extract-design-system",
+      "githubUrl": "https://github.com/arvindrk/extract-design-system/blob/main/skills/extract-design-system/SKILL.md"
+    },
     "f-java-springboot": {
       "categories": [
         "java"
+      ],
+      "skillsShUrl": null,
+      "githubUrl": null
+    },
+    "f-project-runtime-manager": {
+      "categories": [
+        "workflow"
       ],
       "skillsShUrl": null,
       "githubUrl": null
@@ -158,6 +179,13 @@
       ],
       "skillsShUrl": "https://skills.sh/vercel-labs/json-render/next",
       "githubUrl": "https://github.com/vercel-labs/json-render/blob/main/skills/next/SKILL.md"
+    },
+    "next-browser": {
+      "categories": [
+        "web/react"
+      ],
+      "skillsShUrl": "https://skills.sh/vercel-labs/next-browser/next-browser",
+      "githubUrl": null
     },
     "nuxt": {
       "categories": [

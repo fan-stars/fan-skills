@@ -12,6 +12,7 @@ React、Next.js 与 Ant Design 相关 skills
 | `antd` | `skills/web/react/antd/` | 基于 @ant-design/cli 的离线 antd 知识库：查 API、示例、文档、诊断与迁移。 | [skills.sh](https://skills.sh/ant-design/antd-skill/antd) | [GitHub](https://github.com/ant-design/antd-skill/blob/main/skills/antd/SKILL.md) |
 | `frontend-design` | `skills/web/react/frontend-design/` | 做有辨识度的前端视觉设计：排版、调色与布局避免模板感默认解。 | [skills.sh](https://skills.sh/anthropics/skills/frontend-design) | [GitHub](https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md) |
 | `next` | `skills/web/react/next/` | 用 @json-render/next 把 JSON 规格渲染成带路由与 SSR 的 Next.js 应用。 | [skills.sh](https://skills.sh/vercel-labs/json-render/next) | [GitHub](https://github.com/vercel-labs/json-render/blob/main/skills/next/SKILL.md) |
+| `next-browser` | `skills/web/react/next-browser/` | 把 React DevTools 与 Next.js dev overlay 变成 shell 命令，供 Agent 调试 Next 应用。 | [skills.sh](https://skills.sh/vercel-labs/next-browser/next-browser) | [本仓库](../../../.agents/skills/next-browser/SKILL.md) |
 | `vercel-composition-patterns` | `skills/web/react/vercel-composition-patterns/` | 用组合式 React 模式消除布尔 props 膨胀，构建灵活可维护组件 API。 | [skills.sh](https://skills.sh/vercel-labs/agent-skills/vercel-composition-patterns) | [GitHub](https://github.com/vercel-labs/agent-skills/blob/main/skills/composition-patterns/SKILL.md) |
 | `vercel-react-best-practices` | `skills/web/react/vercel-react-best-practices/` | Vercel 出品的 React/Next 性能规则集：消除瀑布、瘦包与渲染优化。 | [skills.sh](https://skills.sh/vercel-labs/agent-skills/vercel-react-best-practices) | [GitHub](https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md) |
 | `vercel-react-view-transitions` | `skills/web/react/vercel-react-view-transitions/` | 用 React View Transition API 做原生感页面与元素过渡动画。 | [skills.sh](https://skills.sh/vercel-labs/agent-skills/vercel-react-view-transitions) | [GitHub](https://github.com/vercel-labs/agent-skills/blob/main/skills/react-view-transitions/SKILL.md) |
@@ -97,6 +98,26 @@ React、Next.js 与 Ant Design 相关 skills
 #### 注意事项
 
 需要同时理解 json-render 元素模型与 Next App Router 约定。规格错误会导致路由/布局缺失，改 spec 后应验证页面可构建。
+
+### `next-browser`
+
+**路径**：`skills/web/react/next-browser/`
+
+#### 核心能力
+
+以结构化文本暴露组件树、props、hooks、PPR shell、错误、网络与无障碍快照，让 Agent 无需人工打开 DevTools 即可 `snapshot`→读输出→`click eN` 地迭代调试。命令是对常驻浏览器守护进程的一次性调用。
+
+#### 适用场景
+
+调试 Next.js 应用、检查 React 组件状态、诊断水合错误、优化路由切换或首屏渲染性能时使用；需要项目使用 Next.js 且启动了 dev server。
+
+#### 主要覆盖内容
+
+CLI 安装与版本检查、tree/snapshot/errors/network 等命令模型，以及 Next.js 16.2+ 内置文档（node_modules/next/dist/docs/）优先阅读的约定。
+
+#### 注意事项
+
+需先全局安装 `@vercel/next-browser` 并 `playwright install chromium`。仓库中无 SKILL.md，本 skill 手动依据 skills.sh 内容维护；做 PPR/Cache Components 前应读内置文档而非依赖记忆。
 
 ### `vercel-composition-patterns`
 
