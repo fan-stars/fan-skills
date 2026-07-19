@@ -7,6 +7,12 @@
       "skillPath": "skills/create-specification/SKILL.md",
       "computedHash": "ae2c3ca87d871056b4b7d8e11758ee8c29fcb307ba890b1407ab5a88b8d2a5d8"
     },
+    "docx": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/docx/SKILL.md",
+      "computedHash": "59c70107f8eae818bdfca7da685a6e4111aa519638b667775b794cb74987ec47"
+    },
     "domain-modeling": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -85,11 +91,29 @@
       "skillPath": "skills/openspec-proposal-creation-cn/SKILL.md",
       "computedHash": "49392b0868376bf851ede067a7faaa4408b8c6764169fa4b0608e35593b2e050"
     },
+    "pdf": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/pdf/SKILL.md",
+      "computedHash": "cfbc539377088ca7e44a813b30c306327385bbd973cd7a721e1743f60837dd62"
+    },
+    "pptx": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/pptx/SKILL.md",
+      "computedHash": "82eaf5daede5a1779aa17ccf06597cb209a0c2bd41d3a2f18bd45e0301a387fb"
+    },
     "vben": {
       "source": "vbenjs/skills",
       "sourceType": "github",
       "skillPath": "skills/SKILL.md",
       "computedHash": "f16333f70dd30504f16aee4f6d74563f4259559186cdf6ace3e1840fe7dfe2ed"
+    },
+    "xlsx": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/xlsx/SKILL.md",
+      "computedHash": "f5945e6e76dc7c178375e5cdf3140959b30cbcd4570ec3dc62296812259fc38d"
     }
   }
 }
