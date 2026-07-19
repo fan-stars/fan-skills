@@ -129,6 +129,14 @@
       "notes": "禁止一次抛多个问题以免干扰决策。未确认双方已达成共享理解之前，不要开始改代码或落地实现。",
       "contentHash": "35963aa4abbdae92eb75d8c2dc69eaa70126315a642aba1e5371bd4a9305fb2a"
     },
+    "improve-codebase-architecture": {
+      "summary": "扫描代码库找加深模块的机会，输出 HTML 报告并质询选定重构方向。",
+      "capabilities": "探索热点与浅模块，用深模块词汇提出加深机会，生成可视化 HTML 报告，再对用户选定的一项做 grilling，目标是提升可测性与 AI 可导航性；依赖 codebase-design 术语与可选 CONTEXT.md/ADR。",
+      "scenarios": "迁移或大规模重构前需要划清模块边界、找出耦合与难测接缝，或想把原生页面逻辑重组为更深接口时使用；适合 H5 改 React 时先梳理架构摩擦。",
+      "coverage": "基于提交热点的范围选择、Explore 摩擦点、删除测试、HTML 报告产出与打开、选定机会后的质询流程，以及与 domain glossary/ADR 的衔接。",
+      "notes": "标记 disable-model-invocation，需显式触发。报告写在系统临时目录，不入库。上游已与 codebase-design 配套；本库 path 为 engineering 下正式 skill。",
+      "contentHash": "d3682058df92c259b47c36503baa02345d5811758621b5dc03081d5ba0f7b69b"
+    },
     "java-refactoring-extract-method": {
       "summary": "按范例在 Java 中安全实施 Extract Method，理清意图与类型边界。",
       "capabilities": "以专家重构视角演示如何把长方法拆成意图清晰的小方法，包括空值/非法 ID 校验抽取、命名改进与保持行为等价。",
@@ -232,6 +240,14 @@
       "coverage": "创建陷阱、编辑工作流、thumbnail/add_slide/clean/validate 等脚本职责。",
       "notes": "从模板派生的文件校验需传 `--original`。编辑后保持关系与内容类型一致，避免手工漏改 rels。",
       "contentHash": "542c716c50714598b19d12ba977d6c878d650b5798a8588026700d11bcd854bf"
+    },
+    "request-refactor-plan": {
+      "summary": "通过访谈产出小步可验证的重构计划，并可整理为 GitHub Issue。",
+      "capabilities": "引导用户描述问题与方案，探查仓库现状与测试覆盖，界定范围内外，把改造拆成尽量小的可工作提交清单，并按模板整理问题陈述、方案、决策与测试约定。",
+      "scenarios": "要把原生 HTML/JS 迁到 React+Ant Design+Next，或任何大型重构需要先立 RFC/Issue、避免一步改崩时使用。",
+      "coverage": "访谈步骤、选项对比、范围敲定、测试策略、tiny commits 计划模板（Problem/Solution/Commits/Decision/Testing/Out of Scope）。",
+      "notes": "上游路径在 deprecated 目录，仍可用但需知可能不再积极演进。创建 GitHub Issue 需仓库权限；也可只输出计划文本。与 grilling/openspec 可组合使用。",
+      "contentHash": "8ee013f00ce0c861ac20151351ac9a37e35fe3b1bdff8dde57568a69f9363c31"
     },
     "vben": {
       "summary": "Vben Admin 5.0 中后台开发：Vue3、Vite、路由权限与 Monorepo 约定。",

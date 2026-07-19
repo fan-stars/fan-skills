@@ -158,6 +158,13 @@
       "skillsShUrl": "https://skills.sh/mattpocock/skills/grilling",
       "githubUrl": "https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md"
     },
+    "improve-codebase-architecture": {
+      "categories": [
+        "workflow"
+      ],
+      "skillsShUrl": "https://skills.sh/mattpocock/skills/improve-codebase-architecture",
+      "githubUrl": "https://github.com/mattpocock/skills/blob/main/skills/engineering/improve-codebase-architecture/SKILL.md"
+    },
     "java-refactoring-extract-method": {
       "categories": [
         "java"
@@ -248,6 +255,13 @@
       ],
       "skillsShUrl": "https://skills.sh/anthropics/skills/pptx",
       "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/pptx/SKILL.md"
+    },
+    "request-refactor-plan": {
+      "categories": [
+        "workflow"
+      ],
+      "skillsShUrl": "https://skills.sh/mattpocock/skills/request-refactor-plan",
+      "githubUrl": "https://github.com/mattpocock/skills/blob/main/skills/deprecated/request-refactor-plan/SKILL.md"
     },
     "vben": {
       "categories": [

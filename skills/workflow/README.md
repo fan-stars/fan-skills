@@ -15,6 +15,8 @@
 | `grill-me` | `skills/workflow/grill-me/` | 启动一轮严厉质询会话，压力测试计划或设计直至达成共识。 | [skills.sh](https://skills.sh/mattpocock/skills/grill-me) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/productivity/grill-me/SKILL.md) |
 | `grill-with-docs` | `skills/workflow/grill-with-docs/` | 严厉质询方案的同时，用领域建模把 ADR 与词汇表边问边写下来。 | [skills.sh](https://skills.sh/mattpocock/skills/grill-with-docs) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/engineering/grill-with-docs/SKILL.md) |
 | `grilling` | `skills/workflow/grilling/` | 一次只问一个问题，沿决策树严厉追问计划，直到达成共享理解。 | [skills.sh](https://skills.sh/mattpocock/skills/grilling) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md) |
+| `improve-codebase-architecture` | `skills/workflow/improve-codebase-architecture/` | 扫描代码库找加深模块的机会，输出 HTML 报告并质询选定重构方向。 | [skills.sh](https://skills.sh/mattpocock/skills/improve-codebase-architecture) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/engineering/improve-codebase-architecture/SKILL.md) |
+| `request-refactor-plan` | `skills/workflow/request-refactor-plan/` | 通过访谈产出小步可验证的重构计划，并可整理为 GitHub Issue。 | [skills.sh](https://skills.sh/mattpocock/skills/request-refactor-plan) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/deprecated/request-refactor-plan/SKILL.md) |
 
 ## 详细介绍
 
@@ -157,3 +159,43 @@ Skills CLI 关键命令、先看排行榜再 CLI 搜索、安装来源与更新�
 #### 注意事项
 
 禁止一次抛多个问题以免干扰决策。未确认双方已达成共享理解之前，不要开始改代码或落地实现。
+
+### `improve-codebase-architecture`
+
+**路径**：`skills/workflow/improve-codebase-architecture/`
+
+#### 核心能力
+
+探索热点与浅模块，用深模块词汇提出加深机会，生成可视化 HTML 报告，再对用户选定的一项做 grilling，目标是提升可测性与 AI 可导航性；依赖 codebase-design 术语与可选 CONTEXT.md/ADR。
+
+#### 适用场景
+
+迁移或大规模重构前需要划清模块边界、找出耦合与难测接缝，或想把原生页面逻辑重组为更深接口时使用；适合 H5 改 React 时先梳理架构摩擦。
+
+#### 主要覆盖内容
+
+基于提交热点的范围选择、Explore 摩擦点、删除测试、HTML 报告产出与打开、选定机会后的质询流程，以及与 domain glossary/ADR 的衔接。
+
+#### 注意事项
+
+标记 disable-model-invocation，需显式触发。报告写在系统临时目录，不入库。上游已与 codebase-design 配套；本库 path 为 engineering 下正式 skill。
+
+### `request-refactor-plan`
+
+**路径**：`skills/workflow/request-refactor-plan/`
+
+#### 核心能力
+
+引导用户描述问题与方案，探查仓库现状与测试覆盖，界定范围内外，把改造拆成尽量小的可工作提交清单，并按模板整理问题陈述、方案、决策与测试约定。
+
+#### 适用场景
+
+要把原生 HTML/JS 迁到 React+Ant Design+Next，或任何大型重构需要先立 RFC/Issue、避免一步改崩时使用。
+
+#### 主要覆盖内容
+
+访谈步骤、选项对比、范围敲定、测试策略、tiny commits 计划模板（Problem/Solution/Commits/Decision/Testing/Out of Scope）。
+
+#### 注意事项
+
+上游路径在 deprecated 目录，仍可用但需知可能不再积极演进。创建 GitHub Issue 需仓库权限；也可只输出计划文本。与 grilling/openspec 可组合使用。

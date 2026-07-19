@@ -16,6 +16,7 @@
     "grill-me": "000514e9633b1a2df8bef98549e99b6eaf1a8c3fabfad0e3b328440b3b226c90",
     "grill-with-docs": "84554e18aac963e26214159bfb522ddbd72dab710f43176727ca14f432033567",
     "grilling": "35963aa4abbdae92eb75d8c2dc69eaa70126315a642aba1e5371bd4a9305fb2a",
+    "improve-codebase-architecture": "d3682058df92c259b47c36503baa02345d5811758621b5dc03081d5ba0f7b69b",
     "java-refactoring-extract-method": "ef7f530544c0d02f8a2d12283e170ddb603b462f13f378732bbe86c90119f1c4",
     "java-springboot": "dfb77c16fa1ee64d6b6a3fadd10bca425c72c7da8696952fb066f59eeb10aa17",
     "mcp-builder": "5a904ea67e691bc7454cc2a631f24a52f3a95f397d76862cdfc6a9370d79363d",
@@ -29,6 +30,7 @@
     "openspec-proposal-creation-cn": "22e527c99186ef43372b18937870e56624632759b6c107437481533c3a48b928",
     "pdf": "6a01b6dc757b8856d7eba5e9985d8550783f946d7afdf86402ba324b93239fc0",
     "pptx": "542c716c50714598b19d12ba977d6c878d650b5798a8588026700d11bcd854bf",
+    "request-refactor-plan": "8ee013f00ce0c861ac20151351ac9a37e35fe3b1bdff8dde57568a69f9363c31",
     "vben": "9a299daa7d891f200b0098a065d27e46e13fcb7570960d56ec9703ae37ab7eb2",
     "vercel-composition-patterns": "646f870906914c3787efa7403ec4716dfddf78fc17a12ec1f0556caf2143ac66",
     "vercel-react-best-practices": "e3f2294574b469c7c198373a443a86571012769d0bbeed68854bd55642ec0d7b",
@@ -75,7 +77,10 @@
     "webapp-testing",
     "xlsx"
   ],
-  "needGenerate": [],
+  "needGenerate": [
+    "improve-codebase-architecture",
+    "request-refactor-plan"
+  ],
   "invalid": [],
   "docsPath": ".cursor/skills/sync-skills-catalog/generated/skill-docs.json"
 }
