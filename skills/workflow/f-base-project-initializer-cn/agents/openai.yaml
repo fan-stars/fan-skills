@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fan 项目初始化（中文）"
+  short_description: "中文执行 Fan 模板改名、配置迁移、脚本生成与启动验证"
+  default_prompt: "使用 $f-base-project-initializer-cn 按我提供的项目名称初始化 Fan 前后端项目。"

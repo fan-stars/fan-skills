@@ -9,6 +9,8 @@
     "docx": "7d67716c32e093e685627dca5e7f8622e8865e26ff0db941172406929797d47a",
     "domain-modeling": "40afc20cd49261811d7fe377fff53c1804f5e27644b42adb65469c7fc305a3a2",
     "extract-design-system": "945947a3a85d4113ac35e55247fcb8f46eac44eb477a3498b5e56ffedfdb65f9",
+    "f-base-project-initializer": "729446024d182f416900d0a246d295198b6438974b936381bede5a20965e44af",
+    "f-base-project-initializer-cn": "b19b39fac339e9516fc95d8d57cf8db543970939bf41f8356fab6c48663fad8f",
     "f-java-springboot": "cedffacd0b5722b43181bcfc63d9a17f1556c31d664e974da34582b82fbde2cb",
     "f-project-runtime-manager": "71ec1f8f9ed16530b22965fe68ad29605409a5eb2902140f6e75414051f9256d",
     "find-skills": "b146008599c31057cef1c145774cea5d5afb30e8f43fa802e47a4b461419aaaf",
@@ -49,6 +51,8 @@
     "docx",
     "domain-modeling",
     "extract-design-system",
+    "f-base-project-initializer",
+    "f-base-project-initializer-cn",
     "f-java-springboot",
     "f-project-runtime-manager",
     "find-skills",
@@ -56,6 +60,7 @@
     "grill-me",
     "grill-with-docs",
     "grilling",
+    "improve-codebase-architecture",
     "java-refactoring-extract-method",
     "java-springboot",
     "mcp-builder",
@@ -69,6 +74,7 @@
     "openspec-proposal-creation-cn",
     "pdf",
     "pptx",
+    "request-refactor-plan",
     "vben",
     "vercel-composition-patterns",
     "vercel-react-best-practices",
@@ -77,10 +83,7 @@
     "webapp-testing",
     "xlsx"
   ],
-  "needGenerate": [
-    "improve-codebase-architecture",
-    "request-refactor-plan"
-  ],
+  "needGenerate": [],
   "invalid": [],
   "docsPath": ".cursor/skills/sync-skills-catalog/generated/skill-docs.json"
 }

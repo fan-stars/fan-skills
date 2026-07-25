@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fan 项目初始化"
+  short_description: "拉取并重命名 Fan 前后端项目，完成配置与启动验证"
+  default_prompt: "Use $f-base-project-initializer to initialize a new Fan project using my chosen project name."

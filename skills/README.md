@@ -27,10 +27,10 @@
 | `java` | Java — Spring Boot、Fan 后端与 Java 重构 | 3 | [README](java/README.md) |
 | `spec` | 规范 / Spec — OpenSpec 与规格文档相关 skills | 7 | [README](spec/README.md) |
 | `docs` | 文档与办公 — Word、PDF、PPT、表格处理 | 4 | [README](docs/README.md) |
-| `workflow` | 工作流 — 规划质询、领域建模、架构词汇与技能发现 | 9 | [README](workflow/README.md) |
+| `workflow` | 工作流 — 规划质询、领域建模、架构词汇与技能发现 | 11 | [README](workflow/README.md) |
 | `mcp` | MCP — MCP Server 构建与评估 | 1 | [README](mcp/README.md) |
 | `testing` | 测试 — Web 应用自动化测试 | 2 | [README](testing/README.md) |
-| `fan` | Fan 自研 — Fan 团队自行编写、非来自公开开源项目的 skills | 2 | [README](fan/README.md) |
+| `fan` | Fan 自研 — Fan 团队自行编写、非来自公开开源项目的 skills | 4 | [README](fan/README.md) |
 
 ## 维护
 

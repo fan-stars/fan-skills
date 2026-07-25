@@ -10,6 +10,8 @@
 | --- | --- | --- | --- | --- |
 | `codebase-design` | `skills/workflow/codebase-design/` | 用「深模块」词汇设计小接口、大行为、可测试的代码接缝与边界。 | [skills.sh](https://skills.sh/mattpocock/skills/codebase-design) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/engineering/codebase-design/SKILL.md) |
 | `domain-modeling` | `skills/workflow/domain-modeling/` | 主动打磨项目领域模型：统一语言、边界场景与架构决策落盘。 | [skills.sh](https://skills.sh/mattpocock/skills/domain-modeling) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/engineering/domain-modeling/SKILL.md) |
+| `f-base-project-initializer` | `skills/workflow/f-base-project-initializer/` | 从固定 fan-base / fan-base-vben 模板克隆并重命名，生成可运行的 Fan 全栈新项目。 | 暂无 | [本仓库](../../.agents/skills/f-base-project-initializer/SKILL.md) |
+| `f-base-project-initializer-cn` | `skills/workflow/f-base-project-initializer-cn/` | 中文指引：从固定 fan-base / fan-base-vben 模板初始化并重命名 Fan 全栈项目。 | 暂无 | [本仓库](../../.agents/skills/f-base-project-initializer-cn/SKILL.md) |
 | `f-project-runtime-manager` | `skills/workflow/f-project-runtime-manager/` | 探测 Java/Spring Boot 与 Vue/Vite 项目结构，生成可移植的启停/状态脚本，不改原文件。 | 暂无 | [本仓库](../../.agents/skills/f-project-runtime-manager/SKILL.md) |
 | `find-skills` | `skills/workflow/find-skills/` | 从开放 skills 生态检索并安装可扩展 Agent 能力的技能包。 | [skills.sh](https://skills.sh/vercel-labs/skills/find-skills) | [GitHub](https://github.com/vercel-labs/skills/blob/main/skills/find-skills/SKILL.md) |
 | `grill-me` | `skills/workflow/grill-me/` | 启动一轮严厉质询会话，压力测试计划或设计直至达成共识。 | [skills.sh](https://skills.sh/mattpocock/skills/grill-me) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/productivity/grill-me/SKILL.md) |
@@ -59,6 +61,46 @@
 #### 注意事项
 
 文件应惰性创建：有内容再写。术语冲突要立刻对齐；决策写 ADR，日常用语写 CONTEXT.md。
+
+### `f-base-project-initializer`
+
+**路径**：`skills/workflow/f-base-project-initializer/`
+
+#### 核心能力
+
+按用户项目名规范化为 kebab-case，派生前后端目录、Maven groupId 与数据库名；克隆两仓后改远程名为 fan-base、解除 upstream；批量迁移 pom 坐标与库名配置，保留 fan-server 模块与外部依赖；可衔接生成运行脚本与 AGENTS.md，并做启动验证。
+
+#### 适用场景
+
+基于 Fan 官方 Gitee 模板开新项目、批量改名与坐标迁移、初始化后希望一键生成启停脚本或确认前后端能启动时使用。
+
+#### 主要覆盖内容
+
+必需输入与命名派生、克隆重命名与远程策略、Maven/数据库迁移不变量、残留模板名检查、后端 clean-build、可选运行脚本与 AGENTS.md、启动验证清单。
+
+#### 注意事项
+
+目标目录非空禁止覆盖。未提供目标远程时不得推送。英文版与中文版流程一致，按对话语言选用。本 skill 为 Fan 本地自建，无 skills.sh / 公开 GitHub。
+
+### `f-base-project-initializer-cn`
+
+**路径**：`skills/workflow/f-base-project-initializer-cn/`
+
+#### 核心能力
+
+确认并规范化项目名后派生目录与坐标；拉取两模板仓、重命名远程并解除上游；迁移全部受控 pom 与数据库相关配置，保留 fan-server 可执行模块；可选生成根目录运行脚本与 AGENTS.md，并启动验证可运行应用。
+
+#### 适用场景
+
+中文协作下从 Fan 模板开新仓、改前后端目录名与 Maven/库名、需要初始化后生成启停脚本或验证能否启动时使用。
+
+#### 主要覆盖内容
+
+名称确认、双仓克隆与远程策略、Maven 与数据库迁移、残留模板名处理、后端构建、可选脚本与 AGENTS.md、启动验证阶段清单。
+
+#### 注意事项
+
+与英文版 `f-base-project-initializer` 同源流程，按用户语言选用其一即可，勿同时执行两套。非空目标目录不得覆盖；无用户远程时不推送。Fan 本地自建 skill。
 
 ### `f-project-runtime-manager`
 

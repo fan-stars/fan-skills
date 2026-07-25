@@ -106,6 +106,22 @@
       "skillsShUrl": "https://skills.sh/arvindrk/extract-design-system/extract-design-system",
       "githubUrl": "https://github.com/arvindrk/extract-design-system/blob/main/skills/extract-design-system/SKILL.md"
     },
+    "f-base-project-initializer": {
+      "categories": [
+        "fan",
+        "workflow"
+      ],
+      "skillsShUrl": null,
+      "githubUrl": null
+    },
+    "f-base-project-initializer-cn": {
+      "categories": [
+        "fan",
+        "workflow"
+      ],
+      "skillsShUrl": null,
+      "githubUrl": null
+    },
     "f-java-springboot": {
       "categories": [
         "java",
