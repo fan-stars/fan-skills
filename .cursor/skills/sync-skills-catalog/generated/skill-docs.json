@@ -103,7 +103,7 @@
       "scenarios": "用户要求生成项目启动管理脚本、本地启停管理器、前后端进程管理或统一启动脚本时使用，尤其是 Spring Boot + Vue 单仓或 monorepo。",
       "coverage": "管理根目录判定、后端/前端探测启发式、脚本文件布局与生成规则、dry-run 校验与完成时输出；细节见 reference.md 与 examples.md。",
       "notes": "禁止使用固定模板或硬编码路径；禁止改动 application*.yml、package.json、pom.xml 等既有文件，仅新增 `scripts/`。幂等生成，再次运行先读已有脚本增量更新。Fan 本地自建 skill，无公开仓库。",
-      "contentHash": "71ec1f8f9ed16530b22965fe68ad29605409a5eb2902140f6e75414051f9256d"
+      "contentHash": "adc1a464d58a9e7798918a09dd91b2dae2bca4c1e3f28fdba87e9a4af79e34a5"
     },
     "find-skills": {
       "summary": "从开放 skills 生态检索并安装可扩展 Agent 能力的技能包。",

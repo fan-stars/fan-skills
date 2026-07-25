@@ -1,5 +1,5 @@
 ---
-name: project-runtime-manager
+name: f-project-runtime-manager
 description: >-
   Analyzes Java/Spring Boot and Vue/Vite project structures and generates
   portable start/stop/restart/status scripts under scripts/ with external

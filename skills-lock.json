@@ -55,11 +55,29 @@
       "skillPath": "skills/extract-design-system/SKILL.md",
       "computedHash": "5f231fda377e304b202848f09ecc0fd42839355e76f60e06c3ceb7a643c15500"
     },
+    "f-base-project-initializer": {
+      "source": "fan-stars/fan-skills",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/f-base-project-initializer/SKILL.md",
+      "computedHash": "ea968da5452e95cb8fb631f9268a6c580535b834be543777ac13c87d879678bb"
+    },
+    "f-base-project-initializer-cn": {
+      "source": "fan-stars/fan-skills",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/f-base-project-initializer-cn/SKILL.md",
+      "computedHash": "ce71feb6babfca184dc32b72c511296ca1d1e45676b97e277aea8fe1db0f3191"
+    },
     "f-java-springboot": {
       "source": "fan-stars/fan-skills",
       "sourceType": "github",
       "skillPath": ".agents/skills/f-java-springboot/SKILL.md",
       "computedHash": "84160ddd530eb880450cc2dfa28791c854eaf507f4e708a0d02fda41a992102d"
+    },
+    "f-project-runtime-manager": {
+      "source": "fan-stars/fan-skills",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/f-project-runtime-manager/SKILL.md",
+      "computedHash": "b9536711c710d162e83e0cc087b43e45921804639c8c6be891fae10f3ce8709d"
     },
     "find-skills": {
       "source": "vercel-labs/skills",
@@ -120,6 +138,12 @@
       "sourceType": "github",
       "skillPath": "skills/next/SKILL.md",
       "computedHash": "4a609d04a169e0292feff34b22150044fdda0e75de17c03dd30b38fed1786a90"
+    },
+    "next-browser": {
+      "source": "vercel-labs/next-browser",
+      "sourceType": "github",
+      "skillPath": "skills/next-browser/SKILL.md",
+      "computedHash": "7d65893c6f52eab5a44b21f7ffb75570cb49c6959d5f41284baa63b1d96ecfba"
     },
     "nuxt": {
       "source": "antfu/skills",
