@@ -12,11 +12,21 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workspace", type=Path, required=True)
     parser.add_argument("--project", choices=("A", "B"), action="append")
+    parser.add_argument("--trust-source-index", action="store_true")
+    parser.add_argument("--source-snapshot-id")
     args = parser.parse_args()
     projects = list(dict.fromkeys(args.project or ["A", "B"]))
+    if args.trust_source_index and (len(projects) != 1 or not args.source_snapshot_id):
+        parser.error("--trust-source-index requires one --project and --source-snapshot-id")
+    if args.source_snapshot_id and not args.trust_source_index:
+        parser.error("--source-snapshot-id requires --trust-source-index")
     errors = []
     for project in projects:
-        errors.extend(f"{project}: {error}" for error in validate_project_indexes(args.workspace, project))
+        errors.extend(f"{project}: {error}" for error in validate_project_indexes(
+            args.workspace, project,
+            trust_source_index=args.trust_source_index,
+            source_snapshot_id=args.source_snapshot_id,
+        ))
     if len(projects) == 2:
         roots = []
         for project in projects:

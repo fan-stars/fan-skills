@@ -5,7 +5,7 @@ import argparse, json
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent))
-from common.core import exclusive_lock, load_isolated_source_index, read_project_jsonl, sha256_file, atomic_write, locked_jsonl_update, validate_module_name
+from common.core import exclusive_lock, load_isolated_source_index, read_project_jsonl, sha256_file, atomic_write, locked_jsonl_update, validate_module_name, validate_source_snapshot
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -13,6 +13,7 @@ def main() -> int:
     parser.add_argument("--project", choices=("A", "B"), action="append")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--trust-source-index", action="store_true", help="reuse hashes from a source refresh that completed immediately before this command")
+    parser.add_argument("--source-snapshot-id", help="required snapshot ID when --trust-source-index is used")
     args = parser.parse_args()
     stale = []
     projects = args.project or [
@@ -21,6 +22,8 @@ def main() -> int:
     ]
     if not projects:
         parser.error("no Project A/B source index exists in the workspace")
+    if args.trust_source_index and (len(projects) != 1 or not args.source_snapshot_id):
+        parser.error("--trust-source-index requires one --project and --source-snapshot-id")
     affected_by_project = {
         project: {"interfaces": set(), "rules": set(), "modules": set()}
         for project in projects
@@ -31,6 +34,8 @@ def main() -> int:
         affected_modules = affected_by_project[project]["modules"]
         try:
             rows = load_isolated_source_index(args.workspace, project)
+            if args.trust_source_index:
+                validate_source_snapshot(args.workspace, project, args.source_snapshot_id)
         except ValueError as exc:
             parser.error(str(exc))
         current = {}

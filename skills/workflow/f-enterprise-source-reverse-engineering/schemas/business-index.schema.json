@@ -16,7 +16,8 @@
     "evidence": {"type": "array", "minItems": 1, "items": {"type": "object"}},
     "related_apis": {"type": "array", "items": {"type": "string"}},
     "related_tables": {"type": "array", "items": {"type": "string"}},
-    "related_modules": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "related_modules": {"type": "array", "items": {"type": "string"}},
+    "rationale": {"type": "string", "minLength": 1},
     "entity": {"type": "string", "minLength": 1},
     "from_state": {"type": "string", "minLength": 1},
     "to_state": {"type": "string", "minLength": 1},
@@ -31,6 +32,7 @@
   "allOf": [
     {"if": {"properties": {"type": {"const": "state_transition"}}, "required": ["type"]}, "then": {"required": ["entity", "from_state", "to_state", "trigger"]}},
     {"if": {"properties": {"type": {"enum": ["idempotency_rule", "concurrency_rule"]}}, "required": ["type"]}, "then": {"required": ["scenario", "mechanism"]}},
-    {"if": {"properties": {"type": {"const": "cross_module_dependency"}}, "required": ["type"]}, "then": {"required": ["related_modules", "dependency_type", "direction"]}}
+    {"if": {"properties": {"type": {"const": "cross_module_dependency"}}, "required": ["type"]}, "then": {"required": ["related_modules", "dependency_type", "direction"], "properties": {"related_modules": {"minItems": 1}}}},
+    {"if": {"properties": {"type": {"enum": ["business_rule_absence", "state_transition_absence", "concurrency_idempotency_absence", "cross_module_dependency_absence"]}}, "required": ["type"]}, "then": {"required": ["rationale"]}}
   ]
 }

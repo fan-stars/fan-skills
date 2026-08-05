@@ -7,12 +7,12 @@ from datetime import datetime
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 
-from .core import file_fingerprint, load_isolated_source_index, read_jsonl
+from .core import file_fingerprint, load_isolated_source_index, read_jsonl, validate_source_snapshot
 
 
 EVIDENCE_REQUIRED = {
     "project", "file", "file_sha256", "symbol", "start_line", "end_line",
-    "evidence_type", "confidence", "analysis_run_id", "status",
+    "evidence_type", "semantic_basis", "confidence", "analysis_run_id", "status",
 }
 CONFIDENCE_VALUES = {"HIGH", "MEDIUM", "LOW"}
 CLASSIFICATION_VALUES = {"FACT", "INFERENCE", "UNRESOLVED", "CONFLICT", "RISK", "DEAD_CODE_CANDIDATE"}
@@ -38,6 +38,18 @@ BUSINESS_SEMANTIC_FIELDS = {
     "idempotency_rule": ("scenario", "mechanism"),
     "concurrency_rule": ("scenario", "mechanism"),
     "cross_module_dependency": ("related_modules", "dependency_type", "direction"),
+    "business_rule_absence": ("rationale",),
+    "state_transition_absence": ("rationale",),
+    "concurrency_idempotency_absence": ("rationale",),
+    "cross_module_dependency_absence": ("rationale",),
+}
+API_COVERAGE = {
+    "validation": ("validation_evidence", "validation"),
+    "service": ("service_evidence", "service"),
+    "persistence": ("persistence_evidence", "persistence"),
+    "transaction": ("transaction_evidence", "transaction"),
+    "side_effect": ("side_effect_evidence", "side_effect"),
+    "tables": (None, None),
 }
 REQUIRED_MODULE_DOCUMENTS = (
     "module-analysis-manifest.md", "module-overview.md", "source-code-map.md",
@@ -93,8 +105,9 @@ def validate_run_record(
     errors = []
     required = {
         "analysis_run_id", "project", "requested_module", "started_at", "finished_at",
-        "source_root", "workspace", "stages", "files_read", "files_written",
-        "stale_evidence", "unresolved_questions", "final_status",
+        "source_root", "workspace", "record_scope", "source_snapshot_id", "resume_count", "resumed_at",
+        "stages", "files_scanned", "files_read", "context_files_read", "files_reused_without_content_read",
+        "files_written", "stale_evidence", "unresolved_questions", "final_status",
     }
     missing = sorted(required - set(record))
     if missing:
@@ -112,27 +125,54 @@ def validate_run_record(
     else:
         if not stages:
             errors.append(f"analysis run stages must not be empty: {path}")
+        names = [stage.get("name") for stage in stages if isinstance(stage, dict)]
+        final_status = record.get("final_status")
+        expected_final = expected_stages + ["quality_gates"]
+        if names != expected_final[:len(names)]:
+            errors.append(f"analysis run stage order is invalid: {path}")
         for position, stage in enumerate(stages):
             if not isinstance(stage, dict) or not {"name", "command", "exit_code"} <= set(stage):
                 errors.append(f"analysis run stage {position} is incomplete: {path}")
                 continue
             if not isinstance(stage.get("command"), list) or not _integer(stage.get("exit_code")):
                 errors.append(f"analysis run stage {position} has invalid types: {path}")
-            elif stage["exit_code"] != 0 and not (stage.get("name") == "quality_gates" and stage["exit_code"] == 2):
+            elif stage["exit_code"] != 0 and not (
+                (stage.get("name") == "quality_gates" and stage["exit_code"] == 2)
+                or (final_status == "FAILED" and position == len(stages) - 1)
+            ):
                 errors.append(f"analysis run stage {position} did not succeed: {path}")
             if not _integer(stage.get("duration_ms")) or stage.get("duration_ms", -1) < 0:
                 errors.append(f"analysis run stage {position} has invalid duration: {path}")
             if not isinstance(stage.get("stdout"), str) or not isinstance(stage.get("stderr"), str):
                 errors.append(f"analysis run stage {position} is missing captured output: {path}")
-        names = [stage.get("name") for stage in stages if isinstance(stage, dict)]
         if allow_in_progress and record.get("final_status") == "RUNNING":
             if names != expected_stages:
                 errors.append(f"analysis run has incomplete pre-gate stage order: {path}")
-        elif record.get("final_status") != "FAILED" and names != expected_stages + ["quality_gates"]:
+        elif record.get("final_status") == "FAILED":
+            if not names or len(names) > len(expected_final):
+                errors.append(f"failed analysis run has invalid stage prefix: {path}")
+            elif all(stage.get("exit_code") == 0 for stage in stages if isinstance(stage, dict)) and len(names) == len(expected_final):
+                errors.append(f"failed analysis run has no failed stage: {path}")
+        elif names != expected_final:
             errors.append(f"analysis run has incomplete final stage order: {path}")
-    for key in ("files_read", "files_written", "stale_evidence", "unresolved_questions"):
+    for key in ("files_scanned", "files_read", "context_files_read", "files_reused_without_content_read", "files_written", "stale_evidence", "unresolved_questions", "resumed_at"):
         if key in record and not isinstance(record[key], list):
             errors.append(f"analysis run {key} must be an array: {path}")
+    if record.get("record_scope") != "AUTOMATED_PIPELINE":
+        errors.append(f"analysis run record_scope must be AUTOMATED_PIPELINE: {path}")
+    if not _integer(record.get("resume_count")) or record.get("resume_count", -1) < 0:
+        errors.append(f"analysis run resume_count is invalid: {path}")
+    elif isinstance(record.get("resumed_at"), list) and len(record["resumed_at"]) != record["resume_count"]:
+        errors.append(f"analysis run resumed_at does not match resume_count: {path}")
+    if isinstance(record.get("resumed_at"), list):
+        for value in record["resumed_at"]:
+            if not isinstance(value, str):
+                errors.append(f"analysis run resumed_at contains a non-string timestamp: {path}")
+                continue
+            try:
+                datetime.fromisoformat(value.replace("Z", "+00:00"))
+            except ValueError:
+                errors.append(f"analysis run resumed_at contains an invalid ISO date-time: {path}")
     for key in ("requested_module", "started_at", "source_root", "workspace", "final_status"):
         if key in record and (not isinstance(record[key], str) or not record[key]):
             errors.append(f"analysis run {key} must be a non-empty string: {path}")
@@ -157,6 +197,10 @@ def validate_run_record(
             except ValueError:
                 errors.append(f"analysis run {key} is not an ISO date-time: {path}")
     if record.get("final_status") not in {"FAILED", "RUNNING"}:
+        if not isinstance(record.get("source_snapshot_id"), str) or not record["source_snapshot_id"]:
+            errors.append(f"successful analysis run source_snapshot_id must be non-empty: {path}")
+        elif not re.fullmatch(r"[a-f0-9]{64}", record["source_snapshot_id"]):
+            errors.append(f"successful analysis run source_snapshot_id is invalid: {path}")
         for key in ("files_scanned", "files_read", "files_written"):
             if not isinstance(record.get(key), list) or not record[key]:
                 errors.append(f"successful analysis run {key} must not be empty: {path}")
@@ -186,6 +230,8 @@ def validate_evidence(
         errors.append("evidence confidence is invalid")
     if not isinstance(item.get("evidence_type"), str) or not item["evidence_type"]:
         errors.append("evidence_type must be a non-empty string")
+    if not isinstance(item.get("semantic_basis"), str) or not item["semantic_basis"]:
+        errors.append("semantic_basis must be a non-empty string")
     relative = item.get("file")
     source = source_by_file.get(relative) if isinstance(relative, str) else None
     if source is None:
@@ -239,6 +285,8 @@ def validate_project_indexes(
     project: str,
     module: str | None = None,
     allow_in_progress_runs: bool = False,
+    trust_source_index: bool = False,
+    source_snapshot_id: str | None = None,
 ) -> list[str]:
     """Validate one project without reading facts from the other project."""
     index_dir = workspace / "indexes" / project
@@ -259,6 +307,10 @@ def validate_project_indexes(
     source_isolated = True
     try:
         load_isolated_source_index(workspace, project)
+        if trust_source_index:
+            if not source_snapshot_id:
+                raise ValueError("trusted validation requires a source snapshot ID")
+            validate_source_snapshot(workspace, project, source_snapshot_id)
     except ValueError as exc:
         source_isolated = False
         errors.append(f"source-index.jsonl: isolation failure: {exc}")
@@ -285,7 +337,10 @@ def validate_project_indexes(
         if path != (root / Path(*PurePosixPath(relative).parts)).resolve(strict=False) or not _inside(path, root):
             errors.append(f"{prefix}: absolute path does not match project root and relative path")
         if source_isolated and path.is_file():
-            actual_hash, actual_lines, _ = file_fingerprint(path)
+            if trust_source_index:
+                actual_hash, actual_lines = row.get("sha256"), row.get("line_count")
+            else:
+                actual_hash, actual_lines, _ = file_fingerprint(path)
             fingerprint_cache[relative] = (actual_hash, actual_lines)
             if row.get("sha256") != actual_hash:
                 errors.append(f"{prefix}: source SHA-256 mismatch")
@@ -353,12 +408,14 @@ def validate_project_indexes(
         if row.get("project") != project or not isinstance(module, str) or not module:
             errors.append(f"{prefix}: invalid project or module")
             continue
-        required = {"status", "primary_files", "secondary_files", "shared_files", "quality_gates"}
+        required = {"status", "aliases", "boundary_confidence", "primary_files", "secondary_files", "shared_files", "infrastructure_files", "unknown_files", "upstream_modules", "downstream_modules", "core_tables", "apis", "business_rules", "open_questions", "stale_evidence", "last_analysis_run_id", "quality_gates"}
         missing = sorted(required - set(row))
         if missing:
             errors.append(f"{prefix}: missing fields {missing}")
         if row.get("status") not in {"DISCOVERED", "PARTIAL", "ANALYZED", "REVIEW_REQUIRED", "BLOCKED"}:
             errors.append(f"{prefix}: invalid status")
+        if row.get("boundary_confidence") not in {"HIGH", "MEDIUM", "LOW"}:
+            errors.append(f"{prefix}: invalid boundary_confidence")
         if module in module_names:
             errors.append(f"{prefix}: duplicate module {module}")
         module_names.add(module)
@@ -397,16 +454,46 @@ def validate_project_indexes(
                 required = {
                     "api_id", "method", "path", "route_evidence", "controller_evidence",
                     "validation_evidence", "service_evidence", "persistence_evidence",
-                    "side_effect_evidence", "tables", "status",
+                    "transaction_evidence", "side_effect_evidence", "tables", "coverage", "status",
                 }
                 missing = sorted(required - set(row))
                 if missing:
                     errors.append(f"{prefix}: missing fields {missing}")
-                for key in ("route_evidence", "controller_evidence", "validation_evidence", "service_evidence", "persistence_evidence", "side_effect_evidence"):
+                for key in ("route_evidence", "controller_evidence"):
                     if not isinstance(row.get(key), list) or not row[key]:
                         errors.append(f"{prefix}: {key} must be a non-empty array")
                     elif any(item.get("evidence_type") != EVIDENCE_TYPES[key] for item in row[key] if isinstance(item, dict)):
                         errors.append(f"{prefix}: {key} contains the wrong evidence_type")
+                coverage = row.get("coverage")
+                if not isinstance(coverage, dict):
+                    errors.append(f"{prefix}: coverage must be an object")
+                    coverage = {}
+                for dimension, (key, expected_type) in API_COVERAGE.items():
+                    detail = coverage.get(dimension)
+                    if not isinstance(detail, dict):
+                        errors.append(f"{prefix}: coverage.{dimension} must be an object")
+                        continue
+                    coverage_status = detail.get("status")
+                    if coverage_status not in {"PRESENT", "NOT_APPLICABLE", "UNRESOLVED"}:
+                        errors.append(f"{prefix}: coverage.{dimension}.status is invalid")
+                    if not isinstance(detail.get("rationale"), str) or not detail["rationale"].strip():
+                        errors.append(f"{prefix}: coverage.{dimension}.rationale must be non-empty")
+                    if key is None:
+                        if coverage_status == "PRESENT" and not row.get("tables"):
+                            errors.append(f"{prefix}: coverage.tables PRESENT requires tables")
+                        if coverage_status == "NOT_APPLICABLE" and coverage.get("persistence", {}).get("status") != "NOT_APPLICABLE":
+                            errors.append(f"{prefix}: coverage.tables NOT_APPLICABLE requires persistence NOT_APPLICABLE")
+                        continue
+                    values = row.get(key)
+                    if not isinstance(values, list):
+                        errors.append(f"{prefix}: {key} must be an array")
+                        continue
+                    required_type = expected_type if coverage_status == "PRESENT" else f"{expected_type}_absence"
+                    if coverage_status in {"PRESENT", "NOT_APPLICABLE"}:
+                        if not values or any(item.get("evidence_type") != required_type for item in values if isinstance(item, dict)):
+                            errors.append(f"{prefix}: coverage.{dimension} {coverage_status} requires {required_type} evidence")
+                    if coverage_status == "NOT_APPLICABLE" and any(item.get("semantic_basis") != "reviewed_negative_evidence" for item in values if isinstance(item, dict)):
+                        errors.append(f"{prefix}: coverage.{dimension} NOT_APPLICABLE requires reviewed negative evidence")
                 table_names = row.get("tables")
                 if not isinstance(table_names, list):
                     errors.append(f"{prefix}: tables must be an array")

@@ -2,7 +2,7 @@
   "_instructions": {
     "paths": "relative_path 使用 POSIX 相对路径；absolute_path 必须位于 repository_root",
     "sha256": "读取文件后计算 64 位小写十六进制 SHA-256，禁止使用占位值入库",
-    "modules": "数组元素使用 module/role，新增归属只能追加不能覆盖"
+    "modules": "数组元素使用 module/role；新增模块归属追加，同一模块改 role 必须由 update_module_ownership.py --replace-role 显式执行"
   },
   "project": "A",
   "repository_root": "/absolute/project-a",

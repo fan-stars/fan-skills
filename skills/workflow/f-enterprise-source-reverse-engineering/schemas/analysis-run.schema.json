@@ -3,40 +3,64 @@
   "type": "object",
   "required": [
     "analysis_run_id", "project", "requested_module", "started_at", "finished_at",
-    "source_root", "workspace", "stages", "files_scanned", "files_read",
+    "source_root", "workspace", "record_scope", "source_snapshot_id", "resume_count",
+    "resumed_at", "stages", "files_scanned", "files_read", "context_files_read",
     "files_reused_without_content_read", "files_written", "stale_evidence",
     "unresolved_questions", "final_status"
   ],
   "properties": {
-    "analysis_run_id": {"type": "string", "pattern": "^(A|B|COMPARE|JAVA)-[a-z0-9-]+-[0-9]{8}-[0-9]{3}$"},
-    "project": {"enum": ["A", "B", "COMPARE", "JAVA"]},
-    "requested_module": {"type": "string", "minLength": 1},
+    "analysis_run_id": {"type": "string", "pattern": "^(A|B)-[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?-[0-9]{8}-[0-9]{3}$"},
+    "project": {"enum": ["A", "B"]},
+    "requested_module": {"type": "string", "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$"},
     "started_at": {"type": "string", "format": "date-time"},
     "finished_at": {"type": "string", "format": "date-time"},
     "source_root": {"type": "string", "minLength": 1},
     "workspace": {"type": "string", "minLength": 1},
+    "record_scope": {"const": "AUTOMATED_PIPELINE"},
+    "source_snapshot_id": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+    "resume_count": {"type": "integer", "minimum": 0},
+    "resumed_at": {"type": "array", "items": {"type": "string", "format": "date-time"}},
     "stages": {
       "type": "array",
       "minItems": 1,
+      "maxItems": 8,
       "items": {
         "type": "object",
         "required": ["name", "command", "exit_code", "duration_ms", "stdout", "stderr"],
         "properties": {
-          "name": {"type": "string", "minLength": 1},
+          "name": {"enum": ["source_index", "stale_references", "symbol_index", "routes", "tables", "modules", "business", "quality_gates"]},
           "command": {"type": "array", "minItems": 2, "items": {"type": "string"}},
           "exit_code": {"type": "integer"},
           "duration_ms": {"type": "integer", "minimum": 0},
           "stdout": {"type": "string"},
           "stderr": {"type": "string"}
-        }
+        },
+        "additionalProperties": false
       }
     },
-    "files_scanned": {"type": "array", "minItems": 1, "items": {"type": "string"}},
-    "files_read": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "files_scanned": {"type": "array", "items": {"type": "string"}},
+    "files_read": {"type": "array", "items": {"type": "string"}},
+    "context_files_read": {"type": "array", "items": {"type": "string"}},
     "files_reused_without_content_read": {"type": "array", "items": {"type": "string"}},
-    "files_written": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "files_written": {"type": "array", "items": {"type": "string"}},
     "stale_evidence": {"type": "array"},
     "unresolved_questions": {"type": "array"},
-    "final_status": {"enum": ["COMPLETED", "PARTIAL", "REVIEW_REQUIRED", "BLOCKED", "FAILED"]}
-  }
+    "final_status": {"enum": ["COMPLETED", "PARTIAL", "REVIEW_REQUIRED", "BLOCKED", "FAILED"]},
+    "error": {"type": "string"},
+    "recording_errors": {"type": "array", "items": {"type": "string"}}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"final_status": {"enum": ["COMPLETED", "PARTIAL", "REVIEW_REQUIRED", "BLOCKED"]}}, "required": ["final_status"]},
+      "then": {
+        "properties": {
+          "source_snapshot_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "files_scanned": {"minItems": 1},
+          "files_read": {"minItems": 1},
+          "files_written": {"minItems": 1}
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
 }

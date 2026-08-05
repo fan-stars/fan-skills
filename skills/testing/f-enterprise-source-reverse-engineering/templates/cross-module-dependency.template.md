@@ -5,4 +5,4 @@
 | `${module}` | `${dependency}` | `${type}` | `${reference}` | upstream/downstream | PRIMARY/SECONDARY/SHARED | `${evidence}` |
 
 ## 填写说明
-一条依赖一行；Type 使用 call/table/event/cache/config/external；共享文件保留多模块归属，方向不明标 INFERENCE。
+一条依赖一行；Type 使用 call/table/event/cache/config/external；共享文件保留多模块归属，方向不明标 INFERENCE。确认无跨模块依赖时使用 cross_module_dependency_absence、rationale 和 reviewed_negative_evidence。

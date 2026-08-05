@@ -8,6 +8,11 @@ sys.path.insert(0, str(Path(__file__).parent))
 from common.core import exclusive_lock, load_isolated_source_index, read_project_jsonl, validate_module_name, write_jsonl
 
 ROLES = {"PRIMARY": "primary_files", "SECONDARY": "secondary_files", "SHARED": "shared_files", "INFRASTRUCTURE": "infrastructure_files", "UNKNOWN": "unknown_files"}
+METADATA_DEFAULTS = {
+    "aliases": [], "boundary_confidence": "LOW", "upstream_modules": [], "downstream_modules": [],
+    "core_tables": [], "apis": [], "business_rules": [], "open_questions": [], "stale_evidence": [],
+    "last_analysis_run_id": None,
+}
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -31,7 +36,7 @@ def main() -> int:
                 validate_module_name(module)
             except ValueError as exc:
                 parser.error(f"invalid module label {module!r}: {exc}")
-            record = modules.setdefault(module, {"project": args.project, "module": module, "status": "PARTIAL", "primary_files": [], "secondary_files": [], "shared_files": [], "infrastructure_files": [], "unknown_files": [], "quality_gates": []})
+            record = modules.setdefault(module, {"project": args.project, "module": module, "status": "PARTIAL", "primary_files": [], "secondary_files": [], "shared_files": [], "infrastructure_files": [], "unknown_files": [], "quality_gates": [], **{key: list(value) if isinstance(value, list) else value for key, value in METADATA_DEFAULTS.items()}})
             key = ROLES.get(label.get("role"), "unknown_files")
             if row["relative_path"] not in record[key]:
                 record[key].append(row["relative_path"])
@@ -44,6 +49,9 @@ def main() -> int:
             ownership_changed = any(old.get(key, []) != row.get(key, []) for key in ROLES.values())
             row["status"] = "REVIEW_REQUIRED" if ownership_changed and old.get("status") == "ANALYZED" else old.get("status", "PARTIAL")
             row["quality_gates"] = [] if ownership_changed else old.get("quality_gates", [])
+            for key, default in METADATA_DEFAULTS.items():
+                value = old.get(key, default)
+                row[key] = list(value) if isinstance(value, list) else value
     with exclusive_lock(index_dir / "derived-indexes"):
         write_jsonl(output, rows)
     print(f"MODULE_INDEX_OK project={args.project} modules={len(rows)} output={output}")

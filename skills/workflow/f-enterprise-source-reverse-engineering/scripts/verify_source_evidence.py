@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from common.core import load_isolated_source_index, read_project_jsonl
 from common.validation import validate_evidence
 
-REQUIRED = {"project", "file", "file_sha256", "symbol", "start_line", "end_line", "evidence_type", "confidence", "analysis_run_id", "status"}
+REQUIRED = {"project", "file", "file_sha256", "symbol", "start_line", "end_line", "evidence_type", "semantic_basis", "confidence", "analysis_run_id", "status"}
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)

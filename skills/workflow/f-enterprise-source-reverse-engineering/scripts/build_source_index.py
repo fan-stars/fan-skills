@@ -3,10 +3,11 @@
 from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
+import hashlib
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent))
-from common.core import atomic_write, ensure_outside_source, ensure_project_root_binding, exclusive_lock, iter_source_files, load_isolated_source_index, source_record, write_jsonl
+from common.core import atomic_write, ensure_outside_source, ensure_project_root_binding, exclusive_lock, iter_source_files, load_isolated_source_index, sha256_file, source_record, write_jsonl
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -72,8 +73,10 @@ def main() -> int:
                 deleted_files.append(relative)
         rows.sort(key=lambda row: row.get("relative_path", ""))
         write_jsonl(output, rows)
-        atomic_write(manifest, __import__("json").dumps({"project": args.project, "repository_root": str(root), "source_index_version": 1, "file_count": len(rows), "changed_or_deleted": changed, "unchanged_reused": unchanged, "content_read_files": sorted(changed_files), "reused_without_content_read": sorted(reused_files), "deleted_files": sorted(deleted_files), "verify_all": args.verify_all, "updated_at": now}, ensure_ascii=False, indent=2) + "\n")
-    print(f"INDEX_OK project={args.project} files={len(rows)} changed={changed} reused={unchanged} output={output}")
+        source_index_sha256 = sha256_file(output)
+        snapshot_id = hashlib.sha256(f"{args.project}\0{root}\0{source_index_sha256}\0{now}".encode("utf-8")).hexdigest()
+        atomic_write(manifest, __import__("json").dumps({"project": args.project, "repository_root": str(root), "source_index_version": 1, "file_count": len(rows), "changed_or_deleted": changed, "unchanged_reused": unchanged, "content_read_files": sorted(changed_files), "reused_without_content_read": sorted(reused_files), "deleted_files": sorted(deleted_files), "verify_all": args.verify_all, "source_index_sha256": source_index_sha256, "snapshot_id": snapshot_id, "updated_at": now}, ensure_ascii=False, indent=2) + "\n")
+    print(f"INDEX_OK project={args.project} files={len(rows)} changed={changed} reused={unchanged} snapshot={snapshot_id} output={output}")
     return 0
 
 if __name__ == "__main__":

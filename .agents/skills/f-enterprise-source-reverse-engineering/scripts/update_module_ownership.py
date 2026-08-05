@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Append module ownership labels without overwriting existing labels."""
+"""Append module ownership labels; require opt-in before replacing an existing role."""
 from __future__ import annotations
 import argparse
 from pathlib import Path
@@ -13,6 +13,7 @@ def main() -> int:
     parser.add_argument("--file", required=True)
     parser.add_argument("--module", required=True)
     parser.add_argument("--role", choices=("PRIMARY", "SECONDARY", "SHARED", "INFRASTRUCTURE", "UNKNOWN"), required=True)
+    parser.add_argument("--replace-role", action="store_true", help="replace the role for an existing file/module label")
     args = parser.parse_args()
     project = args.index.parent.name
     if project not in {"A", "B"}:
@@ -30,6 +31,11 @@ def main() -> int:
                 labels = row.setdefault("modules", [])
                 existing = next((item for item in labels if item.get("module") == args.module), None)
                 if existing:
+                    if existing.get("role") != args.role and not args.replace_role:
+                        raise ValueError(
+                            f"module {args.module} already has role {existing.get('role')}; "
+                            "use --replace-role to change it"
+                        )
                     existing["role"] = args.role
                 else:
                     labels.append({"module": args.module, "role": args.role})

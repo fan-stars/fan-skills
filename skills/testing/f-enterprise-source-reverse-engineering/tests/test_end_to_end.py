@@ -45,6 +45,7 @@ class EndToEndTest(unittest.TestCase):
             root, workspace = self.prepare(directory)
             run_id = self.analyze(root, workspace)
             api = jsonl(workspace / "indexes/A/api-index.jsonl")[0]
+            self.assertEqual(api["status"], "PARTIAL")
             for key in ("route_evidence", "controller_evidence", "validation_evidence", "service_evidence", "persistence_evidence", "side_effect_evidence"):
                 self.assertTrue(api[key], key)
                 for item in api[key]:

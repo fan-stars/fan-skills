@@ -1,7 +1,8 @@
 {
   "_instructions": {
     "analysis_run_id": "使用 A|B-module-YYYYMMDD-NNN；module 只允许小写字母、数字和连字符",
-    "file_lists": "files_scanned、files_read、files_reused_without_content_read、files_written 分开记录",
+    "file_lists": "files_scanned、files_read、context_files_read、files_reused_without_content_read、files_written 分开记录；范围仅限自动管线实际 I/O",
+    "resume": "失败后用同一 analysis_run_id 加 --resume，从第一个失败阶段继续并递增 resume_count",
     "final_status": "只有完整运行记录通过校验且十八项门禁通过，模块状态才能提交为 ANALYZED"
   },
   "analysis_run_id": "A-product-20260805-001",
@@ -11,6 +12,10 @@
   "finished_at": "${finish_iso8601}",
   "source_root": "/absolute/project-a",
   "workspace": "/absolute/reverse-workspace",
+  "record_scope": "AUTOMATED_PIPELINE",
+  "source_snapshot_id": "${source_snapshot_sha256}",
+  "resume_count": 0,
+  "resumed_at": [],
   "stages": [
     {
       "name": "source_index",
@@ -23,6 +28,7 @@
   ],
   "files_scanned": [],
   "files_read": [],
+  "context_files_read": [],
   "files_reused_without_content_read": [],
   "files_written": [],
   "stale_evidence": [],

@@ -59,6 +59,7 @@ class AdversarialGuardTest(unittest.TestCase):
             "start_line": 999,
             "end_line": 999,
             "evidence_type": "implementation",
+            "semantic_basis": "indexed_symbol",
             "confidence": "HIGH",
             "analysis_run_id": run_id,
             "status": "CURRENT",
@@ -94,6 +95,8 @@ class AdversarialGuardTest(unittest.TestCase):
             "side_effect_evidence": [fake],
             "transaction_evidence": [fake],
             "tables": ["fake_table"],
+            "coverage": {dimension: {"status": "PRESENT", "rationale": "fabricated"} for dimension in ("validation", "service", "persistence", "transaction", "side_effect", "tables")},
+            "candidates": [],
             "status": "ANALYZED",
         }
         write_jsonl(index / "api-index.jsonl", [api])
@@ -183,6 +186,11 @@ class AdversarialGuardTest(unittest.TestCase):
                 "status": "ANALYZED",
                 "gates": [],
             }), encoding="utf-8")
+            manifest_path = workspace / "indexes/A/index-manifest.json"
+            manifest_path.parent.mkdir(parents=True)
+            manifest_path.write_text(json.dumps({
+                "project": "A", "repository_root": str(root.resolve()), "snapshot_id": "a" * 64,
+            }), encoding="utf-8")
             successes = [subprocess.CompletedProcess([], 0, "OK", "") for _ in range(7)]
             failed_gate = subprocess.CompletedProcess([], 1, "", "gate crashed")
             arguments = [
@@ -253,7 +261,7 @@ class AdversarialGuardTest(unittest.TestCase):
             evidence = {
                 "project": "A", "file": source["relative_path"], "file_sha256": source["sha256"],
                 "symbol": "route declaration", "start_line": 1, "end_line": 1,
-                "evidence_type": "route", "confidence": "HIGH",
+                "evidence_type": "route", "semantic_basis": "indexed_route_declaration", "confidence": "HIGH",
                 "analysis_run_id": "A-product-20260805-001", "status": "CURRENT",
             }
             evidence_path = Path(directory) / "evidence.json"
@@ -327,6 +335,8 @@ class AdversarialGuardTest(unittest.TestCase):
             committed = run("evaluate_quality_gates.py", *gate_args)
             self.assertEqual(committed.returncode, 0, committed.stderr + committed.stdout)
             self.assertEqual(read_jsonl(workspace / "indexes/A/module-index.jsonl")[0]["status"], "ANALYZED")
+            self.assertTrue(all(row["status"] == "ANALYZED" for row in read_jsonl(workspace / "indexes/A/api-index.jsonl") if row.get("module") == "product"))
+            self.assertTrue(all(row["status"] == "ANALYZED" for row in read_jsonl(workspace / "indexes/A/business-index.jsonl") if row.get("module") == "product" and row.get("analysis_run_id") == run_id))
 
 
 if __name__ == "__main__":

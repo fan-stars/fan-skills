@@ -2,18 +2,32 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "required": [
-    "project", "module", "status", "primary_files", "secondary_files",
-    "shared_files", "infrastructure_files", "unknown_files", "quality_gates"
+    "project", "module", "aliases", "status", "boundary_confidence",
+    "primary_files", "secondary_files", "shared_files", "infrastructure_files",
+    "unknown_files", "upstream_modules", "downstream_modules", "core_tables",
+    "apis", "business_rules", "open_questions", "stale_evidence",
+    "last_analysis_run_id", "quality_gates"
   ],
   "properties": {
     "project": {"enum": ["A", "B"]},
     "module": {"type": "string", "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$"},
+    "aliases": {"type": "array", "items": {"type": "string"}},
     "status": {"enum": ["DISCOVERED", "PARTIAL", "ANALYZED", "REVIEW_REQUIRED", "BLOCKED"]},
+    "boundary_confidence": {"enum": ["HIGH", "MEDIUM", "LOW"]},
     "primary_files": {"type": "array", "items": {"type": "string"}},
     "secondary_files": {"type": "array", "items": {"type": "string"}},
     "shared_files": {"type": "array", "items": {"type": "string"}},
     "infrastructure_files": {"type": "array", "items": {"type": "string"}},
     "unknown_files": {"type": "array", "items": {"type": "string"}},
+    "upstream_modules": {"type": "array", "items": {"type": "string"}},
+    "downstream_modules": {"type": "array", "items": {"type": "string"}},
+    "core_tables": {"type": "array", "items": {"type": "string"}},
+    "apis": {"type": "array", "items": {"type": "string"}},
+    "business_rules": {"type": "array", "items": {"type": "string"}},
+    "open_questions": {"type": "array"},
+    "stale_evidence": {"type": "array"},
+    "last_analysis_run_id": {"type": ["string", "null"]},
     "quality_gates": {"type": "array"}
-  }
+  },
+  "additionalProperties": false
 }

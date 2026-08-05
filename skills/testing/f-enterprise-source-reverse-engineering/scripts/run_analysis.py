@@ -10,7 +10,7 @@ import sys
 import time
 sys.path.insert(0, str(Path(__file__).parent))
 from common.core import atomic_write, ensure_project_root_binding, exclusive_lock, load_isolated_source_index, locked_jsonl_update, read_project_jsonl, validate_analysis_run_id, validate_module_name
-from common.validation import validate_run_record
+from common.validation import REQUIRED_MODULE_DOCUMENTS, validate_run_record
 
 
 def snapshot_outputs(workspace: Path, project: str) -> dict[str, int]:
@@ -24,13 +24,14 @@ def snapshot_outputs(workspace: Path, project: str) -> dict[str, int]:
     return snapshot
 
 
-def refresh_file_record(record: dict, root: Path, workspace: Path, project: str, before: dict[str, int]) -> None:
+def refresh_file_record(record: dict, root: Path, workspace: Path, project: str, module: str, before: dict[str, int]) -> None:
     index_dir = workspace / "indexes" / project
     source_rows = load_isolated_source_index(workspace, project, root)
-    record["files_scanned"] = sorted(
+    scanned = {
         row["absolute_path"] for row in source_rows
         if isinstance(row.get("absolute_path"), str) and Path(row["absolute_path"]).is_file()
-    )
+    }
+    record["files_scanned"] = sorted(set(record.get("files_scanned", [])) | scanned)
     content_read = set()
     reused = set()
     for name in ("index-manifest.json", "symbol-manifest.json", "route-manifest.json", "table-manifest.json"):
@@ -49,12 +50,21 @@ def refresh_file_record(record: dict, root: Path, workspace: Path, project: str,
                 relative = symbol_files.get(symbol)
                 if relative in source_by_file:
                     content_read.add(source_by_file[relative])
-    record["files_read"] = sorted(content_read | {str(path.resolve()) for path in index_dir.glob("*") if path.is_file()})
-    record["files_reused_without_content_read"] = sorted(reused - content_read)
+    project_slug = "project-a" if project == "A" else "project-b"
+    document_root = workspace / "reverse-docs" / project_slug / "modules" / module
+    context_files = {
+        str((document_root / name).resolve())
+        for name in REQUIRED_MODULE_DOCUMENTS
+        if (document_root / name).is_file()
+    }
+    record["context_files_read"] = sorted(set(record.get("context_files_read", [])) | context_files)
+    index_files = {str(path.resolve()) for path in index_dir.glob("*") if path.is_file()}
+    record["files_read"] = sorted(set(record.get("files_read", [])) | content_read | index_files | context_files)
+    record["files_reused_without_content_read"] = sorted(set(record.get("files_reused_without_content_read", [])) | (reused - content_read))
     after = snapshot_outputs(workspace, project)
     written = {path for path, mtime in after.items() if before.get(path) != mtime}
     written.add(str((workspace / "analysis-runs" / project / f"{record['analysis_run_id']}.json").resolve()))
-    record["files_written"] = sorted(written)
+    record["files_written"] = sorted(set(record.get("files_written", [])) | written)
     stale_path = workspace / "reports" / "stale-references.json"
     if stale_path.is_file():
         stale = json.loads(stale_path.read_text(encoding="utf-8"))
@@ -68,6 +78,7 @@ def main() -> int:
     parser.add_argument("--sql-root", type=Path)
     parser.add_argument("--workspace", type=Path, required=True)
     parser.add_argument("--analysis-run-id")
+    parser.add_argument("--resume", action="store_true", help="resume the first failed stage of an existing FAILED run")
     args = parser.parse_args()
     root = args.root.resolve()
     if not root.is_dir():
@@ -81,6 +92,8 @@ def main() -> int:
     run_dir = args.workspace / "analysis-runs" / args.project
     outputs_before = snapshot_outputs(args.workspace, args.project)
     with exclusive_lock(run_dir / "run-ids"):
+        if args.resume and not args.analysis_run_id:
+            parser.error("--resume requires --analysis-run-id")
         existing = []
         for path in run_dir.glob(f"{args.project}-{args.module}-{started:%Y%m%d}-*.json"):
             try:
@@ -94,25 +107,68 @@ def main() -> int:
         except ValueError as exc:
             parser.error(str(exc))
         run_path = run_dir / f"{run_id}.json"
-        if run_path.exists():
-            parser.error(f"analysis run already exists; choose a new ID: {run_id}")
+        if run_path.exists() and not args.resume:
+            parser.error(f"analysis run already exists; choose a new ID or use --resume: {run_id}")
+        if not run_path.exists() and args.resume:
+            parser.error(f"analysis run does not exist: {run_id}")
         run_path.parent.mkdir(parents=True, exist_ok=True)
-        run_path.touch(exist_ok=False)
+        if not run_path.exists():
+            run_path.touch(exist_ok=False)
     script_dir = Path(__file__).parent
     stages = [
         ("source_index", "build_source_index.py", ["--project", args.project, "--root", str(args.root), "--workspace", str(args.workspace)]),
-        ("stale_references", "detect_stale_references.py", ["--project", args.project, "--workspace", str(args.workspace), "--trust-source-index"]),
+        ("stale_references", "detect_stale_references.py", ["--project", args.project, "--workspace", str(args.workspace)]),
         ("symbol_index", "build_symbol_index.py", ["--project", args.project, "--workspace", str(args.workspace)]),
         ("routes", "extract_php_routes.py", ["--project", args.project, "--root", str(args.root), "--workspace", str(args.workspace)]),
         ("tables", "extract_sql_tables.py", ["--project", args.project, "--root", str(args.sql_root or args.root), "--workspace", str(args.workspace)]),
         ("modules", "build_module_index.py", ["--project", args.project, "--workspace", str(args.workspace)]),
         ("business", "build_business_index.py", ["--project", args.project, "--module", args.module, "--analysis-run-id", run_id, "--workspace", str(args.workspace)]),
     ]
-    record = {"analysis_run_id": run_id, "project": args.project, "requested_module": args.module, "started_at": started.isoformat(), "finished_at": None, "source_root": str(root), "workspace": str(args.workspace.resolve()), "stages": [], "files_scanned": [], "files_read": [], "files_reused_without_content_read": [], "files_written": [], "stale_evidence": [], "unresolved_questions": [], "final_status": "RUNNING"}
+    if args.resume:
+        try:
+            record = json.loads(run_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            parser.error(f"cannot resume invalid run record: {exc}")
+        if record.get("project") != args.project or record.get("requested_module") != args.module or Path(record.get("source_root", "")).resolve(strict=False) != root:
+            parser.error("resume arguments do not match the existing run")
+        if record.get("final_status") != "FAILED":
+            parser.error("only a FAILED analysis run can be resumed")
+        for key, default in (
+            ("record_scope", "AUTOMATED_PIPELINE"), ("source_snapshot_id", None),
+            ("resume_count", 0), ("resumed_at", []), ("context_files_read", []),
+            ("files_scanned", []), ("files_read", []),
+            ("files_reused_without_content_read", []), ("files_written", []),
+            ("stale_evidence", []), ("unresolved_questions", []),
+        ):
+            record.setdefault(key, default)
+        if not isinstance(record.get("stages"), list):
+            parser.error("existing analysis run stages must be an array")
+        successful = []
+        for expected, stage in zip((item[0] for item in stages), record.get("stages", [])):
+            if stage.get("name") != expected or stage.get("exit_code") != 0:
+                break
+            successful.append(stage)
+        record["stages"] = successful
+        if not isinstance(record.get("resume_count"), int) or isinstance(record.get("resume_count"), bool):
+            parser.error("existing analysis run resume_count is invalid")
+        if not isinstance(record.get("resumed_at"), list):
+            parser.error("existing analysis run resumed_at must be an array")
+        record["resume_count"] += 1
+        record["resumed_at"].append(started.isoformat())
+        record["finished_at"] = None
+        record["final_status"] = "RUNNING"
+        record.pop("error", None)
+        record.pop("recording_errors", None)
+    else:
+        record = {"analysis_run_id": run_id, "project": args.project, "requested_module": args.module, "started_at": started.isoformat(), "finished_at": None, "source_root": str(root), "workspace": str(args.workspace.resolve()), "record_scope": "AUTOMATED_PIPELINE", "source_snapshot_id": None, "resume_count": 0, "resumed_at": [], "stages": [], "files_scanned": [], "files_read": [], "context_files_read": [], "files_reused_without_content_read": [], "files_written": [], "stale_evidence": [], "unresolved_questions": [], "final_status": "RUNNING"}
     atomic_write(run_path, json.dumps(record, ensure_ascii=False, indent=2) + "\n")
     report = None
     try:
-        for name, script, arguments in stages:
+        for name, script, arguments in stages[len(record["stages"]):]:
+            if name == "stale_references":
+                manifest = json.loads((args.workspace / "indexes" / args.project / "index-manifest.json").read_text(encoding="utf-8"))
+                record["source_snapshot_id"] = manifest["snapshot_id"]
+                arguments = [*arguments, "--trust-source-index", "--source-snapshot-id", manifest["snapshot_id"]]
             command = [sys.executable, str(script_dir / script), *arguments]
             before = time.monotonic()
             result = subprocess.run(command, capture_output=True, text=True)
@@ -120,9 +176,11 @@ def main() -> int:
             atomic_write(run_path, json.dumps(record, ensure_ascii=False, indent=2) + "\n")
             if result.returncode:
                 raise RuntimeError(f"stage {name} failed")
-        refresh_file_record(record, root, args.workspace, args.project, outputs_before)
+        manifest = json.loads((args.workspace / "indexes" / args.project / "index-manifest.json").read_text(encoding="utf-8"))
+        record["source_snapshot_id"] = manifest["snapshot_id"]
+        refresh_file_record(record, root, args.workspace, args.project, args.module, outputs_before)
         atomic_write(run_path, json.dumps(record, ensure_ascii=False, indent=2) + "\n")
-        gate_command = [sys.executable, str(script_dir / "evaluate_quality_gates.py"), "--project", args.project, "--module", args.module, "--analysis-run-id", run_id, "--workspace", str(args.workspace)]
+        gate_command = [sys.executable, str(script_dir / "evaluate_quality_gates.py"), "--project", args.project, "--module", args.module, "--analysis-run-id", run_id, "--workspace", str(args.workspace), "--trust-source-index", "--source-snapshot-id", manifest["snapshot_id"]]
         before_gate = time.monotonic()
         gate = subprocess.run(gate_command, capture_output=True, text=True)
         record["stages"].append({"name": "quality_gates", "command": gate_command, "exit_code": gate.returncode, "duration_ms": round((time.monotonic() - before_gate) * 1000), "stdout": gate.stdout.strip(), "stderr": gate.stderr.strip()})
@@ -140,7 +198,7 @@ def main() -> int:
         record["final_status"] = "FAILED"
         record["error"] = str(exc)
     try:
-        refresh_file_record(record, root, args.workspace, args.project, outputs_before)
+        refresh_file_record(record, root, args.workspace, args.project, args.module, outputs_before)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         record.setdefault("recording_errors", []).append(str(exc))
         record["final_status"] = "FAILED"
@@ -159,9 +217,17 @@ def main() -> int:
             for row in rows:
                 if row.get("module") == args.module:
                     row["status"] = "ANALYZED"
+                    row["last_analysis_run_id"] = run_id
+            return rows
+        def commit_records(rows):
+            for row in rows:
+                if row.get("module") == args.module and row.get("analysis_run_id") == run_id:
+                    row["status"] = "ANALYZED"
             return rows
         with exclusive_lock(index_dir / "derived-indexes"):
             locked_jsonl_update(module_path, commit_analyzed)
+            locked_jsonl_update(index_dir / "api-index.jsonl", commit_records)
+            locked_jsonl_update(index_dir / "business-index.jsonl", commit_records)
             report["module_status_committed"] = "ANALYZED"
             report["run_finalized"] = True
             atomic_write(args.workspace / "reports" / args.project / f"{args.module}-quality-gates.json", json.dumps(report, ensure_ascii=False, indent=2) + "\n")

@@ -3,7 +3,8 @@
     "business_id": "使用 project-module-type-sequence 的稳定业务 ID",
     "classification": "只用 FACT、INFERENCE、UNRESOLVED、CONFLICT、RISK、DEAD_CODE_CANDIDATE",
     "evidence": "每条记录至少填一条包含哈希、符号、行范围和 run ID 的证据",
-    "typed_fields": "状态迁移、幂等/并发、跨模块依赖必须填写对应 Schema 的条件必填字段"
+    "typed_fields": "状态迁移、幂等/并发、跨模块依赖必须填写对应 Schema 的条件必填字段",
+    "absence": "确认某维度不适用时，使用对应 *_absence 类型、rationale 和 semantic_basis=reviewed_negative_evidence；未找到不等于不适用"
   },
   "project": "A",
   "business_id": "A-PRODUCT-RULE-001",

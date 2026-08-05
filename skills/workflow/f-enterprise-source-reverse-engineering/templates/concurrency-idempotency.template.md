@@ -5,4 +5,4 @@
 | `${scenario}` | `${operations}` | `${key}` | `${protection}` | `${guard}` | `${failure}` | `${risk}` | `${evidence}` |
 
 ## 填写说明
-把已实现保护与建议分开；没有锁、唯一键或状态条件证据时 protection 填 `NOT_FOUND` 并登记 RISK。
+把已实现保护与建议分开；没有锁、唯一键或状态条件证据时 protection 填 `NOT_FOUND` 并登记 RISK。确认整个模块不适用时使用 concurrency_idempotency_absence、rationale 和 reviewed_negative_evidence，不能把搜索无结果直接当作不适用。

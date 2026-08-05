@@ -6,4 +6,4 @@
 
 递归追踪 Route → Middleware → Controller → Validator → Service → Domain → Repository/Model/SQL → Cache/Event/Job/External → Response。分析 API、数据库、规则、状态、事务、并发幂等、缓存消息任务、权限、跨模块依赖与风险。每个重要结论附 project、相对路径、SHA-256、符号、起止行、证据类型、可信度和 run ID。
 
-更新三层索引和模块多归属标签，生成标准模块文档，执行质量门禁。输出必须列出文档、索引、运行状态、未决问题和失败恢复点。证据不足时标 FACT/INFERENCE/UNRESOLVED/CONFLICT/RISK/DEAD_CODE_CANDIDATE，并将状态保持 PARTIAL 或 REVIEW_REQUIRED。不得读取 Project 另一方作为当前事实，也不得生成 Java 代码。
+更新三层索引和模块多归属标签，生成标准模块文档，执行质量门禁。名称信号只列候选；没有发现实现保持 UNRESOLVED，不自动推断 NOT_APPLICABLE。输出必须列出文档、索引、自动管线运行记录范围、未决问题和失败恢复点。门禁最终提交前模块/API/业务记录保持 PARTIAL 或 REVIEW_REQUIRED。不得读取 Project 另一方作为当前事实，也不得生成 Java 代码。

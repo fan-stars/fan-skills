@@ -13,7 +13,7 @@
 项目独立 source-index JSONL、index-manifest 和变更报告。
 
 ## 质量检查
-检查 project、relative_path、absolute_path、sha256、line_count、analysis_status、modules，并确认不写源码根目录。
+检查 project、relative_path、absolute_path、sha256、line_count、analysis_status、modules，并确认不写源码根目录。manifest 同时绑定 `source_index_sha256` 与 `snapshot_id`；可信模式必须二者匹配。
 
 ## 失败处理
-读文件失败记录原因并保留旧索引；原子替换失败时删除临时文件并返回非零码。
+读文件失败记录原因并保留旧索引；原子替换失败时删除临时文件并返回非零码。可信模式仅供刚完成 source refresh 的单项目管线使用，独立审计保持默认全量复核或显式 `--verify-all`。

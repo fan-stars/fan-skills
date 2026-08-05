@@ -161,6 +161,22 @@ def _manifest_root(workspace: Path, project: str) -> Path | None:
     return Path(value["repository_root"]).resolve(strict=False)
 
 
+def validate_source_snapshot(workspace: Path, project: str, snapshot_id: str) -> dict[str, Any]:
+    """Verify an explicit source snapshot token without rereading project source files."""
+    manifest_path = workspace / "indexes" / project / "index-manifest.json"
+    source_path = workspace / "indexes" / project / "source-index.jsonl"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"invalid source snapshot manifest: {exc}") from exc
+    if manifest.get("project") != project or manifest.get("snapshot_id") != snapshot_id:
+        raise ValueError("source snapshot ID does not match the current project manifest")
+    expected_hash = manifest.get("source_index_sha256")
+    if not isinstance(expected_hash, str) or sha256_file(source_path) != expected_hash:
+        raise ValueError("source index changed after the trusted snapshot was created")
+    return manifest
+
+
 def ensure_project_root_binding(workspace: Path, project: str, root: Path) -> None:
     """Bind A/B to distinct immutable roots within one analysis workspace."""
     resolved = root.resolve()
@@ -286,10 +302,15 @@ def directory_role(relative: str) -> str:
     return parts[-2].lower() if len(parts) > 1 else "root"
 
 PHP_TYPE = r"[?\\A-Za-z_][\\A-Za-z0-9_|?]*"
-PHP_CLASS = re.compile(r"\b(class|interface|trait)\s+([A-Za-z_][A-Za-z0-9_]*)")
+PHP_CLASS = re.compile(
+    r"\b(class|interface|trait)\s+([A-Za-z_][A-Za-z0-9_]*)"
+    r"(?:\s+extends\s+([A-Za-z_\\][A-Za-z0-9_\\]*))?"
+    r"(?:\s+implements\s+([^\{]+))?"
+)
 PHP_METHOD = re.compile(r"(?P<mods>(?:(?:public|protected|private|static|final|abstract)\s+)*)function\s+&?\s*(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*\((?P<params>[^)]*)\)")
 PHP_NAMESPACE = re.compile(r"^\s*namespace\s+([^;]+);", re.MULTILINE)
 PHP_USE = re.compile(r"^\s*use\s+([^;]+);", re.MULTILINE)
+PHP_BUILTIN_TYPES = {"array", "bool", "callable", "false", "float", "int", "iterable", "mixed", "never", "null", "object", "parent", "self", "static", "string", "true", "void"}
 
 def _symbol_end(lines: list[str], start: int) -> int:
     depth = 0
@@ -308,6 +329,20 @@ def _symbol_end(lines: list[str], start: int) -> int:
 def _short_type(value: str) -> str:
     return value.lstrip("?\\").split("\\")[-1]
 
+
+def _parameter_types(parameters: list[str], imports: dict[str, str], namespace: str) -> list[str]:
+    resolved = []
+    for parameter in parameters:
+        match = re.search(rf"({PHP_TYPE})\s+(?:&\s*)?\$[A-Za-z_][A-Za-z0-9_]*", parameter)
+        if not match:
+            continue
+        for type_name in match.group(1).lstrip("?").split("|"):
+            short = _short_type(type_name)
+            if short.lower() in PHP_BUILTIN_TYPES:
+                continue
+            resolved.append(imports.get(short, type_name.lstrip("\\") if "\\" in type_name else f"{namespace}\\{short}" if namespace else short))
+    return sorted(set(resolved))
+
 def extract_php_symbols(path: Path, project: str, root: Path) -> list[dict[str, Any]]:
     lines = text_lines(path)
     text = "\n".join(lines)
@@ -319,6 +354,16 @@ def extract_php_symbols(path: Path, project: str, root: Path) -> list[dict[str, 
     class_match = PHP_CLASS.search(text)
     class_name = class_match.group(2) if class_match else None
     class_fqn = f"{namespace}\\{class_name}" if namespace and class_name else class_name
+    extends = None
+    implements: list[str] = []
+    if class_match:
+        if class_match.group(3):
+            short = _short_type(class_match.group(3))
+            extends = imports.get(short, class_match.group(3).lstrip("\\"))
+        if class_match.group(4):
+            for interface in class_match.group(4).split(","):
+                short = _short_type(interface.strip())
+                implements.append(imports.get(short, interface.strip().lstrip("\\")))
     property_types: dict[str, str] = {}
     for type_name, property_name in re.findall(rf"(?:public|protected|private)\s+({PHP_TYPE})\s+\$([A-Za-z_][A-Za-z0-9_]*)", text):
         short = _short_type(type_name)
@@ -327,7 +372,7 @@ def extract_php_symbols(path: Path, project: str, root: Path) -> list[dict[str, 
     if class_match and class_name and class_fqn:
         line = text.count("\n", 0, class_match.start()) + 1
         model_tables = sorted(set(re.findall(r"\$table\s*=\s*['\"]([^'\"]+)['\"]", text)))
-        records.append({"project": project, "symbol_id": f"{project}:{relative}:{class_fqn}", "file": relative, "file_sha256": digest, "namespace": namespace, "container_symbol": class_fqn, "symbol_type": class_match.group(1), "name": class_name, "fully_qualified_name": class_fqn, "start_line": line, "end_line": _symbol_end(lines, line), "visibility": "public", "parameters": [], "return_type": None, "calls": [], "called_by": [], "tables": model_tables, "routes": [], "modules": [], "analysis_status": "PARTIAL", "notes": []})
+        records.append({"project": project, "symbol_id": f"{project}:{relative}:{class_fqn}", "file": relative, "file_sha256": digest, "namespace": namespace, "container_symbol": class_fqn, "symbol_type": class_match.group(1), "name": class_name, "fully_qualified_name": class_fqn, "extends": extends, "implements": sorted(set(implements)), "start_line": line, "end_line": _symbol_end(lines, line), "visibility": "public", "parameters": [], "return_type": None, "calls": [], "called_by": [], "tables": model_tables, "routes": [], "modules": [], "analysis_status": "PARTIAL", "notes": []})
     for match in PHP_METHOD.finditer(text):
         line = text.count("\n", 0, match.start()) + 1
         end = _symbol_end(lines, line)
@@ -346,8 +391,9 @@ def extract_php_symbols(path: Path, project: str, root: Path) -> list[dict[str, 
                 calls.append(f"{class_fqn}::{method}")
         modifiers = match.group("mods").split()
         parameters = [part.strip() for part in match.group("params").split(",") if part.strip()]
+        parameter_types = _parameter_types(parameters, imports, namespace)
         tables = sorted(set(re.findall(r"(?:table|from)\s*\(\s*['\"]([^'\"]+)", body, re.I)))
-        records.append({"project": project, "symbol_id": f"{project}:{relative}:{fqn}", "file": relative, "file_sha256": digest, "namespace": namespace, "container_symbol": class_fqn, "symbol_type": "method" if class_fqn else "function", "name": name, "fully_qualified_name": fqn, "start_line": line, "end_line": end, "visibility": next((item for item in modifiers if item in {"public", "protected", "private"}), "public"), "parameters": parameters, "return_type": None, "calls": sorted(set(calls)), "called_by": [], "tables": tables, "routes": [], "modules": [], "analysis_status": "PARTIAL", "notes": ["PARSER_LIMITATION: conservative token/regex extraction; verify dynamic calls manually"]})
+        records.append({"project": project, "symbol_id": f"{project}:{relative}:{fqn}", "file": relative, "file_sha256": digest, "namespace": namespace, "container_symbol": class_fqn, "symbol_type": "method" if class_fqn else "function", "name": name, "fully_qualified_name": fqn, "start_line": line, "end_line": end, "visibility": next((item for item in modifiers if item in {"public", "protected", "private"}), "public"), "parameters": parameters, "parameter_types": parameter_types, "return_type": None, "calls": sorted(set(calls)), "called_by": [], "tables": tables, "routes": [], "modules": [], "analysis_status": "PARTIAL", "notes": ["PARSER_LIMITATION: conservative token/regex extraction; verify dynamic calls manually"]})
     return records
 
 def line_range_exists(path: Path, start: int, end: int) -> bool:

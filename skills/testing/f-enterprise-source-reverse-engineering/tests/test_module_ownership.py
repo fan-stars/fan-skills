@@ -11,6 +11,20 @@ class OwnershipTest(unittest.TestCase):
             row = next(json.loads(line) for line in index.read_text().splitlines() if json.loads(line)["relative_path"] == file_name)
             self.assertEqual({item["module"] for item in row["modules"]}, {"product", "inventory"})
 
+            rejected = subprocess.run(
+                [sys.executable, str(SKILL / "scripts/update_module_ownership.py"), "--index", str(index),
+                 "--file", file_name, "--module", "product", "--role", "SHARED"],
+                capture_output=True, text=True,
+            )
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("--replace-role", rejected.stderr)
+            subprocess.check_call(
+                [sys.executable, str(SKILL / "scripts/update_module_ownership.py"), "--index", str(index),
+                 "--file", file_name, "--module", "product", "--role", "SHARED", "--replace-role"]
+            )
+            row = next(json.loads(line) for line in index.read_text().splitlines() if json.loads(line)["relative_path"] == file_name)
+            self.assertEqual(next(item["role"] for item in row["modules"] if item["module"] == "product"), "SHARED")
+
             subprocess.check_call([sys.executable, str(SKILL / "scripts/build_module_index.py"), "--project", "A", "--workspace", str(workspace)])
             module_index = workspace / "indexes/A/module-index.jsonl"
             modules = [json.loads(line) for line in module_index.read_text().splitlines()]

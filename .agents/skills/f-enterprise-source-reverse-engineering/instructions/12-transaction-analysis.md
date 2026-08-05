@@ -13,7 +13,7 @@ transaction begin/commit/rollback、ORM wrapper、异常处理、锁和外部调
 事务边界图、原子性结论、异常传播、锁证据和未发现事务说明。
 
 ## 质量检查
-每个核心流程明确事务入口或“已检查但未发现”；事务内副作用必须登记。
+每个核心流程明确事务入口或“已检查但未发现”；事务内副作用必须登记。“已检查但未发现”先保持 `UNRESOLVED`；只有复核完整可达调用图并写入 `transaction_absence`、rationale 和 `reviewed_negative_evidence` 后才能标 `NOT_APPLICABLE`。
 
 ## 失败处理
 框架封装无法解析时标 PARSER_LIMITATION/INFERENCE，保持 REVIEW_REQUIRED。

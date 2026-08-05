@@ -35,7 +35,9 @@ py -m venv $venv
 & "$venv\Scripts\python.exe" -m unittest discover -s tests -v
 ```
 
-从技能目录运行 `scripts/*.py --help`。先用 `build_source_index.py` 建索引并用 `update_module_ownership.py` 写入有证据的模块归属，再运行 `run_analysis.py`；它会调用真实存在的 source/stale/symbol/route/table/module/business 索引脚本和 18 项质量门禁。A/B 在同一工作区绑定到两个不同且不可静默切换的源码根。门禁会验证实际文件、当前哈希、符号/路由范围、调用可达性、表关联、类型化业务字段、必需模块文档及本次运行记录；只有完整运行记录落盘后才提交 `ANALYZED`。`query_indexes.py` 可查询文件归属、方法反向调用者及业务规则关联的接口与表。`refresh_source_index.py` 会自动把变化传播到 API、业务和模块索引。运行 `python3 scripts/run_fixture_example.py` 可实际执行内置 fixture；fixture 有意缺少模块文档、状态迁移、幂等和跨模块证据，预期门禁结果是 `PARTIAL` 14/18，不是完成声明。
+从技能目录运行 `python3 scripts/<script>.py --help`。先用 `build_source_index.py` 建索引并用 `update_module_ownership.py` 写入有证据的模块归属，再运行 `run_analysis.py`；它会调用真实存在的 source/stale/symbol/route/table/module/business 索引脚本和 18 项质量门禁。失败后用原命令加 `--analysis-run-id <原ID> --resume`，只从首个失败阶段继续。同一文件可以追加多个模块；同一文件/模块需要改 role 时必须显式加 `update_module_ownership.py --replace-role`。
+
+A/B 在同一工作区绑定到两个不同且不可静默切换的源码根。门禁会验证实际文件、当前哈希、符号/路由范围、调用可达性、表关联、类型化业务字段、必需模块文档及本次运行记录；只有完整运行记录落盘后才提交模块、API 和业务记录为 `ANALYZED`。名称后缀只产生 `MEDIUM` 候选，不能产生事实证据；自动扫描未发现某维度时保持 `UNRESOLVED`，不能自动标 `NOT_APPLICABLE`。`query_indexes.py` 可查询文件归属、方法反向调用者及业务规则关联的接口与表。`refresh_source_index.py` 会自动把变化传播到 API、业务和模块索引。运行 `python3 scripts/run_fixture_example.py` 可实际执行内置 fixture；fixture 有意缺少模块文档、状态迁移、幂等和跨模块证据，预期门禁结果是 `PARTIAL` 14/18，不是完成声明。
 
 ## 变化与安装排查
 

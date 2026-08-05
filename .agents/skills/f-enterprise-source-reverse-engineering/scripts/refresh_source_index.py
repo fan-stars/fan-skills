@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -25,9 +26,11 @@ def main() -> int:
     build = subprocess.run(build_command)
     if build.returncode:
         return build.returncode
+    manifest = json.loads((args.workspace / "indexes" / args.project / "index-manifest.json").read_text(encoding="utf-8"))
     stale = subprocess.run([
         sys.executable, str(script_dir / "detect_stale_references.py"),
         "--workspace", str(args.workspace), "--project", args.project, "--trust-source-index",
+        "--source-snapshot-id", manifest["snapshot_id"],
     ])
     return stale.returncode
 

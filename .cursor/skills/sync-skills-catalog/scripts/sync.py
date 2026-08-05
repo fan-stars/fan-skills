@@ -26,6 +26,9 @@ MIN_SUMMARY = 24
 MIN_DETAIL = 40
 CJK_RE = re.compile(r"[\u4e00-\u9fff]")
 FORBIDDEN_SUMMARY_CHARS = "|"
+TRANSIENT_DIRS = {"__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".venv"}
+TRANSIENT_FILES = {".DS_Store"}
+TRANSIENT_SUFFIXES = {".pyc", ".pyo"}
 
 
 def load_json(path: Path) -> dict:
@@ -41,7 +44,13 @@ def save_json(path: Path, data: dict) -> None:
 
 def content_hash(skill_dir: Path) -> str:
     h = hashlib.sha256()
-    files = sorted(p for p in skill_dir.rglob("*") if p.is_file())
+    files = sorted(
+        p for p in skill_dir.rglob("*")
+        if p.is_file()
+        and not any(part in TRANSIENT_DIRS for part in p.relative_to(skill_dir).parts)
+        and p.name not in TRANSIENT_FILES
+        and p.suffix not in TRANSIENT_SUFFIXES
+    )
     for p in files:
         rel = p.relative_to(skill_dir).as_posix()
         h.update(rel.encode())
