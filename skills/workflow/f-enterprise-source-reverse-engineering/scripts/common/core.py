@@ -7,12 +7,27 @@ import os
 import re
 import tempfile
 import time
+import uuid
 from contextlib import contextmanager
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Iterable, Iterator
 
 EXCLUDED_DIRS = {".git", ".idea", ".vscode", "vendor", "node_modules", "runtime", "cache", "tmp", "logs", "coverage", "dist", "build", "uploads"}
 SOURCE_EXTENSIONS = {".php", ".inc", ".phtml", ".sql", ".yaml", ".yml", ".json", ".xml", ".ini", ".env", ".twig"}
+MODULE_NAME = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$")
+
+
+def validate_module_name(value: str) -> str:
+    if not MODULE_NAME.fullmatch(value):
+        raise ValueError("module must be 1-64 lowercase letters, digits, or hyphens")
+    return value
+
+
+def validate_analysis_run_id(value: str, project: str, module: str) -> str:
+    pattern = re.compile(rf"^{re.escape(project)}-{re.escape(module)}-[0-9]{{8}}-[0-9]{{3}}$")
+    if not pattern.fullmatch(value):
+        raise ValueError(f"analysis run ID must match {project}-{module}-YYYYMMDD-NNN")
+    return value
 
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
@@ -57,18 +72,60 @@ def atomic_write(path: Path, text: str) -> None:
             pass
         raise
 
+
+def _process_exists(pid: int) -> bool:
+    if os.name == "nt":
+        import ctypes
+        from ctypes import wintypes
+
+        process_query_limited_information = 0x1000
+        still_active = 259
+        kernel32 = ctypes.windll.kernel32
+        kernel32.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+        kernel32.OpenProcess.restype = wintypes.HANDLE
+        kernel32.GetExitCodeProcess.argtypes = (wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD))
+        kernel32.GetExitCodeProcess.restype = wintypes.BOOL
+        kernel32.CloseHandle.argtypes = (wintypes.HANDLE,)
+        kernel32.CloseHandle.restype = wintypes.BOOL
+        handle = kernel32.OpenProcess(process_query_limited_information, False, pid)
+        if not handle:
+            return kernel32.GetLastError() == 5
+        try:
+            exit_code = wintypes.DWORD()
+            return bool(kernel32.GetExitCodeProcess(handle, ctypes.byref(exit_code))) and exit_code.value == still_active
+        finally:
+            kernel32.CloseHandle(handle)
+    try:
+        os.kill(pid, 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except (PermissionError, OSError):
+        return True
+
+
 @contextmanager
 def exclusive_lock(path: Path, timeout: float = 30.0) -> Iterator[None]:
-    """Use portable O_EXCL lock files so concurrent writers cannot lose updates."""
+    """Use portable O_EXCL locks and recover locks whose owning process exited."""
     path.parent.mkdir(parents=True, exist_ok=True)
     lock = path.with_name(f".{path.name}.lock")
     deadline = time.monotonic() + timeout
     descriptor: int | None = None
+    token = uuid.uuid4().hex
     while descriptor is None:
         try:
             descriptor = os.open(str(lock), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-            os.write(descriptor, str(os.getpid()).encode("ascii"))
+            payload = json.dumps({"pid": os.getpid(), "token": token, "created_at": time.time()})
+            os.write(descriptor, payload.encode("ascii"))
         except FileExistsError:
+            try:
+                owner = json.loads(lock.read_text(encoding="ascii"))
+                pid = int(owner["pid"])
+                if not _process_exists(pid):
+                    lock.unlink(missing_ok=True)
+                    continue
+            except (OSError, ValueError, KeyError, json.JSONDecodeError):
+                pass
             if time.monotonic() >= deadline:
                 raise TimeoutError(f"timed out waiting for index lock: {lock}")
             time.sleep(0.05)
@@ -77,8 +134,10 @@ def exclusive_lock(path: Path, timeout: float = 30.0) -> Iterator[None]:
     finally:
         os.close(descriptor)
         try:
-            lock.unlink()
-        except FileNotFoundError:
+            owner = json.loads(lock.read_text(encoding="ascii"))
+            if owner.get("token") == token:
+                lock.unlink()
+        except (FileNotFoundError, OSError, json.JSONDecodeError):
             pass
 
 def ensure_outside_source(output: Path, source_root: Path) -> None:
@@ -87,6 +146,72 @@ def ensure_outside_source(output: Path, source_root: Path) -> None:
     resolved_root = source_root.resolve()
     if resolved_output == resolved_root or resolved_root in resolved_output.parents:
         raise ValueError(f"output path must be outside analyzed source root: {resolved_output}")
+
+
+def _manifest_root(workspace: Path, project: str) -> Path | None:
+    manifest = workspace / "indexes" / project / "index-manifest.json"
+    if not manifest.is_file():
+        return None
+    try:
+        value = json.loads(manifest.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"invalid {project} index manifest: {exc}") from exc
+    if value.get("project") != project or not isinstance(value.get("repository_root"), str):
+        raise ValueError(f"invalid {project} project/root binding in index manifest")
+    return Path(value["repository_root"]).resolve(strict=False)
+
+
+def ensure_project_root_binding(workspace: Path, project: str, root: Path) -> None:
+    """Bind A/B to distinct immutable roots within one analysis workspace."""
+    resolved = root.resolve()
+    current = _manifest_root(workspace, project)
+    if current is not None and current != resolved:
+        raise ValueError(f"Project {project} is already bound to repository root: {current}")
+    other = "B" if project == "A" else "A"
+    other_root = _manifest_root(workspace, other)
+    if other_root is not None and other_root == resolved:
+        raise ValueError(f"repository root is already bound to Project {other}: {resolved}")
+
+
+def load_isolated_source_index(
+    workspace: Path,
+    project: str,
+    expected_root: Path | None = None,
+) -> list[dict[str, Any]]:
+    """Load one project's source rows only after validating project and path boundaries."""
+    path = workspace / "indexes" / project / "source-index.jsonl"
+    rows = read_jsonl(path)
+    if not rows:
+        raise ValueError(f"source index is missing or empty: {path}")
+    roots: set[Path] = set()
+    for position, row in enumerate(rows):
+        if row.get("project") != project:
+            raise ValueError(f"source index project mismatch at row {position}")
+        relative = row.get("relative_path")
+        if not isinstance(relative, str) or not relative:
+            raise ValueError(f"invalid source relative path at row {position}")
+        pure = PurePosixPath(relative)
+        if pure.is_absolute() or ".." in pure.parts:
+            raise ValueError(f"source path escapes project root at row {position}: {relative}")
+        root = Path(row.get("repository_root", "")).resolve(strict=False)
+        absolute = Path(row.get("absolute_path", "")).resolve(strict=False)
+        expected = (root / Path(*pure.parts)).resolve(strict=False)
+        if absolute != expected or (absolute != root and root not in absolute.parents):
+            raise ValueError(f"source absolute path escapes project root at row {position}: {relative}")
+        roots.add(root)
+    if len(roots) != 1:
+        raise ValueError(f"Project {project} source index has {len(roots)} repository roots")
+    root = next(iter(roots))
+    bound = _manifest_root(workspace, project)
+    if bound is None or bound != root:
+        raise ValueError(f"Project {project} source index does not match its root binding")
+    if expected_root is not None and root != expected_root.resolve():
+        raise ValueError(f"Project {project} root does not match indexed root: {root}")
+    other = "B" if project == "A" else "A"
+    other_root = _manifest_root(workspace, other)
+    if other_root is not None and other_root == root:
+        raise ValueError(f"Projects A and B share repository root: {root}")
+    return rows
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
     if not path.exists():
@@ -101,6 +226,14 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
             if not isinstance(value, dict):
                 raise ValueError(f"{path}:{number}: record must be an object")
             rows.append(value)
+    return rows
+
+
+def read_project_jsonl(path: Path, project: str) -> list[dict[str, Any]]:
+    rows = read_jsonl(path)
+    for position, row in enumerate(rows):
+        if row.get("project") != project:
+            raise ValueError(f"{path.name}:{position}: project mismatch")
     return rows
 
 def write_jsonl(path: Path, rows: Iterable[dict[str, Any]]) -> None:
@@ -133,6 +266,7 @@ def source_record(project: str, root: Path, path: Path, old: dict[str, Any] | No
         "project": project, "repository_root": str(root.resolve()), "relative_path": relative,
         "absolute_path": str(path.resolve()), "language": language_for(path), "extension": path.suffix,
         "size_bytes": stat.st_size, "line_count": line_count, "sha256": digest,
+        "previous_sha256": previous_hash if previous_hash and previous_hash != digest else (old or {}).get("previous_sha256"),
         "mtime": stat.st_mtime, "mtime_ns": stat.st_mtime_ns, "directory_role": directory_role(relative),
         "analysis_status": "STALE" if previous_hash and previous_hash != digest else (old or {}).get("analysis_status", "UNREAD"),
         "modules": (old or {}).get("modules", []), "symbols": (old or {}).get("symbols", []),

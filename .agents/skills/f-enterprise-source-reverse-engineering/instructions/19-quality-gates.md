@@ -13,7 +13,7 @@
 门禁报告和最终状态：全部满足才是 ANALYZED，否则 PARTIAL 或 REVIEW_REQUIRED。
 
 ## 质量检查
-报告逐项写入 `reports/<project>/<module>-quality-gates.json`；未全部通过时脚本退出 2，并把模块保持为 `PARTIAL` 或 `REVIEW_REQUIRED`。
+报告逐项写入 `reports/<project>/<module>-quality-gates.json`；未全部通过时脚本退出 2。全部通过只产生候选 `ANALYZED`，完整运行记录校验落盘后才提交模块状态，避免崩溃留下虚假完成。
 
 ## 失败处理
 任一项缺失时保留文档，补证后重跑，不降低门槛或删除失败记录。

@@ -1,6 +1,7 @@
 import re
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 import yaml
@@ -57,6 +58,15 @@ class SkillHygieneTest(unittest.TestCase):
         self.assertTrue(output["callers"])
         self.assertTrue(output["rules"])
         self.assertEqual(output["quality_gate"]["total"], 18)
+
+    def test_document_validation_rejects_missing_module_documents(self):
+        with tempfile.TemporaryDirectory() as directory:
+            result = subprocess.run([
+                sys.executable, str(SKILL / "scripts/validate_documents.py"),
+                "--workspace", directory, "--project", "A", "--module", "product",
+            ], capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("missing required module document", result.stdout)
 
 if __name__ == "__main__":
     unittest.main()

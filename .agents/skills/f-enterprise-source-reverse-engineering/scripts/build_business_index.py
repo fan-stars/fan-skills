@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent))
-from common.core import exclusive_lock, read_jsonl, text_lines, write_jsonl
+from common.core import exclusive_lock, load_isolated_source_index, read_project_jsonl, text_lines, validate_analysis_run_id, validate_module_name, write_jsonl
 
 def evidence(project: str, symbol: dict, run_id: str, evidence_type: str = "implementation", start_line: int | None = None, end_line: int | None = None) -> dict:
     return {"project": project, "file": symbol["file"], "file_sha256": symbol["file_sha256"], "symbol": symbol["fully_qualified_name"], "start_line": start_line or symbol["start_line"], "end_line": end_line or symbol["end_line"], "evidence_type": evidence_type, "confidence": "HIGH", "analysis_run_id": run_id, "status": "CURRENT"}
@@ -21,17 +21,28 @@ def main() -> int:
     parser.add_argument("--analysis-run-id", required=True)
     parser.add_argument("--workspace", type=Path, required=True)
     args = parser.parse_args()
+    try:
+        validate_module_name(args.module)
+        validate_analysis_run_id(args.analysis_run_id, args.project, args.module)
+    except ValueError as exc:
+        parser.error(str(exc))
     index_dir = args.workspace / "indexes" / args.project
-    source = read_jsonl(index_dir / "source-index.jsonl")
-    symbols = read_jsonl(index_dir / "symbol-index.jsonl")
-    routes = read_jsonl(index_dir / "routes.jsonl")
-    tables = read_jsonl(index_dir / "table-index.jsonl")
+    try:
+        source = load_isolated_source_index(args.workspace, args.project)
+        symbols = read_project_jsonl(index_dir / "symbol-index.jsonl", args.project)
+        routes = read_project_jsonl(index_dir / "routes.jsonl", args.project)
+        tables = read_project_jsonl(index_dir / "table-index.jsonl", args.project)
+    except ValueError as exc:
+        parser.error(str(exc))
     owned = {row["relative_path"] for row in source if any(isinstance(label, dict) and label.get("module") == args.module for label in row.get("modules", []))}
+    if not owned:
+        parser.error(f"module has no explicitly owned source files: {args.module}")
     by_name = {row["fully_qualified_name"]: row for row in symbols}
     class_by_short = {row["name"]: row for row in symbols if row.get("symbol_type") in {"class", "interface", "trait"}}
     class_by_name = {row["fully_qualified_name"]: row for row in symbols if row.get("symbol_type") in {"class", "interface", "trait"}}
     api_rows = []
     business_rows = []
+    lines_by_file = {}
     for number, route in enumerate(routes, 1):
         entry_name = f"{route.get('controller')}::{route.get('action')}"
         entry = by_name.get(entry_name)
@@ -78,7 +89,9 @@ def main() -> int:
             path_row = next((row for row in source if row["relative_path"] == item["file"]), None)
             if not path_row:
                 continue
-            lines = text_lines(Path(path_row["absolute_path"]))
+            if item["file"] not in lines_by_file:
+                lines_by_file[item["file"]] = text_lines(Path(path_row["absolute_path"]))
+            lines = lines_by_file[item["file"]]
             for line_number in range(item["start_line"], min(item["end_line"], len(lines)) + 1):
                 status_match = re.search(r"['\"]status['\"]\s*=>\s*['\"]([^'\"]+)['\"]", lines[line_number - 1])
                 if status_match:
@@ -86,9 +99,11 @@ def main() -> int:
                     business_rows.append({"project": args.project, "business_id": rule_id, "type": "business_rule", "module": args.module, "name": f"status is set to {status_match.group(1)}", "classification": "FACT", "confidence": "HIGH", "evidence": [evidence(args.project, item, args.analysis_run_id, start_line=line_number, end_line=line_number)], "related_apis": [api_id], "related_tables": related_tables, "analysis_run_id": args.analysis_run_id, "status": "ANALYZED"})
     api_path = index_dir / "api-index.jsonl"
     business_path = index_dir / "business-index.jsonl"
-    with exclusive_lock(business_path):
-        api_rows = [row for row in read_jsonl(api_path) if row.get("module") != args.module] + api_rows
-        business_rows = [row for row in read_jsonl(business_path) if row.get("module") != args.module] + business_rows
+    if not api_rows:
+        parser.error(f"no evidence-backed API entry was found for module {args.module}; existing records were preserved")
+    with exclusive_lock(index_dir / "derived-indexes"):
+        api_rows = [row for row in read_project_jsonl(api_path, args.project) if row.get("module") != args.module] + api_rows
+        business_rows = [row for row in read_project_jsonl(business_path, args.project) if row.get("module") != args.module] + business_rows
         api_rows.sort(key=lambda row: (row.get("module", ""), row.get("api_id", "")))
         business_rows.sort(key=lambda row: (row.get("module", ""), row.get("business_id", "")))
         write_jsonl(api_path, api_rows)

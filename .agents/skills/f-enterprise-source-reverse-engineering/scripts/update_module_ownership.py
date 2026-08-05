@@ -5,7 +5,7 @@ import argparse
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent))
-from common.core import locked_jsonl_update
+from common.core import locked_jsonl_update, validate_module_name
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -14,9 +14,18 @@ def main() -> int:
     parser.add_argument("--module", required=True)
     parser.add_argument("--role", choices=("PRIMARY", "SECONDARY", "SHARED", "INFRASTRUCTURE", "UNKNOWN"), required=True)
     args = parser.parse_args()
+    project = args.index.parent.name
+    if project not in {"A", "B"}:
+        parser.error("index must be indexes/A/source-index.jsonl or indexes/B/source-index.jsonl")
+    try:
+        validate_module_name(args.module)
+    except ValueError as exc:
+        parser.error(str(exc))
     def update(rows):
         found = False
         for row in rows:
+            if row.get("project") != project:
+                raise ValueError(f"project mismatch in source index: expected {project}")
             if row.get("relative_path") == args.file:
                 labels = row.setdefault("modules", [])
                 existing = next((item for item in labels if item.get("module") == args.module), None)

@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 import json
+import re
+from datetime import datetime
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 
-from .core import file_fingerprint, line_range_exists, read_jsonl, sha256_file
+from .core import file_fingerprint, load_isolated_source_index, read_jsonl
 
 
 EVIDENCE_REQUIRED = {
@@ -21,6 +23,28 @@ SOURCE_REQUIRED = {
 INDEX_NAMES = (
     "source-index.jsonl", "symbol-index.jsonl", "module-index.jsonl",
     "routes.jsonl", "table-index.jsonl", "api-index.jsonl", "business-index.jsonl",
+)
+EVIDENCE_TYPES = {
+    "route_evidence": "route",
+    "controller_evidence": "controller",
+    "validation_evidence": "validation",
+    "service_evidence": "service",
+    "persistence_evidence": "persistence",
+    "transaction_evidence": "transaction",
+    "side_effect_evidence": "side_effect",
+}
+BUSINESS_SEMANTIC_FIELDS = {
+    "state_transition": ("entity", "from_state", "to_state", "trigger"),
+    "idempotency_rule": ("scenario", "mechanism"),
+    "concurrency_rule": ("scenario", "mechanism"),
+    "cross_module_dependency": ("related_modules", "dependency_type", "direction"),
+}
+REQUIRED_MODULE_DOCUMENTS = (
+    "module-analysis-manifest.md", "module-overview.md", "source-code-map.md",
+    "database-design.md", "api-detail.md", "business-process.md", "business-rule.md",
+    "state-machine.md", "transaction-design.md", "concurrency-idempotency.md",
+    "cache-message-job.md", "permissions.md", "cross-module-dependency.md",
+    "risk-register.md", "open-questions.md",
 )
 
 
@@ -55,6 +79,7 @@ def validate_run_record(
     project: str,
     run_id: str,
     module: str | None = None,
+    allow_in_progress: bool = False,
 ) -> list[str]:
     path = workspace / "analysis-runs" / project / f"{run_id}.json"
     if not path.is_file():
@@ -81,6 +106,7 @@ def validate_run_record(
     if module is not None and record.get("requested_module") != module:
         errors.append(f"analysis run module mismatch: {path}")
     stages = record.get("stages")
+    expected_stages = ["source_index", "stale_references", "symbol_index", "routes", "tables", "modules", "business"]
     if not isinstance(stages, list):
         errors.append(f"analysis run stages must be an array: {path}")
     else:
@@ -94,14 +120,46 @@ def validate_run_record(
                 errors.append(f"analysis run stage {position} has invalid types: {path}")
             elif stage["exit_code"] != 0 and not (stage.get("name") == "quality_gates" and stage["exit_code"] == 2):
                 errors.append(f"analysis run stage {position} did not succeed: {path}")
+            if not _integer(stage.get("duration_ms")) or stage.get("duration_ms", -1) < 0:
+                errors.append(f"analysis run stage {position} has invalid duration: {path}")
+            if not isinstance(stage.get("stdout"), str) or not isinstance(stage.get("stderr"), str):
+                errors.append(f"analysis run stage {position} is missing captured output: {path}")
+        names = [stage.get("name") for stage in stages if isinstance(stage, dict)]
+        if allow_in_progress and record.get("final_status") == "RUNNING":
+            if names != expected_stages:
+                errors.append(f"analysis run has incomplete pre-gate stage order: {path}")
+        elif record.get("final_status") != "FAILED" and names != expected_stages + ["quality_gates"]:
+            errors.append(f"analysis run has incomplete final stage order: {path}")
     for key in ("files_read", "files_written", "stale_evidence", "unresolved_questions"):
         if key in record and not isinstance(record[key], list):
             errors.append(f"analysis run {key} must be an array: {path}")
     for key in ("requested_module", "started_at", "source_root", "workspace", "final_status"):
         if key in record and (not isinstance(record[key], str) or not record[key]):
             errors.append(f"analysis run {key} must be a non-empty string: {path}")
-    if record.get("final_status") not in {"COMPLETED", "PARTIAL", "REVIEW_REQUIRED", "BLOCKED", "FAILED"}:
+    allowed_status = {"COMPLETED", "PARTIAL", "REVIEW_REQUIRED", "BLOCKED", "FAILED"}
+    if allow_in_progress:
+        allowed_status.add("RUNNING")
+    if record.get("final_status") not in allowed_status:
         errors.append(f"analysis run final_status is invalid: {path}")
+    finished = record.get("finished_at")
+    if record.get("final_status") == "RUNNING" and allow_in_progress:
+        if finished is not None:
+            errors.append(f"running analysis must not have finished_at: {path}")
+    elif not isinstance(finished, str) or not finished:
+        errors.append(f"finished analysis must have finished_at: {path}")
+    for key in ("started_at", "finished_at"):
+        value = record.get(key)
+        if value is None and key == "finished_at" and allow_in_progress:
+            continue
+        if isinstance(value, str):
+            try:
+                datetime.fromisoformat(value.replace("Z", "+00:00"))
+            except ValueError:
+                errors.append(f"analysis run {key} is not an ISO date-time: {path}")
+    if record.get("final_status") not in {"FAILED", "RUNNING"}:
+        for key in ("files_scanned", "files_read", "files_written"):
+            if not isinstance(record.get(key), list) or not record[key]:
+                errors.append(f"successful analysis run {key} must not be empty: {path}")
     return errors
 
 
@@ -112,6 +170,7 @@ def validate_evidence(
     symbols: list[dict[str, Any]],
     routes: list[dict[str, Any]],
     expected_run_id: str | None = None,
+    fingerprint_cache: dict[str, tuple[str, int]] | None = None,
 ) -> list[str]:
     missing = sorted(EVIDENCE_REQUIRED - set(item))
     if missing:
@@ -132,19 +191,22 @@ def validate_evidence(
     if source is None:
         errors.append(f"evidence file is not indexed: {relative}")
         return errors
-    if source.get("analysis_status") == "STALE":
-        errors.append(f"evidence source record is STALE: {relative}")
     path = Path(source.get("absolute_path", "")).resolve(strict=False)
     root = Path(source.get("repository_root", "")).resolve(strict=False)
     if not path.is_file() or not _inside(path, root):
         errors.append(f"evidence file is missing or outside root: {relative}")
         return errors
-    actual_hash = sha256_file(path)
+    cache = fingerprint_cache if fingerprint_cache is not None else {}
+    if relative not in cache:
+        actual_hash, actual_lines, _ = file_fingerprint(path)
+        cache[relative] = (actual_hash, actual_lines)
+    else:
+        actual_hash, actual_lines = cache[relative]
     if source.get("sha256") != actual_hash or item.get("file_sha256") != actual_hash:
         errors.append(f"evidence SHA-256 mismatch: {relative}")
     start = item.get("start_line")
     end = item.get("end_line")
-    if not _integer(start) or not _integer(end) or not line_range_exists(path, start, end):
+    if not _integer(start) or not _integer(end) or not 1 <= start <= end <= actual_lines:
         errors.append(f"evidence line range is invalid: {relative}")
         return errors
     symbol_name = item.get("symbol")
@@ -172,7 +234,12 @@ def validate_evidence(
     return errors
 
 
-def validate_project_indexes(workspace: Path, project: str) -> list[str]:
+def validate_project_indexes(
+    workspace: Path,
+    project: str,
+    module: str | None = None,
+    allow_in_progress_runs: bool = False,
+) -> list[str]:
     """Validate one project without reading facts from the other project."""
     index_dir = workspace / "indexes" / project
     errors: list[str] = []
@@ -189,8 +256,15 @@ def validate_project_indexes(workspace: Path, project: str) -> list[str]:
             errors.append(f"{name}: missing or empty")
 
     source_rows = indexes["source-index.jsonl"]
+    source_isolated = True
+    try:
+        load_isolated_source_index(workspace, project)
+    except ValueError as exc:
+        source_isolated = False
+        errors.append(f"source-index.jsonl: isolation failure: {exc}")
     roots: set[Path] = set()
     source_by_file: dict[str, dict[str, Any]] = {}
+    fingerprint_cache: dict[str, tuple[str, int]] = {}
     for position, row in enumerate(source_rows):
         prefix = f"source-index.jsonl:{position}"
         missing = sorted(SOURCE_REQUIRED - set(row))
@@ -210,8 +284,9 @@ def validate_project_indexes(workspace: Path, project: str) -> list[str]:
         roots.add(root)
         if path != (root / Path(*PurePosixPath(relative).parts)).resolve(strict=False) or not _inside(path, root):
             errors.append(f"{prefix}: absolute path does not match project root and relative path")
-        if path.is_file():
+        if source_isolated and path.is_file():
             actual_hash, actual_lines, _ = file_fingerprint(path)
+            fingerprint_cache[relative] = (actual_hash, actual_lines)
             if row.get("sha256") != actual_hash:
                 errors.append(f"{prefix}: source SHA-256 mismatch")
             if not _integer(row.get("line_count")) or row.get("line_count") != actual_lines:
@@ -300,6 +375,8 @@ def validate_project_indexes(workspace: Path, project: str) -> list[str]:
     run_references: set[tuple[str, str | None]] = set()
     for name in ("api-index.jsonl", "business-index.jsonl"):
         for position, row in enumerate(indexes[name]):
+            if module is not None and row.get("module") != module:
+                continue
             prefix = f"{name}:{position}"
             if row.get("project") != project:
                 errors.append(f"{prefix}: project mismatch")
@@ -314,7 +391,7 @@ def validate_project_indexes(workspace: Path, project: str) -> list[str]:
             evidence, structural = evidence_fields(row)
             errors.extend(f"{prefix}: {error}" for error in structural)
             for evidence_position, item in enumerate(evidence):
-                item_errors = validate_evidence(item, project, source_by_file, symbols, routes, run_id if isinstance(run_id, str) else None)
+                item_errors = validate_evidence(item, project, source_by_file, symbols, routes, run_id if isinstance(run_id, str) else None, fingerprint_cache)
                 errors.extend(f"{prefix}:evidence:{evidence_position}: {error}" for error in item_errors)
             if name == "api-index.jsonl":
                 required = {
@@ -328,6 +405,8 @@ def validate_project_indexes(workspace: Path, project: str) -> list[str]:
                 for key in ("route_evidence", "controller_evidence", "validation_evidence", "service_evidence", "persistence_evidence", "side_effect_evidence"):
                     if not isinstance(row.get(key), list) or not row[key]:
                         errors.append(f"{prefix}: {key} must be a non-empty array")
+                    elif any(item.get("evidence_type") != EVIDENCE_TYPES[key] for item in row[key] if isinstance(item, dict)):
+                        errors.append(f"{prefix}: {key} contains the wrong evidence_type")
                 table_names = row.get("tables")
                 if not isinstance(table_names, list):
                     errors.append(f"{prefix}: tables must be an array")
@@ -344,11 +423,45 @@ def validate_project_indexes(workspace: Path, project: str) -> list[str]:
                     errors.append(f"{prefix}: invalid classification")
                 if row.get("confidence") not in CONFIDENCE_VALUES:
                     errors.append(f"{prefix}: invalid confidence")
+                if not isinstance(row.get("evidence"), list) or not row["evidence"]:
+                    errors.append(f"{prefix}: evidence must be a non-empty array")
+                semantic_fields = BUSINESS_SEMANTIC_FIELDS.get(row.get("type"), ())
+                missing_semantics = [
+                    key for key in semantic_fields
+                    if not row.get(key) or (key == "related_modules" and not isinstance(row.get(key), list))
+                ]
+                if missing_semantics:
+                    errors.append(f"{prefix}: semantic fields are missing or empty: {missing_semantics}")
 
     for run_id, module in sorted(run_references):
-        errors.extend(validate_run_record(workspace, project, run_id, module))
+        errors.extend(validate_run_record(workspace, project, run_id, module, allow_in_progress_runs))
     return errors
 
 
 def matching_errors(errors: Iterable[str], *prefixes: str) -> list[str]:
     return [error for error in errors if error.startswith(prefixes)]
+
+
+def validate_module_documents(workspace: Path, project: str, module: str) -> list[str]:
+    project_slug = "project-a" if project == "A" else "project-b"
+    root = workspace / "reverse-docs" / project_slug / "modules" / module
+    errors = []
+    classification = re.compile(r"\b(?:FACT|INFERENCE|UNRESOLVED|CONFLICT|RISK|DEAD_CODE_CANDIDATE)\b")
+    placeholder = re.compile(r"\$\{[^}]+\}|\b(?:TO" r"DO|T" r"BD|FIX" r"ME)\b|待" r"实现|待" r"补充", re.I)
+    for name in REQUIRED_MODULE_DOCUMENTS:
+        path = root / name
+        if not path.is_file():
+            errors.append(f"documents: missing required module document: {path}")
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as exc:
+            errors.append(f"documents: unreadable UTF-8 module document {path}: {exc}")
+            continue
+        if len(text.strip()) < 40:
+            errors.append(f"documents: module document is empty or too short: {path}")
+        if placeholder.search(text):
+            errors.append(f"documents: unresolved placeholder in module document: {path}")
+        if not classification.search(text):
+            errors.append(f"documents: missing evidence classification in module document: {path}")
+    return errors

@@ -7,7 +7,7 @@
 项目根目录、排除规则、上次 source-index 和当前时间。
 
 ## 执行步骤
-流式遍历，计算大小/行数/mtime/SHA-256，保留模块标签，检测新增、修改、删除；已有证据的修改/删除标记 STALE。
+流式遍历，计算大小/行数/mtime/SHA-256，保留模块标签，检测新增、修改、删除；刷新命令自动传播已有证据为 STALE。默认用 size/mtime 增量复用，时间戳可能被保留时使用 `--verify-all`。
 
 ## 输出
 项目独立 source-index JSONL、index-manifest 和变更报告。

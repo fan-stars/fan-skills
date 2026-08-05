@@ -6,13 +6,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent))
-from common.core import atomic_write, ensure_outside_source, exclusive_lock, iter_source_files, read_jsonl, source_record, write_jsonl
+from common.core import atomic_write, ensure_outside_source, ensure_project_root_binding, exclusive_lock, iter_source_files, load_isolated_source_index, source_record, write_jsonl
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", choices=("A", "B"), required=True)
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--workspace", type=Path, required=True)
+    parser.add_argument("--verify-all", action="store_true", help="hash every file even when size and mtime are unchanged")
     args = parser.parse_args()
     root = args.root.resolve()
     if not root.is_dir():
@@ -23,8 +24,18 @@ def main() -> int:
         parser.error(str(exc))
     output = args.workspace / "indexes" / args.project / "source-index.jsonl"
     now = datetime.now(timezone.utc).isoformat()
-    with exclusive_lock(output):
-        old_rows = {row.get("relative_path"): row for row in read_jsonl(output)}
+    manifest = args.workspace / "indexes" / args.project / "index-manifest.json"
+    binding_lock = args.workspace / "indexes" / "project-roots"
+    with exclusive_lock(binding_lock):
+        try:
+            ensure_project_root_binding(args.workspace, args.project, root)
+        except ValueError as exc:
+            parser.error(str(exc))
+        try:
+            previous = load_isolated_source_index(args.workspace, args.project, root) if output.exists() else []
+        except ValueError as exc:
+            parser.error(str(exc))
+        old_rows = {row.get("relative_path"): row for row in previous}
         rows = []
         changed_files = []
         reused_files = []
@@ -34,7 +45,7 @@ def main() -> int:
             relative = path.relative_to(root).as_posix()
             old = old_rows.get(relative)
             stat = path.stat()
-            if old and old.get("size_bytes") == stat.st_size and old.get("mtime_ns") == stat.st_mtime_ns:
+            if not args.verify_all and old and old.get("size_bytes") == stat.st_size and old.get("mtime_ns") == stat.st_mtime_ns:
                 record = dict(old)
                 record["last_indexed_at"] = now
                 unchanged += 1
@@ -61,8 +72,7 @@ def main() -> int:
                 deleted_files.append(relative)
         rows.sort(key=lambda row: row.get("relative_path", ""))
         write_jsonl(output, rows)
-    manifest = args.workspace / "indexes" / args.project / "index-manifest.json"
-    atomic_write(manifest, __import__("json").dumps({"project": args.project, "repository_root": str(root), "source_index_version": 1, "file_count": len(rows), "changed_or_deleted": changed, "unchanged_reused": unchanged, "content_read_files": sorted(changed_files), "reused_without_content_read": sorted(reused_files), "deleted_files": sorted(deleted_files), "updated_at": now}, ensure_ascii=False, indent=2) + "\n")
+        atomic_write(manifest, __import__("json").dumps({"project": args.project, "repository_root": str(root), "source_index_version": 1, "file_count": len(rows), "changed_or_deleted": changed, "unchanged_reused": unchanged, "content_read_files": sorted(changed_files), "reused_without_content_read": sorted(reused_files), "deleted_files": sorted(deleted_files), "verify_all": args.verify_all, "updated_at": now}, ensure_ascii=False, indent=2) + "\n")
     print(f"INDEX_OK project={args.project} files={len(rows)} changed={changed} reused={unchanged} output={output}")
     return 0
 

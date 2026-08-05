@@ -1,26 +1,31 @@
 {
   "_instructions": {
-    "analysis_run_id": "按 A|B|COMPARE|JAVA-module-YYYYMMDD-NNN 生成且全工作区唯一",
-    "file_lists": "所有文件写项目相对路径；完整读取、部分读取和跳过必须分开",
-    "final_status": "只能使用 COMPLETED、PARTIAL、REVIEW_REQUIRED、BLOCKED、FAILED"
+    "analysis_run_id": "使用 A|B-module-YYYYMMDD-NNN；module 只允许小写字母、数字和连字符",
+    "file_lists": "files_scanned、files_read、files_reused_without_content_read、files_written 分开记录",
+    "final_status": "只有完整运行记录通过校验且十八项门禁通过，模块状态才能提交为 ANALYZED"
   },
   "analysis_run_id": "A-product-20260805-001",
   "project": "A",
   "requested_module": "product",
-  "requested_scope": [],
-  "repository_commit": "${git_commit}",
-  "source_index_version": 1,
   "started_at": "${start_iso8601}",
-  "ended_at": null,
-  "files_considered": [],
-  "files_read_completely": [],
-  "files_read_partially": [],
-  "files_skipped": [],
-  "new_files_discovered": [],
-  "documents_created": [],
-  "documents_updated": [],
-  "indexes_updated": [],
-  "stale_references_found": [],
+  "finished_at": "${finish_iso8601}",
+  "source_root": "/absolute/project-a",
+  "workspace": "/absolute/reverse-workspace",
+  "stages": [
+    {
+      "name": "source_index",
+      "command": ["python3", "scripts/build_source_index.py"],
+      "exit_code": 0,
+      "duration_ms": 0,
+      "stdout": "${captured_stdout}",
+      "stderr": ""
+    }
+  ],
+  "files_scanned": [],
+  "files_read": [],
+  "files_reused_without_content_read": [],
+  "files_written": [],
+  "stale_evidence": [],
   "unresolved_questions": [],
   "final_status": "PARTIAL"
 }

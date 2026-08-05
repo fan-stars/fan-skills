@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent))
-from common.core import read_jsonl
+from common.core import load_isolated_source_index, read_project_jsonl
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -18,15 +18,24 @@ def main() -> int:
     group.add_argument("--business-rule")
     args = parser.parse_args()
     root = args.workspace / "indexes" / args.project
+    try:
+        if args.file:
+            indexed = load_isolated_source_index(args.workspace, args.project)
+        elif args.callers_of:
+            indexed = read_project_jsonl(root / "symbol-index.jsonl", args.project)
+        else:
+            indexed = read_project_jsonl(root / "business-index.jsonl", args.project)
+    except ValueError as exc:
+        parser.error(str(exc))
     if args.file:
-        rows = [row for row in read_jsonl(root / "source-index.jsonl") if row.get("relative_path") == args.file]
+        rows = [row for row in indexed if row.get("relative_path") == args.file]
         result = [{"project": args.project, "file": row["relative_path"], "modules": row.get("modules", [])} for row in rows]
     elif args.callers_of:
-        rows = [row for row in read_jsonl(root / "symbol-index.jsonl") if row.get("fully_qualified_name") == args.callers_of or row.get("name") == args.callers_of]
+        rows = [row for row in indexed if row.get("fully_qualified_name") == args.callers_of or row.get("name") == args.callers_of]
         result = [{"project": args.project, "symbol": row["fully_qualified_name"], "called_by": row.get("called_by", [])} for row in rows]
     else:
         needle = args.business_rule.lower()
-        rows = [row for row in read_jsonl(root / "business-index.jsonl") if row.get("type") == "business_rule" and (needle in row.get("business_id", "").lower() or needle in row.get("name", "").lower())]
+        rows = [row for row in indexed if row.get("type") == "business_rule" and (needle in row.get("business_id", "").lower() or needle in row.get("name", "").lower())]
         result = [{"project": args.project, "business_id": row["business_id"], "name": row.get("name"), "related_apis": row.get("related_apis", []), "related_tables": row.get("related_tables", []), "evidence": row.get("evidence", [])} for row in rows]
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result else 1

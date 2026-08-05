@@ -63,15 +63,17 @@ class EndToEndTest(unittest.TestCase):
             self.assertNotIn("product_skus", rule.stdout)
             gate = json.loads((workspace / "reports/A/product-quality-gates.json").read_text(encoding="utf-8"))
             self.assertEqual(gate["gate_count"], 18)
+            self.assertEqual(gate["passed_count"], 14)
             self.assertEqual(gate["status"], "PARTIAL")
+            self.assertTrue(any(error.startswith("documents:") for error in gate["validation_errors"]))
             module = jsonl(workspace / "indexes/A/module-index.jsonl")[0]
             self.assertNotEqual(module["status"], "ANALYZED")
             record = json.loads((workspace / f"analysis-runs/A/{run_id}.json").read_text(encoding="utf-8"))
             self.assertEqual(record["final_status"], "PARTIAL")
-            self.assertEqual([stage["name"] for stage in record["stages"]], ["source_index", "symbol_index", "routes", "tables", "modules", "business", "quality_gates"])
+            self.assertEqual([stage["name"] for stage in record["stages"]], ["source_index", "stale_references", "symbol_index", "routes", "tables", "modules", "business", "quality_gates"])
             self.assertTrue(record["files_read"])
             self.assertTrue(record["files_scanned"])
-            self.assertTrue(record["files_reused_without_content_read"])
+            self.assertEqual(record["files_reused_without_content_read"], [])
             self.assertTrue(record["files_written"])
             validation = run("validate_indexes.py", "--workspace", workspace, "--project", "A")
             self.assertEqual(validation.returncode, 0, validation.stdout + validation.stderr)
@@ -100,6 +102,53 @@ class EndToEndTest(unittest.TestCase):
             module = jsonl(workspace / "indexes/A/module-index.jsonl")[0]
             self.assertEqual(module["status"], "REVIEW_REQUIRED")
             self.assertEqual(before_b, (workspace / "indexes/B/source-index.jsonl").read_bytes())
+
+    def test_refresh_marks_old_evidence_stale_and_module_reanalysis_recovers(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, workspace = self.prepare(directory, "A")
+            first_run = self.analyze(root, workspace, "A")
+            target = root / "app/Repositories/ProductRepository.php"
+            target.write_text(target.read_text(encoding="utf-8") + "\n// changed\n", encoding="utf-8")
+            refreshed = run(
+                "refresh_source_index.py", "--project", "A", "--root", root,
+                "--workspace", workspace,
+            )
+            self.assertEqual(refreshed.returncode, 0, refreshed.stderr + refreshed.stdout)
+            stale_api = jsonl(workspace / "indexes/A/api-index.jsonl")[0]
+            self.assertEqual(stale_api["status"], "REVIEW_REQUIRED")
+            self.assertTrue(any(item["status"] == "STALE" for item in stale_api["persistence_evidence"]))
+            second_run = "A-product-20260805-002"
+            rerun = run(
+                "run_analysis.py", "--project", "A", "--module", "product",
+                "--root", root, "--sql-root", root / "database", "--workspace", workspace,
+                "--analysis-run-id", second_run,
+            )
+            self.assertEqual(rerun.returncode, 0, rerun.stderr + rerun.stdout)
+            current_api = jsonl(workspace / "indexes/A/api-index.jsonl")[0]
+            self.assertTrue(all(item["status"] == "CURRENT" for item in current_api["persistence_evidence"]))
+            self.assertNotEqual(current_api["analysis_run_id"], first_run)
+            record = json.loads((workspace / f"analysis-runs/A/{second_run}.json").read_text(encoding="utf-8"))
+            self.assertTrue(record["stale_evidence"])
+            self.assertTrue(any(item["file"].endswith("ProductRepository.php") for item in record["stale_evidence"]))
+
+    def test_second_analysis_reuses_unchanged_source_and_parser_indexes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, workspace = self.prepare(directory, "A")
+            self.analyze(root, workspace, "A")
+            run_id = "A-product-20260805-002"
+            result = run(
+                "run_analysis.py", "--project", "A", "--module", "product",
+                "--root", root, "--sql-root", root / "database", "--workspace", workspace,
+                "--analysis-run-id", run_id,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+            record = json.loads((workspace / f"analysis-runs/A/{run_id}.json").read_text(encoding="utf-8"))
+            stages = {stage["name"]: stage["stdout"] for stage in record["stages"]}
+            self.assertIn("reused=10", stages["source_index"])
+            self.assertIn("parsed=0", stages["symbol_index"])
+            self.assertIn("parsed=0", stages["routes"])
+            self.assertIn("parsed=0", stages["tables"])
+            self.assertTrue(record["files_reused_without_content_read"])
 
     def test_a_and_b_indexes_are_distinct(self):
         with tempfile.TemporaryDirectory() as directory:

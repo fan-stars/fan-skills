@@ -14,6 +14,7 @@
   "line_count": 0,
   "sha256": "${sha256}",
   "mtime": 0,
+  "mtime_ns": 0,
   "directory_role": "application-service",
   "analysis_status": "UNREAD",
   "modules": [],

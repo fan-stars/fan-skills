@@ -5,7 +5,7 @@ import argparse, json, re
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent))
-from common.core import atomic_write, ensure_outside_source, exclusive_lock, read_jsonl, text_lines, write_jsonl
+from common.core import atomic_write, ensure_outside_source, exclusive_lock, load_isolated_source_index, read_project_jsonl, text_lines, write_jsonl
 
 PATTERNS = [
     ("laravel", re.compile(r"Route::(?:get|post|put|patch|delete|match|any)\s*\(\s*['\"]([^'\"]+)['\"]")),
@@ -26,24 +26,22 @@ def main() -> int:
         parser.error(str(exc))
     output = args.workspace / "indexes" / args.project / "routes.jsonl"
     manifest = args.workspace / "indexes" / args.project / "route-manifest.json"
-    source = read_jsonl(args.workspace / "indexes" / args.project / "source-index.jsonl")
-    if not source:
-        parser.error("source index is missing or empty")
-    indexed_root = Path(source[0]["repository_root"]).resolve()
-    if indexed_root != args.root.resolve():
-        parser.error(f"route root does not match indexed project root: {indexed_root}")
+    try:
+        source = load_isolated_source_index(args.workspace, args.project, args.root)
+    except ValueError as exc:
+        parser.error(str(exc))
     with exclusive_lock(output):
         old_by_file = {}
-        for row in read_jsonl(output): old_by_file.setdefault(row["file"], []).append(row)
+        for row in read_project_jsonl(output, args.project): old_by_file.setdefault(row["file"], []).append(row)
         old_hashes = json.loads(manifest.read_text(encoding="utf-8")).get("file_hashes", {}) if manifest.exists() else {}
-        records = []; parsed = reused = 0; current_hashes = {}
+        records = []; parsed = reused = 0; current_hashes = {}; parsed_files = []; reused_files = []
         for source_row in source:
             path = Path(source_row.get("absolute_path", ""))
             if source_row.get("language") != "PHP" or not path.is_file(): continue
             relative = source_row["relative_path"]; digest = source_row["sha256"]; current_hashes[relative] = digest
             if old_hashes.get(relative) == digest:
-                records.extend(old_by_file.get(relative, [])); reused += 1; continue
-            parsed += 1; lines = text_lines(path)
+                records.extend(old_by_file.get(relative, [])); reused += 1; reused_files.append(relative); continue
+            parsed += 1; parsed_files.append(relative); lines = text_lines(path)
             imports = {value.split("\\")[-1]: value for value in re.findall(r"^\s*use\s+([^;]+);", "\n".join(lines), re.M)}
             for number, line in enumerate(lines, 1):
                 for framework, pattern in PATTERNS:
@@ -57,7 +55,7 @@ def main() -> int:
                     break
         records.sort(key=lambda row: (row["file"], row["start_line"]))
         write_jsonl(output, records)
-        atomic_write(manifest, json.dumps({"project": args.project, "file_hashes": current_hashes}, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+        atomic_write(manifest, json.dumps({"project": args.project, "file_hashes": current_hashes, "content_read_files": sorted(parsed_files), "reused_without_content_read": sorted(reused_files)}, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
     print(f"ROUTES_OK project={args.project} count={len(records)} parsed={parsed} reused={reused} output={output}")
     return 0
 

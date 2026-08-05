@@ -5,16 +5,22 @@ import argparse, json
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent))
-from common.core import read_jsonl, sha256_file, atomic_write, locked_jsonl_update
+from common.core import exclusive_lock, load_isolated_source_index, read_project_jsonl, sha256_file, atomic_write, locked_jsonl_update, validate_module_name
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workspace", type=Path, required=True)
     parser.add_argument("--project", choices=("A", "B"), action="append")
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--trust-source-index", action="store_true", help="reuse hashes from a source refresh that completed immediately before this command")
     args = parser.parse_args()
     stale = []
-    projects = args.project or ["A", "B"]
+    projects = args.project or [
+        project for project in ("A", "B")
+        if (args.workspace / "indexes" / project / "source-index.jsonl").is_file()
+    ]
+    if not projects:
+        parser.error("no Project A/B source index exists in the workspace")
     affected_by_project = {
         project: {"interfaces": set(), "rules": set(), "modules": set()}
         for project in projects
@@ -23,57 +29,74 @@ def main() -> int:
         affected_interfaces = affected_by_project[project]["interfaces"]
         affected_rules = affected_by_project[project]["rules"]
         affected_modules = affected_by_project[project]["modules"]
-        rows = read_jsonl(args.workspace / "indexes" / project / "source-index.jsonl")
+        try:
+            rows = load_isolated_source_index(args.workspace, project)
+        except ValueError as exc:
+            parser.error(str(exc))
         current = {}
         for row in rows:
             path = Path(row.get("absolute_path", ""))
-            digest = sha256_file(path) if path.is_file() else None
+            digest = row.get("sha256") if args.trust_source_index and path.is_file() else sha256_file(path) if path.is_file() else None
             current[row.get("relative_path")] = digest
-            if row.get("sha256") != digest:
+            if row.get("sha256") != digest or row.get("analysis_status") == "STALE":
                 labels = row.get("modules", [])
                 affected_modules.update(item.get("module") for item in labels if isinstance(item, dict) and item.get("module"))
-                stale.append({"project": project, "file": row.get("relative_path"), "indexed_sha256": row.get("sha256"), "current_sha256": digest, "modules": labels, "status": "STALE", "reason": "file hash changed" if digest else "file deleted"})
-        for name in ("api-index.jsonl", "business-index.jsonl"):
-            index_path = args.workspace / "indexes" / project / name
-            if not index_path.exists():
-                continue
-            def update(index_rows):
-                for record in index_rows:
-                    record_stale = False
-                    for key, values in record.items():
-                        if key != "evidence" and not key.endswith("_evidence"):
-                            continue
-                        if not isinstance(values, list):
-                            continue
-                        for item in values:
-                            if not isinstance(item, dict) or item.get("project") != project:
+                stale.append({"project": project, "file": row.get("relative_path"), "indexed_sha256": row.get("previous_sha256") or row.get("sha256"), "current_sha256": digest, "modules": labels, "status": "STALE", "reason": "file deleted" if digest is None else "source index marked stale" if row.get("sha256") == digest else "file hash changed"})
+        index_dir = args.workspace / "indexes" / project
+        with exclusive_lock(index_dir / "derived-indexes"):
+            for name in ("api-index.jsonl", "business-index.jsonl"):
+                index_path = index_dir / name
+                if not index_path.exists():
+                    continue
+                try:
+                    read_project_jsonl(index_path, project)
+                except ValueError as exc:
+                    parser.error(str(exc))
+                def update(index_rows):
+                    for record in index_rows:
+                        record_stale = False
+                        for key, values in record.items():
+                            if key != "evidence" and not key.endswith("_evidence"):
                                 continue
-                            digest = current.get(item.get("file"))
-                            if digest != item.get("file_sha256"):
-                                item["status"] = "STALE"
-                                record_stale = True
-                    if record_stale:
-                        record["status"] = "REVIEW_REQUIRED"
-                        if record.get("module"):
-                            affected_modules.add(record["module"])
-                        if record.get("api_id"):
-                            affected_interfaces.add(record["api_id"])
-                        if record.get("type") == "business_rule":
-                            affected_rules.add(record.get("business_id"))
-                return index_rows
-            locked_jsonl_update(index_path, update)
-        module_path = args.workspace / "indexes" / project / "module-index.jsonl"
-        if module_path.exists():
-            def update_modules(module_rows):
-                for module in module_rows:
-                    if module.get("module") in affected_modules:
-                        module["status"] = "REVIEW_REQUIRED"
-                return module_rows
-            locked_jsonl_update(module_path, update_modules)
+                            if not isinstance(values, list):
+                                continue
+                            for item in values:
+                                if not isinstance(item, dict) or item.get("project") != project:
+                                    continue
+                                digest = current.get(item.get("file"))
+                                if digest != item.get("file_sha256"):
+                                    item["status"] = "STALE"
+                                    record_stale = True
+                        if record_stale:
+                            record["status"] = "REVIEW_REQUIRED"
+                            if record.get("module"):
+                                try:
+                                    validate_module_name(record["module"])
+                                except ValueError as exc:
+                                    parser.error(f"invalid affected module {record['module']!r}: {exc}")
+                                affected_modules.add(record["module"])
+                            if record.get("api_id"):
+                                affected_interfaces.add(record["api_id"])
+                            if record.get("type") == "business_rule" and record.get("business_id"):
+                                affected_rules.add(record["business_id"])
+                    return index_rows
+                locked_jsonl_update(index_path, update)
+            module_path = index_dir / "module-index.jsonl"
+            if module_path.exists():
+                def update_modules(module_rows):
+                    for module in module_rows:
+                        if module.get("module") in affected_modules:
+                            module["status"] = "REVIEW_REQUIRED"
+                    return module_rows
+                locked_jsonl_update(module_path, update_modules)
     documents = []
     for project in projects:
         project_slug = "project-a" if project == "A" else "project-b"
         for module in affected_by_project[project]["modules"]:
+            try:
+                validate_module_name(module)
+            except ValueError as exc:
+                parser.error(f"invalid affected module {module!r}: {exc}")
             documents.extend(str(path) for path in (args.workspace / "reverse-docs" / project_slug / "modules" / module).rglob("*.md"))
     affected_modules = set().union(*(values["modules"] for values in affected_by_project.values()))
     affected_interfaces = set().union(*(values["interfaces"] for values in affected_by_project.values()))
