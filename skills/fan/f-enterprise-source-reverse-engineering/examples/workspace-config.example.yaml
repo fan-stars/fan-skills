@@ -1,0 +1,6 @@
+version: 1
+workspace_id: reverse-demo
+projects:
+  A: {root: /data/project-a, aliases: {product: [product, goods]}}
+  B: {root: /data/project-b, aliases: {product: [product, goods]}}
+database_roots: {A: [/data/project-a/database], B: [/data/project-b/database]}

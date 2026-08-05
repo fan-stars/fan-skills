@@ -1,0 +1,4 @@
+interface:
+  display_name: "企业级源码逆向工程"
+  short_description: "双 PHP 系统证据化逆向与 Java 目标设计"
+  default_prompt: "使用 $f-enterprise-source-reverse-engineering 隔离分析 Project A/B，维护索引并输出带源码行号证据的模块设计。"

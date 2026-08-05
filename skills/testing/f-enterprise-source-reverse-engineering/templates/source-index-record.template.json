@@ -1,0 +1,31 @@
+{
+  "_instructions": {
+    "paths": "relative_path 使用 POSIX 相对路径；absolute_path 必须位于 repository_root",
+    "sha256": "读取文件后计算 64 位小写十六进制 SHA-256，禁止使用占位值入库",
+    "modules": "数组元素使用 module/role，新增归属只能追加不能覆盖"
+  },
+  "project": "A",
+  "repository_root": "/absolute/project-a",
+  "relative_path": "app/Services/ProductService.php",
+  "absolute_path": "/absolute/project-a/app/Services/ProductService.php",
+  "language": "PHP",
+  "extension": ".php",
+  "size_bytes": 0,
+  "line_count": 0,
+  "sha256": "${sha256}",
+  "mtime": 0,
+  "directory_role": "application-service",
+  "analysis_status": "UNREAD",
+  "modules": [],
+  "symbols": [],
+  "routes": [],
+  "tables": [],
+  "config_keys": [],
+  "external_services": [],
+  "references": [],
+  "referenced_by": [],
+  "first_indexed_at": "${timestamp}",
+  "last_indexed_at": "${timestamp}",
+  "last_analyzed_at": null,
+  "notes": []
+}

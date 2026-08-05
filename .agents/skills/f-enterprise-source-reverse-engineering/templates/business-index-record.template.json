@@ -1,0 +1,21 @@
+{
+  "_instructions": {
+    "business_id": "使用 project-module-type-sequence 的稳定业务 ID",
+    "classification": "只用 FACT、INFERENCE、UNRESOLVED、CONFLICT、RISK、DEAD_CODE_CANDIDATE",
+    "evidence": "重要条目至少填一条包含哈希、符号、行范围和 run ID 的证据"
+  },
+  "project": "A",
+  "business_id": "A-PRODUCT-RULE-001",
+  "type": "business_rule",
+  "module": "product",
+  "name": "${name}",
+  "description": "${description}",
+  "classification": "FACT",
+  "confidence": "HIGH",
+  "evidence": [],
+  "related_tables": [],
+  "related_apis": [],
+  "related_states": [],
+  "related_modules": [],
+  "analysis_run_id": "${analysis_run_id}"
+}

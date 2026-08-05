@@ -1,0 +1,17 @@
+instructions:
+  paths: "所有 root 使用规范化绝对路径；输出工作区不得位于任一源码根目录内"
+  aliases: "按模块维护真实业务别名，不要仅依据英文类名填写"
+  excludes: "默认排除依赖和缓存目录；自研 vendor/package 必须检查后再排除"
+version: 1
+workspace_id: "reverse-${date}"
+projects:
+  A:
+    root: "/absolute/project-a"
+    aliases: {product: [product, goods], order: [order, trade]}
+  B:
+    root: "/absolute/project-b"
+    aliases: {product: [product, goods], order: [order, trade]}
+database_roots:
+  A: ["/absolute/project-a/database"]
+  B: ["/absolute/project-b/database"]
+exclude_dirs: [vendor, node_modules, runtime, cache, tmp, logs]

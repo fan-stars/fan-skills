@@ -1,0 +1,23 @@
+{
+  "_instructions": {
+    "status": "未满足全部质量门禁时只能填 PARTIAL 或 REVIEW_REQUIRED",
+    "file_roles": "primary_files、secondary_files、shared_files 保留多模块归属",
+    "boundary_confidence": "按 HIGH、MEDIUM、LOW 填写并在模块概览解释"
+  },
+  "project": "A",
+  "module": "product",
+  "aliases": ["goods"],
+  "status": "PARTIAL",
+  "boundary_confidence": "MEDIUM",
+  "primary_files": [],
+  "secondary_files": [],
+  "shared_files": [],
+  "upstream_modules": [],
+  "downstream_modules": [],
+  "core_tables": [],
+  "apis": [],
+  "business_rules": [],
+  "open_questions": [],
+  "stale_evidence": [],
+  "last_analysis_run_id": null
+}

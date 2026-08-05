@@ -12,6 +12,7 @@
 | `domain-modeling` | `skills/workflow/domain-modeling/` | 主动打磨项目领域模型：统一语言、边界场景与架构决策落盘。 | [skills.sh](https://skills.sh/mattpocock/skills/domain-modeling) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/engineering/domain-modeling/SKILL.md) |
 | `f-base-project-initializer` | `skills/workflow/f-base-project-initializer/` | 从固定 fan-base / fan-base-vben 模板克隆并重命名，生成可运行的 Fan 全栈新项目。 | 暂无 | [本仓库](../../.agents/skills/f-base-project-initializer/SKILL.md) |
 | `f-base-project-initializer-cn` | `skills/workflow/f-base-project-initializer-cn/` | 中文指引：从固定 fan-base / fan-base-vben 模板初始化并重命名 Fan 全栈项目。 | 暂无 | [本仓库](../../.agents/skills/f-base-project-initializer-cn/SKILL.md) |
+| `f-enterprise-source-reverse-engineering` | `skills/workflow/f-enterprise-source-reverse-engineering/` | 面向双 PHP 遗留系统的隔离增量逆向、可查询证据索引与质量门禁技能。 | 暂无 | [本仓库](../../.agents/skills/f-enterprise-source-reverse-engineering/SKILL.md) |
 | `f-project-runtime-manager` | `skills/workflow/f-project-runtime-manager/` | 探测 Java/Spring Boot 与 Vue/Vite 项目结构，生成可移植的启停/状态脚本，不改原文件。 | 暂无 | [本仓库](../../.agents/skills/f-project-runtime-manager/SKILL.md) |
 | `find-skills` | `skills/workflow/find-skills/` | 从开放 skills 生态检索并安装可扩展 Agent 能力的技能包。 | [skills.sh](https://skills.sh/vercel-labs/skills/find-skills) | [GitHub](https://github.com/vercel-labs/skills/blob/main/skills/find-skills/SKILL.md) |
 | `grill-me` | `skills/workflow/grill-me/` | 启动一轮严厉质询会话，压力测试计划或设计直至达成共识。 | [skills.sh](https://skills.sh/mattpocock/skills/grill-me) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/productivity/grill-me/SKILL.md) |
@@ -101,6 +102,26 @@
 #### 注意事项
 
 与英文版 `f-base-project-initializer` 同源流程，按用户语言选用其一即可，勿同时执行两套。非空目标目录不得覆盖；无用户远程时不推送。Fan 本地自建 skill。
+
+### `f-enterprise-source-reverse-engineering`
+
+**路径**：`skills/workflow/f-enterprise-source-reverse-engineering/`
+
+#### 核心能力
+
+按项目隔离构建源码、符号和业务三层持久索引，增量复用未变化文件，提取方法调用与反向调用、路由、表、接口完整证据链和业务规则，并通过哈希变化传播、运行记录及十八项可执行门禁防止不完整分析冒充完成。
+
+#### 适用场景
+
+需要初始化或刷新两套 PHP 项目工作区、查询文件模块归属或方法调用者、追踪规则关联接口与表、复核过期证据、严格审计模块完整度，或依据已批准的双项目结论设计 Java 目标系统时使用。
+
+#### 主要覆盖内容
+
+覆盖 A/B 根目录和事实隔离、源码与解析结果增量缓存、多模块追加归属、路由至副作用的接口链、业务规则关联查询、真实哈希行号、STALE 传播、原子锁写入、JSON Schema、完整运行轨迹和质量门禁。
+
+#### 注意事项
+
+核心脚本使用 Python 标准库并兼容 Windows 与 Linux 路径和进程调用；Schema 与平台格式测试需安装测试依赖。PHP 解析保持保守候选精度，动态调用和复杂语法必须人工复核，缺少状态、并发或跨模块证据时只能保持部分完成。
 
 ### `f-project-runtime-manager`
 

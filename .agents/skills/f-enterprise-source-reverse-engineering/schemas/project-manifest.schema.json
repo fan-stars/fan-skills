@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","required":["project","repository_root","source_index_version"],"properties":{"project":{"enum":["A","B"]},"repository_root":{"type":"string","minLength":1},"source_index_version":{"type":"integer","minimum":1}}}

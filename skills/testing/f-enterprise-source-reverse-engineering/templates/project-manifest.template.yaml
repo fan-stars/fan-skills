@@ -1,0 +1,12 @@
+instructions:
+  project: "每份 manifest 只允许 A 或 B，不得复用另一项目事实"
+  commit: "填写分析开始时实际 Git commit；非 Git 目录写 null 并记录原因"
+  framework: "只有读取依赖或引导代码确认后填写，否则保留 unknown"
+project: A
+name: "Project A"
+repository_root: "/absolute/project-a"
+commit: "${git_commit}"
+framework: "unknown"
+source_index_version: 1
+database_roots: ["database"]
+notes: []

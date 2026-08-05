@@ -1,0 +1,1 @@
+CREATE TABLE product_skus (id BIGINT PRIMARY KEY, product_id BIGINT NOT NULL, sku VARCHAR(64) UNIQUE);

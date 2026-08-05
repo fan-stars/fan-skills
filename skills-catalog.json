@@ -122,6 +122,15 @@
       "skillsShUrl": null,
       "githubUrl": null
     },
+    "f-enterprise-source-reverse-engineering": {
+      "categories": [
+        "fan",
+        "workflow",
+        "testing"
+      ],
+      "skillsShUrl": null,
+      "githubUrl": null
+    },
     "f-java-springboot": {
       "categories": [
         "java",

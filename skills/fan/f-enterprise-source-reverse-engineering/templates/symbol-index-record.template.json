@@ -1,0 +1,27 @@
+{
+  "_instructions": {
+    "symbol_id": "由 project、相对文件路径和完全限定符号名稳定组成",
+    "line_range": "start_line/end_line 来自当前哈希对应文件并覆盖完整符号块",
+    "analysis_status": "轻量解析结果默认 PARTIAL，人工复核后才能提升"
+  },
+  "project": "A",
+  "symbol_id": "A:app/Services/ProductService.php:App\\Services\\ProductService::create",
+  "file": "app/Services/ProductService.php",
+  "file_sha256": "${sha256}",
+  "namespace": "App\\Services",
+  "container_symbol": "ProductService",
+  "symbol_type": "method",
+  "name": "create",
+  "fully_qualified_name": "App\\Services\\ProductService::create",
+  "start_line": 1,
+  "end_line": 1,
+  "visibility": "public",
+  "parameters": [],
+  "return_type": null,
+  "calls": [],
+  "called_by": [],
+  "tables": [],
+  "routes": [],
+  "modules": [],
+  "analysis_status": "PARTIAL"
+}

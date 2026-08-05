@@ -1,0 +1,26 @@
+{
+  "_instructions": {
+    "analysis_run_id": "按 A|B|COMPARE|JAVA-module-YYYYMMDD-NNN 生成且全工作区唯一",
+    "file_lists": "所有文件写项目相对路径；完整读取、部分读取和跳过必须分开",
+    "final_status": "只能使用 COMPLETED、PARTIAL、REVIEW_REQUIRED、BLOCKED、FAILED"
+  },
+  "analysis_run_id": "A-product-20260805-001",
+  "project": "A",
+  "requested_module": "product",
+  "requested_scope": [],
+  "repository_commit": "${git_commit}",
+  "source_index_version": 1,
+  "started_at": "${start_iso8601}",
+  "ended_at": null,
+  "files_considered": [],
+  "files_read_completely": [],
+  "files_read_partially": [],
+  "files_skipped": [],
+  "new_files_discovered": [],
+  "documents_created": [],
+  "documents_updated": [],
+  "indexes_updated": [],
+  "stale_references_found": [],
+  "unresolved_questions": [],
+  "final_status": "PARTIAL"
+}
