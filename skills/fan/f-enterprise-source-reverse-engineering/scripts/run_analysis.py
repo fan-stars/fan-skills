@@ -44,13 +44,20 @@ def main() -> int:
             before = time.monotonic()
             result = subprocess.run(command, capture_output=True, text=True)
             record["stages"].append({"name": name, "command": command, "exit_code": result.returncode, "duration_ms": round((time.monotonic() - before) * 1000), "stdout": result.stdout.strip(), "stderr": result.stderr.strip()})
+            atomic_write(run_path, json.dumps(record, ensure_ascii=False, indent=2) + "\n")
             if result.returncode:
                 raise RuntimeError(f"stage {name} failed")
         gate_command = [sys.executable, str(script_dir / "evaluate_quality_gates.py"), "--project", args.project, "--module", args.module, "--analysis-run-id", run_id, "--workspace", str(args.workspace)]
         gate = subprocess.run(gate_command, capture_output=True, text=True)
         record["stages"].append({"name": "quality_gates", "command": gate_command, "exit_code": gate.returncode, "stdout": gate.stdout.strip(), "stderr": gate.stderr.strip()})
+        if gate.returncode not in {0, 2}:
+            raise RuntimeError(f"quality gate process failed with exit code {gate.returncode}: {gate.stderr.strip() or gate.stdout.strip()}")
         report_path = args.workspace / "reports" / args.project / f"{args.module}-quality-gates.json"
         report = json.loads(report_path.read_text(encoding="utf-8"))
+        if report.get("project") != args.project or report.get("module") != args.module or report.get("analysis_run_id") != run_id:
+            raise RuntimeError("quality gate report does not belong to this analysis run")
+        if (gate.returncode == 0) != (report.get("status") == "ANALYZED"):
+            raise RuntimeError("quality gate exit code and report status disagree")
         record["final_status"] = "COMPLETED" if report["status"] == "ANALYZED" else report["status"]
         record["unresolved_questions"] = [item["gate"] for item in report["gates"] if not item["passed"]]
     except Exception as exc:

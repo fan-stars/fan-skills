@@ -28,7 +28,7 @@ python3 -m venv .venv
 .venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-从技能目录运行 `scripts/*.py --help`。先用 `build_source_index.py` 建索引并用 `update_module_ownership.py` 写入有证据的模块归属，再运行 `run_analysis.py`；它会调用真实存在的 source/symbol/route/table/module/business 索引脚本和 18 项质量门禁。`query_indexes.py` 可查询文件归属、方法反向调用者及业务规则关联的接口与表。`detect_stale_references.py` 会把变化传播到 API、业务和模块索引。运行 `python3 scripts/run_fixture_example.py` 可实际执行内置 fixture、查询调用者和业务规则并显示门禁结果。
+从技能目录运行 `scripts/*.py --help`。先用 `build_source_index.py` 建索引并用 `update_module_ownership.py` 写入有证据的模块归属，再运行 `run_analysis.py`；它会调用真实存在的 source/symbol/route/table/module/business 索引脚本和 18 项质量门禁。门禁会验证实际文件、当前哈希、符号或路由行号、表关联及本次运行记录；门禁进程失败或报告 run ID 不匹配时，分析运行记为 `FAILED`。`query_indexes.py` 可查询文件归属、方法反向调用者及业务规则关联的接口与表。`detect_stale_references.py` 会在项目边界内把变化传播到 API、业务和模块索引。运行 `python3 scripts/run_fixture_example.py` 可实际执行内置 fixture、查询调用者和业务规则并显示门禁结果。
 
 ## 变化与安装排查
 

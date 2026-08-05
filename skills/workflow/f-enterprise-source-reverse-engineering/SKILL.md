@@ -61,11 +61,11 @@ python3 scripts/detect_stale_references.py --workspace /path/reverse-workspace
 python3 scripts/validate_indexes.py --workspace /path/reverse-workspace
 ```
 
-所有脚本支持 `--help`；路径使用 UTF-8 和 `pathlib`，输出采用原子替换并以跨平台排他锁保护并发更新。`refresh_source_index.py` 复用 size/mtime 未变的记录，`build_symbol_index.py` 复用哈希未变文件的符号。PHP 符号与路由解析是轻量候选解析，复杂语法须标记 `PARSER_LIMITATION`，不得声称完整 PHP AST 精度。
+所有脚本支持 `--help`；路径使用 UTF-8 和 `pathlib`，输出采用原子替换并以跨平台排他锁保护并发更新。`refresh_source_index.py` 复用 size/mtime 未变的记录，`build_symbol_index.py` 复用哈希未变文件的符号。`validate_indexes.py` 和质量门禁必须重新核对单一项目根、实际文件、当前 SHA-256、符号/路由范围、表关联和运行记录，不得只检查字段非空。PHP 符号与路由解析是轻量候选解析，复杂语法须标记 `PARSER_LIMITATION`，不得声称完整 PHP AST 精度。
 
 ## 输出与完成标准
 
-模块文档应落在 `reverse-docs/project-a/modules/<module>/`，至少包括分析清单、模块概览、源码图、数据库、API、业务流程/规则、状态机、事务、并发幂等、缓存、事件任务、权限、跨模块依赖、风险、问题和迁移注意事项。必须运行 `evaluate_quality_gates.py`；其 18 项门禁全部通过后才可标记 `ANALYZED`，否则为 `PARTIAL` 或 `REVIEW_REQUIRED`。使用 `run_analysis.py` 创建唯一 `analysis_run_id` 并记录阶段命令、退出码、读写文件、耗时、缺口与最终状态。
+模块文档应落在 `reverse-docs/project-a/modules/<module>/`，至少包括分析清单、模块概览、源码图、数据库、API、业务流程/规则、状态机、事务、并发幂等、缓存、事件任务、权限、跨模块依赖、风险、问题和迁移注意事项。必须运行 `evaluate_quality_gates.py`；其 18 项门禁全部通过且证据与本次 `analysis_run_id` 一致后才可标记 `ANALYZED`，否则为 `PARTIAL` 或 `REVIEW_REQUIRED`。门禁进程失败、报告缺失、报告 run ID 不匹配或退出码与报告冲突时，运行必须标记 `FAILED`。使用 `run_analysis.py` 创建唯一 `analysis_run_id` 并记录阶段命令、退出码、读写文件、耗时、缺口与最终状态。
 
 ## 禁止行为
 

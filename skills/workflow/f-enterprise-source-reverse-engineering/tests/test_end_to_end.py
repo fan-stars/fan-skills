@@ -75,6 +75,8 @@ class EndToEndTest(unittest.TestCase):
             self.assertTrue(record["files_written"])
             validation = run("validate_indexes.py", "--workspace", workspace, "--project", "A")
             self.assertEqual(validation.returncode, 0, validation.stdout + validation.stderr)
+            self.assertIn("INDEXES_OK projects=A", validation.stdout)
+            self.assertNotIn("projects=A,B", validation.stdout)
 
     def test_stale_evidence_propagates_without_cross_project_changes(self):
         with tempfile.TemporaryDirectory() as directory:

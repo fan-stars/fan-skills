@@ -14,11 +14,15 @@ def main() -> int:
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     stale = []
-    affected_interfaces = set()
-    affected_rules = set()
-    affected_modules = set()
     projects = args.project or ["A", "B"]
+    affected_by_project = {
+        project: {"interfaces": set(), "rules": set(), "modules": set()}
+        for project in projects
+    }
     for project in projects:
+        affected_interfaces = affected_by_project[project]["interfaces"]
+        affected_rules = affected_by_project[project]["rules"]
+        affected_modules = affected_by_project[project]["modules"]
         rows = read_jsonl(args.workspace / "indexes" / project / "source-index.jsonl")
         current = {}
         for row in rows:
@@ -69,9 +73,12 @@ def main() -> int:
     documents = []
     for project in projects:
         project_slug = "project-a" if project == "A" else "project-b"
-        for module in affected_modules:
+        for module in affected_by_project[project]["modules"]:
             documents.extend(str(path) for path in (args.workspace / "reverse-docs" / project_slug / "modules" / module).rglob("*.md"))
-    report = {"stale_evidence_count": len(stale), "affected_modules": sorted(affected_modules), "affected_interfaces": sorted(affected_interfaces), "affected_rules": sorted(affected_rules), "documents_requiring_review": sorted(documents), "items": stale}
+    affected_modules = set().union(*(values["modules"] for values in affected_by_project.values()))
+    affected_interfaces = set().union(*(values["interfaces"] for values in affected_by_project.values()))
+    affected_rules = set().union(*(values["rules"] for values in affected_by_project.values()))
+    report = {"stale_evidence_count": len(stale), "affected_modules": sorted(affected_modules), "affected_interfaces": sorted(affected_interfaces), "affected_rules": sorted(affected_rules), "affected_by_project": {project: {key: sorted(value) for key, value in values.items()} for project, values in affected_by_project.items()}, "documents_requiring_review": sorted(documents), "items": stale}
     output = args.output or args.workspace / "reports" / "stale-references.json"
     atomic_write(output, json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     print(f"STALE_REPORT count={len(stale)} output={output}")
