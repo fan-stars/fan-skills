@@ -51,6 +51,7 @@ python3 scripts/refresh_source_index.py --project A --root /path/project-a --wor
 python3 scripts/build_symbol_index.py --project A --workspace /path/reverse-workspace
 python3 scripts/extract_php_routes.py --project A --root /path/project-a --workspace /path/reverse-workspace
 python3 scripts/extract_sql_tables.py --project A --root /path/project-a/database --workspace /path/reverse-workspace
+python3 scripts/extract_sql_tables.py --project A --root /path/reverse-workspace/sql-snapshots/project-a.sql --workspace /path/reverse-workspace
 python3 scripts/build_module_index.py --project A --workspace /path/reverse-workspace
 python3 scripts/build_business_index.py --project A --module product --analysis-run-id A-product-20260805-001 --workspace /path/reverse-workspace
 python3 scripts/query_indexes.py --project A --workspace /path/reverse-workspace --file app/Services/ProductService.php
@@ -66,7 +67,7 @@ python3 scripts/detect_stale_references.py --workspace /path/reverse-workspace
 python3 scripts/validate_indexes.py --workspace /path/reverse-workspace
 ```
 
-所有脚本支持 `--help`；路径使用 UTF-8 和 `pathlib`，输出采用原子替换并以可恢复的跨平台排他锁保护并发更新。A/B 在工作区内绑定不同源码根，下游索引器在读取事实前验证 project/root/path。默认增量复用 size/mtime 未变的记录；`--verify-all` 强制重算哈希，符号、路由和 SQL 表索引按哈希复用。独立运行 `validate_indexes.py`、质量门禁或 stale 检测时默认重读实际源码；自动管线只在刚完成源码刷新后，以 manifest 中匹配的 `snapshot_id` 和 source-index 哈希启用可信快照，禁止单独使用无 token 的 `--trust-source-index`。PHP 符号与路由解析是轻量候选解析，复杂语法须标记 `PARSER_LIMITATION`，不得声称完整 PHP AST 精度。
+所有脚本支持 `--help`；路径使用 UTF-8 和 `pathlib`，输出采用原子替换并以可恢复的跨平台排他锁保护并发更新。A/B 在工作区内绑定不同源码根，下游索引器在读取事实前验证 project/root/path。权威 SQL dump 可位于项目源码根内，也可作为文件或专用目录位于分析工作区内；官方生成器为外部快照写入工作区相对 POSIX 路径和 `source_scope=EXTERNAL_SQL_SNAPSHOT`，门禁不要求其进入 source-index，但每次独立验证实际文件、SHA-256 和行号范围；历史绝对路径只有在解析后仍位于 workspace 内才兼容通过，工作区外路径、目录逃逸、缺失文件及非 SQL 文件都会拒绝。默认增量复用 size/mtime 未变的记录；`--verify-all` 强制重算源码哈希，符号、路由和 SQL 表索引按哈希或受门禁复核的文件状态复用。独立运行 `validate_indexes.py`、质量门禁或 stale 检测时默认重读实际源码；自动管线只在刚完成源码刷新后，以 manifest 中匹配的 `snapshot_id` 和 source-index 哈希启用可信快照，外部 SQL 不受该可信快照豁免，禁止单独使用无 token 的 `--trust-source-index`。PHP 符号与路由解析是轻量候选解析，复杂语法须标记 `PARSER_LIMITATION`，不得声称完整 PHP AST 精度。
 
 ## 输出与完成标准
 

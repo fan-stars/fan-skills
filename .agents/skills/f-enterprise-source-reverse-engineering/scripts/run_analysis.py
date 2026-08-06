@@ -24,14 +24,21 @@ def snapshot_outputs(workspace: Path, project: str) -> dict[str, int]:
     return snapshot
 
 
-def refresh_file_record(record: dict, root: Path, workspace: Path, project: str, module: str, before: dict[str, int]) -> None:
+def refresh_file_record(
+    record: dict,
+    root: Path,
+    workspace: Path,
+    project: str,
+    module: str,
+    before: dict[str, int],
+    quality_gate_ran: bool = False,
+) -> None:
     index_dir = workspace / "indexes" / project
     source_rows = load_isolated_source_index(workspace, project, root)
     scanned = {
         row["absolute_path"] for row in source_rows
         if isinstance(row.get("absolute_path"), str) and Path(row["absolute_path"]).is_file()
     }
-    record["files_scanned"] = sorted(set(record.get("files_scanned", [])) | scanned)
     content_read = set()
     reused = set()
     for name in ("index-manifest.json", "symbol-manifest.json", "route-manifest.json", "table-manifest.json"):
@@ -39,8 +46,21 @@ def refresh_file_record(record: dict, root: Path, workspace: Path, project: str,
         if not path.is_file():
             continue
         manifest = json.loads(path.read_text(encoding="utf-8"))
-        content_read.update(str(root / relative) for relative in manifest.get("content_read_files", []))
-        reused.update(str(root / relative) for relative in manifest.get("reused_without_content_read", []))
+        file_paths = manifest.get("file_paths", {})
+        def recorded_path(relative: str) -> str:
+            actual = file_paths.get(relative) if isinstance(file_paths, dict) else None
+            return str(Path(actual).resolve(strict=False)) if isinstance(actual, str) else str((root / relative).resolve(strict=False))
+        content_read.update(recorded_path(relative) for relative in manifest.get("content_read_files", []))
+        reused.update(recorded_path(relative) for relative in manifest.get("reused_without_content_read", []))
+        if name == "table-manifest.json" and isinstance(file_paths, dict):
+            scanned.update(recorded_path(relative) for relative in file_paths)
+            if quality_gate_ran:
+                scopes = manifest.get("file_scopes", {})
+                content_read.update(
+                    recorded_path(relative) for relative, scope in scopes.items()
+                    if scope == "EXTERNAL_SQL_SNAPSHOT"
+                )
+    record["files_scanned"] = sorted(set(record.get("files_scanned", [])) | scanned)
     api_path = index_dir / "api-index.jsonl"
     if api_path.exists():
         source_by_file = {row["relative_path"]: row["absolute_path"] for row in source_rows}
@@ -247,7 +267,14 @@ def main() -> int:
         record["final_status"] = "FAILED"
         record["error"] = str(exc)
     try:
-        refresh_file_record(record, root, args.workspace, args.project, args.module, outputs_before)
+        quality_gate_ran = any(
+            isinstance(stage, dict) and stage.get("name") == "quality_gates"
+            for stage in record.get("stages", [])
+        )
+        refresh_file_record(
+            record, root, args.workspace, args.project, args.module, outputs_before,
+            quality_gate_ran,
+        )
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         record.setdefault("recording_errors", []).append(str(exc))
         record["final_status"] = "FAILED"

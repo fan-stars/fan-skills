@@ -16,6 +16,10 @@ EVIDENCE_REQUIRED = {
 }
 CONFIDENCE_VALUES = {"HIGH", "MEDIUM", "LOW"}
 CLASSIFICATION_VALUES = {"FACT", "INFERENCE", "UNRESOLVED", "CONFLICT", "RISK", "DEAD_CODE_CANDIDATE"}
+PROJECT_SOURCE = "PROJECT_SOURCE"
+EXTERNAL_SQL_SNAPSHOT = "EXTERNAL_SQL_SNAPSHOT"
+# Kept for table-index files produced before source_scope was introduced.
+EXTERNAL_SQL_NOTE = "外部数据库快照；文件位于源码根目录之外，不参与 source-index 链接校验"
 SOURCE_REQUIRED = {
     "project", "repository_root", "relative_path", "absolute_path", "size_bytes",
     "mtime", "mtime_ns", "sha256", "line_count", "analysis_status", "modules",
@@ -66,6 +70,62 @@ def _integer(value: Any) -> bool:
 
 def _inside(path: Path, root: Path) -> bool:
     return path == root or root in path.parents
+
+
+def _table_source_scope(row: dict[str, Any]) -> str | None:
+    """Return an explicit or legacy table source scope without trusting it by itself."""
+    scope = row.get("source_scope")
+    if scope is not None:
+        return scope if scope in {PROJECT_SOURCE, EXTERNAL_SQL_SNAPSHOT} else None
+    notes = row.get("notes")
+    if isinstance(notes, list) and EXTERNAL_SQL_NOTE in notes:
+        return EXTERNAL_SQL_SNAPSHOT
+    return PROJECT_SOURCE
+
+
+def _validate_external_sql_table(
+    workspace: Path,
+    row: dict[str, Any],
+    prefix: str,
+    fingerprint_cache: dict[str, tuple[str, int]],
+) -> list[str]:
+    """Authenticate a workspace-relative SQL snapshot before allowing source-index bypass."""
+    errors: list[str] = []
+    relative = row.get("file")
+    workspace_root = workspace.resolve(strict=False)
+    if not isinstance(relative, str) or not relative:
+        return [f"{prefix}: external SQL file must be a workspace path"]
+    candidate = Path(relative)
+    if candidate.is_absolute():
+        path = candidate.resolve(strict=False)
+    else:
+        if "\\" in relative:
+            return [f"{prefix}: external SQL file must use a POSIX-relative path"]
+        pure = PurePosixPath(relative)
+        if pure.is_absolute() or ".." in pure.parts or pure.parts == (".",):
+            return [f"{prefix}: external SQL file path escapes workspace: {relative}"]
+        path = (workspace_root / Path(*pure.parts)).resolve(strict=False)
+    if not _inside(path, workspace_root):
+        return [f"{prefix}: external SQL file path escapes workspace: {relative}"]
+    if path.suffix.lower() != ".sql":
+        errors.append(f"{prefix}: external SQL file must use .sql extension")
+    if not path.is_file():
+        return errors + [f"{prefix}: external SQL file is missing: {relative}"]
+    cache_key = str(path)
+    try:
+        if cache_key not in fingerprint_cache:
+            actual_hash, actual_lines, _ = file_fingerprint(path)
+            fingerprint_cache[cache_key] = (actual_hash, actual_lines)
+        actual_hash, actual_lines = fingerprint_cache[cache_key]
+    except (OSError, RuntimeError) as exc:
+        return errors + [f"{prefix}: external SQL file cannot be fingerprinted: {exc}"]
+    if row.get("file_sha256") != actual_hash:
+        errors.append(f"{prefix}: external SQL SHA-256 mismatch")
+    start = row.get("start_line")
+    end = row.get("end_line")
+    if not _integer(start) or not _integer(end) or not 1 <= start <= end <= actual_lines:
+        errors.append(f"{prefix}: external SQL line range is invalid")
+    return errors
 
 
 def evidence_fields(record: dict[str, Any]) -> tuple[list[dict[str, Any]], list[str]]:
@@ -420,27 +480,56 @@ def validate_project_indexes(
 
     routes = indexes["routes.jsonl"]
     tables = indexes["table-index.jsonl"]
-    for name, rows in (("routes.jsonl", routes), ("table-index.jsonl", tables)):
-        for position, row in enumerate(rows):
-            prefix = f"{name}:{position}"
-            required = {"project", "file", "file_sha256", "start_line", "end_line", "classification", "confidence"}
-            required.update({"method", "path"} if name == "routes.jsonl" else {"table"})
-            missing = sorted(required - set(row))
-            if missing:
-                errors.append(f"{prefix}: missing fields {missing}")
-            allowed_classifications = CLASSIFICATION_VALUES | ({"CANDIDATE"} if name == "routes.jsonl" else set())
-            if row.get("classification") not in allowed_classifications:
-                errors.append(f"{prefix}: invalid classification")
-            if row.get("confidence") not in CONFIDENCE_VALUES:
-                errors.append(f"{prefix}: invalid confidence")
-            source = source_by_file.get(row.get("file"))
-            if row.get("project") != project or source is None:
-                errors.append(f"{prefix}: project or source linkage mismatch")
-                continue
-            if row.get("file_sha256") != source.get("sha256"):
-                errors.append(f"{prefix}: source hash linkage mismatch")
-            if not _integer(row.get("start_line")) or not _integer(row.get("end_line")) or not 1 <= row["start_line"] <= row["end_line"] <= source.get("line_count", 0):
-                errors.append(f"{prefix}: invalid line range")
+    for position, row in enumerate(routes):
+        prefix = f"routes.jsonl:{position}"
+        required = {"project", "file", "file_sha256", "start_line", "end_line", "classification", "confidence", "method", "path"}
+        missing = sorted(required - set(row))
+        if missing:
+            errors.append(f"{prefix}: missing fields {missing}")
+        if row.get("classification") not in CLASSIFICATION_VALUES | {"CANDIDATE"}:
+            errors.append(f"{prefix}: invalid classification")
+        if row.get("confidence") not in CONFIDENCE_VALUES:
+            errors.append(f"{prefix}: invalid confidence")
+        source = source_by_file.get(row.get("file"))
+        if row.get("project") != project or source is None:
+            errors.append(f"{prefix}: project or source linkage mismatch")
+            continue
+        if row.get("file_sha256") != source.get("sha256"):
+            errors.append(f"{prefix}: source hash linkage mismatch")
+        if not _integer(row.get("start_line")) or not _integer(row.get("end_line")) or not 1 <= row["start_line"] <= row["end_line"] <= source.get("line_count", 0):
+            errors.append(f"{prefix}: invalid line range")
+
+    external_fingerprint_cache: dict[str, tuple[str, int]] = {}
+    for position, row in enumerate(tables):
+        prefix = f"table-index.jsonl:{position}"
+        required = {"project", "file", "file_sha256", "start_line", "end_line", "classification", "confidence", "table"}
+        missing = sorted(required - set(row))
+        if missing:
+            errors.append(f"{prefix}: missing fields {missing}")
+        if row.get("classification") not in CLASSIFICATION_VALUES:
+            errors.append(f"{prefix}: invalid classification")
+        if row.get("confidence") not in CONFIDENCE_VALUES:
+            errors.append(f"{prefix}: invalid confidence")
+        notes = row.get("notes")
+        if notes is not None and (not isinstance(notes, list) or not all(isinstance(note, str) for note in notes)):
+            errors.append(f"{prefix}: notes must be an array of strings")
+        scope = _table_source_scope(row)
+        if scope is None:
+            errors.append(f"{prefix}: invalid source_scope")
+            continue
+        if row.get("project") != project:
+            errors.append(f"{prefix}: project mismatch")
+        if scope == EXTERNAL_SQL_SNAPSHOT:
+            errors.extend(_validate_external_sql_table(workspace, row, prefix, external_fingerprint_cache))
+            continue
+        source = source_by_file.get(row.get("file"))
+        if source is None:
+            errors.append(f"{prefix}: project or source linkage mismatch")
+            continue
+        if row.get("file_sha256") != source.get("sha256"):
+            errors.append(f"{prefix}: source hash linkage mismatch")
+        if not _integer(row.get("start_line")) or not _integer(row.get("end_line")) or not 1 <= row["start_line"] <= row["end_line"] <= source.get("line_count", 0):
+            errors.append(f"{prefix}: invalid line range")
 
     modules = indexes["module-index.jsonl"]
     module_names = set()

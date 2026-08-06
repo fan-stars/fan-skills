@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from jsonschema import validators
+from jsonschema import ValidationError, validators
 
 SKILL = Path(__file__).parents[1]
 SCHEMAS = SKILL / "schemas"
@@ -22,7 +22,7 @@ VALID_INSTANCES = {
     "module-index.schema.json": {"project": "A", "module": "product", "aliases": [], "status": "PARTIAL", "boundary_confidence": "LOW", "primary_files": [], "secondary_files": [], "shared_files": [], "infrastructure_files": [], "unknown_files": [], "upstream_modules": [], "downstream_modules": [], "core_tables": [], "apis": [], "business_rules": [], "open_questions": [], "stale_evidence": [], "last_analysis_run_id": None, "quality_gates": []},
     "api-index.schema.json": {"project": "A", "module": "product", "api_id": "A-API-001", "method": "POST", "path": "/api/products", "route_evidence": [EVIDENCE], "controller_evidence": [EVIDENCE], "validation_evidence": [EVIDENCE], "service_evidence": [EVIDENCE], "persistence_evidence": [EVIDENCE], "transaction_evidence": [EVIDENCE], "side_effect_evidence": [EVIDENCE], "tables": ["products"], "coverage": {"validation": {"status": "PRESENT", "rationale": "verified"}, "service": {"status": "PRESENT", "rationale": "verified"}, "persistence": {"status": "PRESENT", "rationale": "verified"}, "transaction": {"status": "PRESENT", "rationale": "verified"}, "side_effect": {"status": "PRESENT", "rationale": "verified"}, "tables": {"status": "PRESENT", "rationale": "verified"}}, "candidates": [], "analysis_run_id": "A-product-20260805-001", "status": "ANALYZED"},
     "route-index.schema.json": {"project": "A", "file": "routes/api.php", "file_sha256": "a" * 64, "start_line": 1, "end_line": 1, "method": "POST", "path": "/api/products", "classification": "CANDIDATE", "confidence": "MEDIUM"},
-    "table-index.schema.json": {"project": "A", "table": "products", "file": "database/products.sql", "file_sha256": "a" * 64, "start_line": 1, "end_line": 1, "classification": "FACT", "confidence": "HIGH"},
+    "table-index.schema.json": {"project": "A", "table": "products", "file": "database/products.sql", "file_sha256": "a" * 64, "start_line": 1, "end_line": 1, "source_scope": "PROJECT_SOURCE", "classification": "FACT", "confidence": "HIGH"},
     "evidence.schema.json": EVIDENCE,
     "decision-record.schema.json": {"decision_id": "JAVA-PRODUCT-001", "decision_type": "MERGE", "sources": ["A-PRODUCT-001", "B-PRODUCT-001"], "reason": "保留双方已验证能力"},
 }
@@ -38,6 +38,19 @@ class SchemaTest(unittest.TestCase):
             validator_class = validators.validator_for(schema)
             validator_class.check_schema(schema)
             validator_class(schema).validate(VALID_INSTANCES[path.name])
+
+    def test_table_schema_accepts_external_scope_and_rejects_unknown_scope(self):
+        schema = json.loads((SCHEMAS / "table-index.schema.json").read_text(encoding="utf-8"))
+        validator = validators.validator_for(schema)(schema)
+        external = dict(
+            VALID_INSTANCES["table-index.schema.json"],
+            file="sql-snapshots/project-a.sql",
+            source_scope="EXTERNAL_SQL_SNAPSHOT",
+            notes=["authoritative external database snapshot"],
+        )
+        validator.validate(external)
+        with self.assertRaises(ValidationError):
+            validator.validate(dict(external, source_scope="UNTRUSTED_EXTERNAL_FILE"))
 
     def test_generated_fixture_indexes_and_run_match_schemas(self):
         fixture = SKILL / "tests/fixtures/mini-php-project"
