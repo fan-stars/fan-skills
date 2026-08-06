@@ -18,6 +18,8 @@
     "related_tables": {"type": "array", "items": {"type": "string"}},
     "related_modules": {"type": "array", "items": {"type": "string"}},
     "rationale": {"type": "string", "minLength": 1},
+    "reviewer": {"type": "string", "minLength": 1},
+    "reviewed_at": {"type": "string", "format": "date-time"},
     "entity": {"type": "string", "minLength": 1},
     "from_state": {"type": "string", "minLength": 1},
     "to_state": {"type": "string", "minLength": 1},
@@ -33,6 +35,6 @@
     {"if": {"properties": {"type": {"const": "state_transition"}}, "required": ["type"]}, "then": {"required": ["entity", "from_state", "to_state", "trigger"]}},
     {"if": {"properties": {"type": {"enum": ["idempotency_rule", "concurrency_rule"]}}, "required": ["type"]}, "then": {"required": ["scenario", "mechanism"]}},
     {"if": {"properties": {"type": {"const": "cross_module_dependency"}}, "required": ["type"]}, "then": {"required": ["related_modules", "dependency_type", "direction"], "properties": {"related_modules": {"minItems": 1}}}},
-    {"if": {"properties": {"type": {"enum": ["business_rule_absence", "state_transition_absence", "concurrency_idempotency_absence", "cross_module_dependency_absence"]}}, "required": ["type"]}, "then": {"required": ["rationale"]}}
+    {"if": {"properties": {"type": {"enum": ["business_rule_absence", "state_transition_absence", "concurrency_idempotency_absence", "cross_module_dependency_absence"]}}, "required": ["type"]}, "then": {"required": ["rationale", "reviewer", "reviewed_at"], "properties": {"related_apis": {"minItems": 1}}}}
   ]
 }

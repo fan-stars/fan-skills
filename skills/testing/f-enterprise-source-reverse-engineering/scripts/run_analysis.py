@@ -9,7 +9,7 @@ import subprocess
 import sys
 import time
 sys.path.insert(0, str(Path(__file__).parent))
-from common.core import atomic_write, ensure_project_root_binding, exclusive_lock, load_isolated_source_index, locked_jsonl_update, read_project_jsonl, validate_analysis_run_id, validate_module_name
+from common.core import atomic_write, ensure_project_root_binding, exclusive_lock, file_fingerprint, iter_source_files, load_isolated_source_index, locked_jsonl_update, read_project_jsonl, validate_analysis_run_id, validate_module_name
 from common.validation import REQUIRED_MODULE_DOCUMENTS, validate_run_record
 
 
@@ -70,6 +70,29 @@ def refresh_file_record(record: dict, root: Path, workspace: Path, project: str,
         stale = json.loads(stale_path.read_text(encoding="utf-8"))
         record["stale_evidence"] = [item for item in stale.get("items", []) if item.get("project") == project]
 
+
+def continuation_source_errors(workspace: Path, project: str, root: Path) -> list[str]:
+    """Reject continuation when the source set or any indexed fingerprint changed."""
+    indexed = {
+        row["relative_path"]: row
+        for row in load_isolated_source_index(workspace, project, root)
+        if isinstance(row.get("relative_path"), str)
+    }
+    current = {path.relative_to(root).as_posix(): path for path in iter_source_files(root)}
+    errors = []
+    for relative in sorted(set(current) - set(indexed)):
+        errors.append(f"new source file: {relative}")
+    for relative, row in indexed.items():
+        path = current.get(relative)
+        if path is None:
+            if row.get("analysis_status") != "STALE":
+                errors.append(f"source file removed: {relative}")
+            continue
+        digest, lines, _ = file_fingerprint(path)
+        if digest != row.get("sha256") or lines != row.get("line_count"):
+            errors.append(f"source file changed: {relative}")
+    return errors
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", choices=("A", "B"), required=True)
@@ -78,7 +101,9 @@ def main() -> int:
     parser.add_argument("--sql-root", type=Path)
     parser.add_argument("--workspace", type=Path, required=True)
     parser.add_argument("--analysis-run-id")
-    parser.add_argument("--resume", action="store_true", help="resume the first failed stage of an existing FAILED run")
+    continuation = parser.add_mutually_exclusive_group()
+    continuation.add_argument("--resume", action="store_true", help="resume the first failed stage of an existing FAILED run")
+    continuation.add_argument("--finalize", action="store_true", help="rerun only the gate for an enriched PARTIAL/REVIEW_REQUIRED run")
     args = parser.parse_args()
     root = args.root.resolve()
     if not root.is_dir():
@@ -92,8 +117,8 @@ def main() -> int:
     run_dir = args.workspace / "analysis-runs" / args.project
     outputs_before = snapshot_outputs(args.workspace, args.project)
     with exclusive_lock(run_dir / "run-ids"):
-        if args.resume and not args.analysis_run_id:
-            parser.error("--resume requires --analysis-run-id")
+        if (args.resume or args.finalize) and not args.analysis_run_id:
+            parser.error("--resume/--finalize requires --analysis-run-id")
         existing = []
         for path in run_dir.glob(f"{args.project}-{args.module}-{started:%Y%m%d}-*.json"):
             try:
@@ -107,9 +132,9 @@ def main() -> int:
         except ValueError as exc:
             parser.error(str(exc))
         run_path = run_dir / f"{run_id}.json"
-        if run_path.exists() and not args.resume:
-            parser.error(f"analysis run already exists; choose a new ID or use --resume: {run_id}")
-        if not run_path.exists() and args.resume:
+        if run_path.exists() and not (args.resume or args.finalize):
+            parser.error(f"analysis run already exists; choose a new ID or use --resume/--finalize: {run_id}")
+        if not run_path.exists() and (args.resume or args.finalize):
             parser.error(f"analysis run does not exist: {run_id}")
         run_path.parent.mkdir(parents=True, exist_ok=True)
         if not run_path.exists():
@@ -124,18 +149,17 @@ def main() -> int:
         ("modules", "build_module_index.py", ["--project", args.project, "--workspace", str(args.workspace)]),
         ("business", "build_business_index.py", ["--project", args.project, "--module", args.module, "--analysis-run-id", run_id, "--workspace", str(args.workspace)]),
     ]
-    if args.resume:
+    if args.resume or args.finalize:
         try:
             record = json.loads(run_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
-            parser.error(f"cannot resume invalid run record: {exc}")
+            parser.error(f"cannot continue invalid run record: {exc}")
         if record.get("project") != args.project or record.get("requested_module") != args.module or Path(record.get("source_root", "")).resolve(strict=False) != root:
-            parser.error("resume arguments do not match the existing run")
-        if record.get("final_status") != "FAILED":
-            parser.error("only a FAILED analysis run can be resumed")
+            parser.error("continuation arguments do not match the existing run")
         for key, default in (
             ("record_scope", "AUTOMATED_PIPELINE"), ("source_snapshot_id", None),
             ("resume_count", 0), ("resumed_at", []), ("context_files_read", []),
+            ("finalization_count", 0), ("finalized_at", []), ("quality_gate_attempts", []),
             ("files_scanned", []), ("files_read", []),
             ("files_reused_without_content_read", []), ("files_written", []),
             ("stale_evidence", []), ("unresolved_questions", []),
@@ -143,24 +167,47 @@ def main() -> int:
             record.setdefault(key, default)
         if not isinstance(record.get("stages"), list):
             parser.error("existing analysis run stages must be an array")
-        successful = []
-        for expected, stage in zip((item[0] for item in stages), record.get("stages", [])):
-            if stage.get("name") != expected or stage.get("exit_code") != 0:
-                break
-            successful.append(stage)
-        record["stages"] = successful
-        if not isinstance(record.get("resume_count"), int) or isinstance(record.get("resume_count"), bool):
-            parser.error("existing analysis run resume_count is invalid")
-        if not isinstance(record.get("resumed_at"), list):
-            parser.error("existing analysis run resumed_at must be an array")
-        record["resume_count"] += 1
-        record["resumed_at"].append(started.isoformat())
+        try:
+            source_errors = continuation_source_errors(args.workspace, args.project, root)
+        except ValueError as exc:
+            parser.error(str(exc))
+        if source_errors:
+            parser.error("source changed since the recorded snapshot; create a new analysis run: " + "; ".join(source_errors[:5]))
+        if args.resume:
+            if record.get("final_status") != "FAILED":
+                parser.error("only a FAILED analysis run can be resumed")
+            successful = []
+            for expected, stage in zip((item[0] for item in stages), record.get("stages", [])):
+                if stage.get("name") != expected or stage.get("exit_code") != 0:
+                    break
+                successful.append(stage)
+            record["stages"] = successful
+            if not isinstance(record.get("resume_count"), int) or isinstance(record.get("resume_count"), bool):
+                parser.error("existing analysis run resume_count is invalid")
+            if not isinstance(record.get("resumed_at"), list):
+                parser.error("existing analysis run resumed_at must be an array")
+            record["resume_count"] += 1
+            record["resumed_at"].append(started.isoformat())
+        else:
+            if record.get("final_status") not in {"PARTIAL", "REVIEW_REQUIRED"}:
+                parser.error("only a PARTIAL or REVIEW_REQUIRED analysis run can be finalized")
+            expected = [item[0] for item in stages] + ["quality_gates"]
+            names = [stage.get("name") for stage in record["stages"] if isinstance(stage, dict)]
+            if names != expected or any(stage.get("exit_code") != 0 for stage in record["stages"][:-1]) or record["stages"][-1].get("exit_code") != 2:
+                parser.error("finalization requires one complete pipeline ending in a partial quality-gate result")
+            if not isinstance(record.get("finalization_count"), int) or isinstance(record.get("finalization_count"), bool):
+                parser.error("existing analysis run finalization_count is invalid")
+            if not isinstance(record.get("finalized_at"), list) or not isinstance(record.get("quality_gate_attempts"), list):
+                parser.error("existing analysis run finalization history is invalid")
+            record["quality_gate_attempts"].append(record["stages"].pop())
+            record["finalization_count"] += 1
+            record["finalized_at"].append(started.isoformat())
         record["finished_at"] = None
         record["final_status"] = "RUNNING"
         record.pop("error", None)
         record.pop("recording_errors", None)
     else:
-        record = {"analysis_run_id": run_id, "project": args.project, "requested_module": args.module, "started_at": started.isoformat(), "finished_at": None, "source_root": str(root), "workspace": str(args.workspace.resolve()), "record_scope": "AUTOMATED_PIPELINE", "source_snapshot_id": None, "resume_count": 0, "resumed_at": [], "stages": [], "files_scanned": [], "files_read": [], "context_files_read": [], "files_reused_without_content_read": [], "files_written": [], "stale_evidence": [], "unresolved_questions": [], "final_status": "RUNNING"}
+        record = {"analysis_run_id": run_id, "project": args.project, "requested_module": args.module, "started_at": started.isoformat(), "finished_at": None, "source_root": str(root), "workspace": str(args.workspace.resolve()), "record_scope": "AUTOMATED_PIPELINE", "source_snapshot_id": None, "resume_count": 0, "resumed_at": [], "finalization_count": 0, "finalized_at": [], "quality_gate_attempts": [], "stages": [], "files_scanned": [], "files_read": [], "context_files_read": [], "files_reused_without_content_read": [], "files_written": [], "stale_evidence": [], "unresolved_questions": [], "final_status": "RUNNING"}
     atomic_write(run_path, json.dumps(record, ensure_ascii=False, indent=2) + "\n")
     report = None
     try:
@@ -180,7 +227,9 @@ def main() -> int:
         record["source_snapshot_id"] = manifest["snapshot_id"]
         refresh_file_record(record, root, args.workspace, args.project, args.module, outputs_before)
         atomic_write(run_path, json.dumps(record, ensure_ascii=False, indent=2) + "\n")
-        gate_command = [sys.executable, str(script_dir / "evaluate_quality_gates.py"), "--project", args.project, "--module", args.module, "--analysis-run-id", run_id, "--workspace", str(args.workspace), "--trust-source-index", "--source-snapshot-id", manifest["snapshot_id"]]
+        gate_command = [sys.executable, str(script_dir / "evaluate_quality_gates.py"), "--project", args.project, "--module", args.module, "--analysis-run-id", run_id, "--workspace", str(args.workspace)]
+        if not (args.resume or args.finalize):
+            gate_command.extend(["--trust-source-index", "--source-snapshot-id", manifest["snapshot_id"]])
         before_gate = time.monotonic()
         gate = subprocess.run(gate_command, capture_output=True, text=True)
         record["stages"].append({"name": "quality_gates", "command": gate_command, "exit_code": gate.returncode, "duration_ms": round((time.monotonic() - before_gate) * 1000), "stdout": gate.stdout.strip(), "stderr": gate.stderr.strip()})
@@ -229,6 +278,7 @@ def main() -> int:
             locked_jsonl_update(index_dir / "api-index.jsonl", commit_records)
             locked_jsonl_update(index_dir / "business-index.jsonl", commit_records)
             report["module_status_committed"] = "ANALYZED"
+            report["commit_performed"] = True
             report["run_finalized"] = True
             atomic_write(args.workspace / "reports" / args.project / f"{args.module}-quality-gates.json", json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     print(f"ANALYSIS_RUN status={record['final_status']} id={run_id} output={run_path}")

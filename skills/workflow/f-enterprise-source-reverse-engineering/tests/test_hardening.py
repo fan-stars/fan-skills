@@ -116,6 +116,8 @@ class HardeningTest(unittest.TestCase):
             api = read_jsonl(api_path)[0]
             reviewed = dict(api["controller_evidence"][0])
             reviewed["semantic_basis"] = "reviewed_negative_evidence"
+            reviewed["reviewer"] = "AUDIT-001"
+            reviewed["reviewed_at"] = "2026-08-05T00:00:00Z"
             api["coverage"]["transaction"] = {"status": "NOT_APPLICABLE", "rationale": "reviewed call chain has no transaction boundary"}
             api["coverage"]["side_effect"] = {"status": "NOT_APPLICABLE", "rationale": "reviewed call chain has no external side effect"}
             transaction_absence = dict(reviewed, evidence_type="transaction_absence")
@@ -131,7 +133,8 @@ class HardeningTest(unittest.TestCase):
                     "project": "A", "module": "product", "business_id": f"A-ABSENCE-{number:03d}",
                     "type": kind, "name": kind, "classification": "FACT", "confidence": "HIGH",
                     "rationale": "reviewed reachable call graph and found this dimension not applicable",
-                    "evidence": [dict(reviewed, evidence_type="implementation")],
+                    "reviewer": "AUDIT-001", "reviewed_at": "2026-08-05T00:00:00Z",
+                    "evidence": [dict(reviewed, evidence_type=kind)],
                     "related_apis": [api["api_id"]], "related_tables": api["tables"],
                     "analysis_run_id": run_id, "status": "PARTIAL",
                 })
@@ -185,6 +188,48 @@ class HardeningTest(unittest.TestCase):
             self.assertNotEqual(tampered.returncode, 0)
             self.assertIn("source index changed", tampered.stderr)
 
+    def test_reviewed_absence_writer_adds_auditable_metadata_and_rejects_conflicts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, workspace = self.prepare(directory)
+            run_id = self.analyze(root, workspace)
+            api_path = workspace / "indexes/A/api-index.jsonl"
+            api = read_jsonl(api_path)[0]
+
+            conflict = run(
+                "record_reviewed_absence.py", "--project", "A", "--module", "product",
+                "--api-id", api["api_id"], "--dimension", "transaction",
+                "--rationale", "reviewed all reachable calls", "--reviewer", "AUDIT-002",
+                "--reviewed-at", "2026-08-05T00:00:00Z",
+                "--analysis-run-id", run_id, "--workspace", workspace,
+            )
+            self.assertNotEqual(conflict.returncode, 0)
+            self.assertIn("PRESENT", conflict.stderr)
+
+            api["coverage"]["transaction"] = {"status": "UNRESOLVED", "rationale": "requires review"}
+            api["transaction_evidence"] = []
+            write_jsonl(api_path, [api])
+            for dimension in ("transaction", "state_transition"):
+                result = run(
+                    "record_reviewed_absence.py", "--project", "A", "--module", "product",
+                    "--api-id", api["api_id"], "--dimension", dimension,
+                    "--rationale", "reviewed the complete reachable call graph",
+                    "--reviewer", "AUDIT-002", "--reviewed-at", "2026-08-05T00:00:00Z",
+                    "--analysis-run-id", run_id, "--workspace", workspace,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+
+            updated = read_jsonl(api_path)[0]
+            absence = updated["transaction_evidence"][0]
+            self.assertEqual(updated["coverage"]["transaction"]["status"], "NOT_APPLICABLE")
+            self.assertEqual(absence["evidence_type"], "transaction_absence")
+            self.assertEqual(absence["reviewer"], "AUDIT-002")
+            business = read_jsonl(workspace / "indexes/A/business-index.jsonl")
+            state_absence = next(row for row in business if row.get("type") == "state_transition_absence")
+            self.assertEqual(state_absence["related_apis"], [api["api_id"]])
+            self.assertEqual(state_absence["evidence"][0]["evidence_type"], "state_transition_absence")
+            validated = run("validate_indexes.py", "--workspace", workspace, "--project", "A")
+            self.assertEqual(validated.returncode, 0, validated.stderr + validated.stdout)
+
     def test_trusted_validation_reuses_snapshot_but_direct_validation_rehashes(self):
         with tempfile.TemporaryDirectory() as directory:
             root, workspace = self.prepare(directory)
@@ -201,6 +246,43 @@ class HardeningTest(unittest.TestCase):
                     source_snapshot_id=manifest["snapshot_id"],
                 ), [])
                 self.assertEqual(trusted.call_count, 0)
+
+    def test_module_scoped_validation_is_not_overwritten_by_the_last_module_row(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, workspace = self.prepare(directory)
+            self.analyze(root, workspace)
+            source_path = workspace / "indexes/A/source-index.jsonl"
+            extra = run(
+                "update_module_ownership.py", "--index", source_path,
+                "--file", "app/Services/ProductService.php", "--module", "zzz",
+                "--role", "SECONDARY",
+            )
+            self.assertEqual(extra.returncode, 0, extra.stderr)
+            rebuilt = run("build_module_index.py", "--project", "A", "--workspace", workspace)
+            self.assertEqual(rebuilt.returncode, 0, rebuilt.stderr)
+            api_path = workspace / "indexes/A/api-index.jsonl"
+            api = read_jsonl(api_path)[0]
+            api["route_evidence"] = []
+            write_jsonl(api_path, [api])
+            errors = validation.validate_project_indexes(workspace, "A", "product")
+            self.assertTrue(any(error.startswith("api-index.jsonl") for error in errors), errors)
+
+    def test_finalize_rejects_source_changes_after_the_recorded_snapshot(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, workspace = self.prepare(directory)
+            run_id = self.analyze(root, workspace)
+            target = root / "app/Http/Controllers/ProductController.php"
+            target.write_text(target.read_text(encoding="utf-8") + "\n// changed after review\n", encoding="utf-8")
+            result = run(
+                "run_analysis.py", "--project", "A", "--module", "product",
+                "--root", root, "--sql-root", root / "database", "--workspace", workspace,
+                "--analysis-run-id", run_id, "--finalize",
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("source changed since the recorded snapshot", result.stderr)
+            record = json.loads((workspace / f"analysis-runs/A/{run_id}.json").read_text(encoding="utf-8"))
+            self.assertEqual(record["final_status"], "PARTIAL")
+            self.assertEqual(record["finalization_count"], 0)
 
     def test_resume_starts_at_first_failed_stage(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -251,7 +333,7 @@ class HardeningTest(unittest.TestCase):
                 subprocess.CompletedProcess([], 2, "partial", ""),
             ]
             resumed_argv = argv + ["--resume"]
-            with mock.patch.object(run_analysis.subprocess, "run", side_effect=second_results) as resumed, mock.patch.object(run_analysis, "refresh_file_record", side_effect=record_files), mock.patch.object(sys, "argv", resumed_argv):
+            with mock.patch.object(run_analysis.subprocess, "run", side_effect=second_results) as resumed, mock.patch.object(run_analysis, "refresh_file_record", side_effect=record_files), mock.patch.object(run_analysis, "continuation_source_errors", return_value=[]), mock.patch.object(sys, "argv", resumed_argv):
                 self.assertEqual(run_analysis.main(), 0)
             scripts = [Path(call.args[0][1]).name for call in resumed.call_args_list]
             self.assertEqual(scripts, ["extract_php_routes.py", "extract_sql_tables.py", "build_module_index.py", "build_business_index.py", "evaluate_quality_gates.py"])

@@ -13,7 +13,7 @@
 门禁报告和最终状态：全部满足才是 ANALYZED，否则 PARTIAL 或 REVIEW_REQUIRED。
 
 ## 质量检查
-报告逐项写入 `reports/<project>/<module>-quality-gates.json`；未全部通过时脚本退出 2。全部通过只产生候选 `ANALYZED`，完整运行记录校验落盘后才原子提交模块、API 与业务记录。PRESENT 必须有正向类型证据；NOT_APPLICABLE 必须有 reviewed negative evidence；UNRESOLVED 不通过对应门禁。
+报告逐项写入 `reports/<project>/<module>-quality-gates.json`；未全部通过时脚本退出 2。质量门禁脚本即使全部通过也只产生候选 `ANALYZED`，不会直接提交索引状态。首次运行结束为 `PARTIAL`/`REVIEW_REQUIRED` 后，先用 `record_reviewed_absence.py` 写入带 reviewer、reviewed_at、当前哈希和 reviewed negative evidence 的人工结论，再用同一运行 ID 加 `run_analysis.py --finalize`；只有最终运行记录校验通过后才原子提交模块、API 与业务记录。PRESENT 必须有正向类型证据；NOT_APPLICABLE 必须有 reviewer、reviewed_at 和对应 absence evidence；UNRESOLVED 不通过对应门禁。
 
 ## 失败处理
 任一项缺失时保留文档，补证后重跑，不降低门槛或删除失败记录。直接运行门禁默认重哈希实际源码；`--trust-source-index` 必须同时提供匹配的单项目 `--source-snapshot-id`，只用于同一自动管线刚生成的快照。

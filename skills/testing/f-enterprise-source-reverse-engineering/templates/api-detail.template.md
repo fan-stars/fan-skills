@@ -25,4 +25,4 @@
 | Entry | `${entry_file}` | `${entry_symbol}` | `${entry_start}-${entry_end}` | `${entry_sha256}` | FACT |
 
 ## 填写说明
-至少覆盖路由、入口、验证、核心 Service、持久化、事务、异步/外部和响应；缺失阶段写 UNRESOLVED，不能删行规避。NOT_APPLICABLE 只能引用 `semantic_basis=reviewed_negative_evidence` 的对应 absence 证据。
+至少覆盖路由、入口、验证、核心 Service、持久化、事务、异步/外部和响应；缺失阶段写 UNRESOLVED，不能删行规避。NOT_APPLICABLE 只能通过 `record_reviewed_absence.py` 写入，并引用带 reviewer、reviewed_at、当前哈希和 `semantic_basis=reviewed_negative_evidence` 的对应 absence 证据。

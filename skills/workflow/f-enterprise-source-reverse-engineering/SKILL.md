@@ -41,7 +41,7 @@ description: >
 
 一个文件可有多个模块归属，使用 `PRIMARY`、`SECONDARY`、`SHARED`、`INFRASTRUCTURE`、`UNKNOWN`，追加标签而非覆盖。文件哈希变化后旧证据标为 `STALE`，文档标为 `REVIEW_REQUIRED`，重新验证行号。
 
-自动索引器只把结构关系写为事实：路由声明、路由处理器、带 `rules()` 的请求类型、可达的编排调用、已关联表的持久化调用、事务和副作用调用。`*Service`、`*Repository`、`*Model`、`*Request` 等名称信号只能写入 `candidates`，置信度最多 `MEDIUM`。某维度无实现时保持 `UNRESOLVED`；只有人工复核完整可达范围并添加 `semantic_basis: reviewed_negative_evidence` 后，才能标为 `NOT_APPLICABLE`。
+自动索引器只把结构关系写为事实：路由声明、路由处理器、带 `rules()` 的请求类型、可达的编排调用、已关联表的持久化调用、事务和副作用调用。`*Service`、`*Repository`、`*Model`、`*Request` 等名称信号只能写入 `candidates`，置信度最多 `MEDIUM`。某维度无实现时保持 `UNRESOLVED`；只有人工复核完整可达范围并通过 `record_reviewed_absence.py` 写入带 reviewer、reviewed_at、当前哈希和 `semantic_basis: reviewed_negative_evidence` 的证据后，才能标为 `NOT_APPLICABLE`。质量门禁只生成候选状态，禁止独立门禁进程直接提交 `ANALYZED`；补证后必须使用同一运行 ID 的 `--finalize`，由运行记录校验完成两阶段提交。
 
 ## 支持命令
 
@@ -58,6 +58,8 @@ python3 scripts/query_indexes.py --project A --workspace /path/reverse-workspace
 python3 scripts/evaluate_quality_gates.py --project A --module product --analysis-run-id A-product-20260805-001 --workspace /path/reverse-workspace
 python3 scripts/run_analysis.py --project A --module product --root /path/project-a --workspace /path/reverse-workspace
 python3 scripts/run_analysis.py --project A --module product --root /path/project-a --workspace /path/reverse-workspace --analysis-run-id A-product-20260805-001 --resume
+python3 scripts/record_reviewed_absence.py --project A --module product --api-id A-PRODUCT-API-001 --dimension transaction --rationale '完整复核入口到可达调用图，未发现事务边界' --reviewer TICKET-123 --analysis-run-id A-product-20260805-001 --workspace /path/reverse-workspace
+python3 scripts/run_analysis.py --project A --module product --root /path/project-a --workspace /path/reverse-workspace --analysis-run-id A-product-20260805-001 --finalize
 python3 scripts/run_fixture_example.py
 python3 scripts/verify_source_evidence.py --workspace /path/reverse-workspace --evidence evidence.json
 python3 scripts/detect_stale_references.py --workspace /path/reverse-workspace

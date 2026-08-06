@@ -19,6 +19,8 @@
   "related_apis": [],
   "related_states": [],
   "related_modules": [],
+  "reviewer": "${reviewer_or_omit_for_positive_fact}",
+  "reviewed_at": "${reviewed_at_or_omit_for_positive_fact}",
   "analysis_run_id": "${analysis_run_id}",
   "status": "PARTIAL"
 }

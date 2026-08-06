@@ -332,11 +332,26 @@ class AdversarialGuardTest(unittest.TestCase):
             self.assertEqual(report["module_status_committed"], "PARTIAL")
             self.assertNotEqual(read_jsonl(workspace / "indexes/A/module-index.jsonl")[0]["status"], "ANALYZED")
             run_path.write_text(json.dumps(finalized), encoding="utf-8")
-            committed = run("evaluate_quality_gates.py", *gate_args)
+            direct = run("evaluate_quality_gates.py", *gate_args)
+            self.assertEqual(direct.returncode, 0, direct.stderr + direct.stdout)
+            self.assertNotEqual(read_jsonl(workspace / "indexes/A/module-index.jsonl")[0]["status"], "ANALYZED")
+            committed = run(
+                "run_analysis.py", "--project", "A", "--module", "product",
+                "--root", root, "--sql-root", root / "database", "--workspace", workspace,
+                "--analysis-run-id", run_id, "--finalize",
+            )
             self.assertEqual(committed.returncode, 0, committed.stderr + committed.stdout)
             self.assertEqual(read_jsonl(workspace / "indexes/A/module-index.jsonl")[0]["status"], "ANALYZED")
             self.assertTrue(all(row["status"] == "ANALYZED" for row in read_jsonl(workspace / "indexes/A/api-index.jsonl") if row.get("module") == "product"))
             self.assertTrue(all(row["status"] == "ANALYZED" for row in read_jsonl(workspace / "indexes/A/business-index.jsonl") if row.get("module") == "product" and row.get("analysis_run_id") == run_id))
+            final_record = json.loads(run_path.read_text(encoding="utf-8"))
+            self.assertEqual(final_record["finalization_count"], 1)
+            self.assertEqual(len(final_record["quality_gate_attempts"]), 1)
+            repeated = run("evaluate_quality_gates.py", *gate_args)
+            self.assertEqual(repeated.returncode, 0, repeated.stderr + repeated.stdout)
+            self.assertEqual(read_jsonl(workspace / "indexes/A/module-index.jsonl")[0]["status"], "ANALYZED")
+            repeated_report = json.loads((workspace / "reports/A/product-quality-gates.json").read_text(encoding="utf-8"))
+            self.assertFalse(repeated_report["commit_performed"])
 
 
 if __name__ == "__main__":

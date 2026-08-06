@@ -4,7 +4,7 @@
   "required": [
     "analysis_run_id", "project", "requested_module", "started_at", "finished_at",
     "source_root", "workspace", "record_scope", "source_snapshot_id", "resume_count",
-    "resumed_at", "stages", "files_scanned", "files_read", "context_files_read",
+    "resumed_at", "finalization_count", "finalized_at", "quality_gate_attempts", "stages", "files_scanned", "files_read", "context_files_read",
     "files_reused_without_content_read", "files_written", "stale_evidence",
     "unresolved_questions", "final_status"
   ],
@@ -20,6 +20,24 @@
     "source_snapshot_id": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
     "resume_count": {"type": "integer", "minimum": 0},
     "resumed_at": {"type": "array", "items": {"type": "string", "format": "date-time"}},
+    "finalization_count": {"type": "integer", "minimum": 0},
+    "finalized_at": {"type": "array", "items": {"type": "string", "format": "date-time"}},
+    "quality_gate_attempts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "command", "exit_code", "duration_ms", "stdout", "stderr"],
+        "properties": {
+          "name": {"const": "quality_gates"},
+          "command": {"type": "array", "minItems": 2, "items": {"type": "string"}},
+          "exit_code": {"type": "integer"},
+          "duration_ms": {"type": "integer", "minimum": 0},
+          "stdout": {"type": "string"},
+          "stderr": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
     "stages": {
       "type": "array",
       "minItems": 1,

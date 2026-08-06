@@ -16,6 +16,9 @@
   "source_snapshot_id": "${source_snapshot_sha256}",
   "resume_count": 0,
   "resumed_at": [],
+  "finalization_count": 0,
+  "finalized_at": [],
+  "quality_gate_attempts": [],
   "stages": [
     {
       "name": "source_index",

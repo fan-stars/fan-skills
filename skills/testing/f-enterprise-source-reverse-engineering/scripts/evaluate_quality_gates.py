@@ -183,7 +183,14 @@ def main() -> int:
             row.get("type") == absence_type
             and isinstance(row.get("rationale"), str) and row["rationale"].strip()
             and isinstance(row.get("evidence"), list) and row["evidence"]
-            and all(item.get("semantic_basis") == "reviewed_negative_evidence" for item in row["evidence"] if isinstance(item, dict))
+            and isinstance(row.get("reviewer"), str) and row["reviewer"].strip()
+            and isinstance(row.get("reviewed_at"), str) and row["reviewed_at"].strip()
+            and all(
+                isinstance(item, dict)
+                and item.get("evidence_type") == absence_type
+                and item.get("semantic_basis") == "reviewed_negative_evidence"
+                for item in row["evidence"]
+            )
             for row in business
         ) and not evidence_errors
     checks = {
@@ -208,18 +215,16 @@ def main() -> int:
     }
     results = [{"gate": name, "passed": checks[name]} for name in GATE_NAMES]
     status = "ANALYZED" if all(checks.values()) else "REVIEW_REQUIRED" if not checks["current_evidence"] else "PARTIAL"
-    run_path = args.workspace / "analysis-runs" / args.project / f"{args.analysis_run_id}.json"
-    try:
-        run_record = json.loads(run_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        run_record = {}
-    run_finalized = (
-        isinstance(run_record.get("finished_at"), str)
-        and run_record.get("final_status") in {"COMPLETED", "PARTIAL", "REVIEW_REQUIRED", "BLOCKED"}
-        and any(stage.get("name") == "quality_gates" for stage in run_record.get("stages", []) if isinstance(stage, dict))
+    # A gate evaluation is only a candidate result.  The orchestrator owns the
+    # final run-record validation and the atomic ANALYZED commit.
+    preserve_analyzed = (
+        status == "ANALYZED"
+        and isinstance(module, dict)
+        and module.get("status") == "ANALYZED"
+        and module.get("last_analysis_run_id") == args.analysis_run_id
     )
-    committed_status = status if status != "ANALYZED" or run_finalized else "PARTIAL"
-    report = {"project": args.project, "module": args.module, "analysis_run_id": args.analysis_run_id, "gate_count": len(results), "passed_count": sum(checks.values()), "status": status, "module_status_committed": committed_status, "run_finalized": run_finalized, "gates": results, "validation_errors": sorted(set(project_errors + evidence_errors + run_errors + document_errors))}
+    committed_status = "ANALYZED" if preserve_analyzed else "PARTIAL" if status == "ANALYZED" else status
+    report = {"project": args.project, "module": args.module, "analysis_run_id": args.analysis_run_id, "gate_count": len(results), "passed_count": sum(checks.values()), "status": status, "module_status_committed": committed_status, "commit_performed": False, "run_finalized": preserve_analyzed, "finalization_required": status == "ANALYZED" and not preserve_analyzed, "gates": results, "validation_errors": sorted(set(project_errors + evidence_errors + run_errors + document_errors))}
     output = args.workspace / "reports" / args.project / f"{args.module}-quality-gates.json"
     def update(rows):
         for row in rows:
@@ -230,11 +235,10 @@ def main() -> int:
                     row["last_analysis_run_id"] = args.analysis_run_id
         return rows
     def update_records(rows):
-        if committed_status != "ANALYZED":
-            return rows
         for row in rows:
             if row.get("module") == args.module and row.get("analysis_run_id") == args.analysis_run_id:
-                row["status"] = "ANALYZED"
+                if not (preserve_analyzed and row.get("status") == "ANALYZED"):
+                    row["status"] = committed_status
         return rows
     with exclusive_lock(root / "derived-indexes"):
         atomic_write(output, json.dumps(report, ensure_ascii=False, indent=2) + "\n")

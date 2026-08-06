@@ -106,6 +106,7 @@ def validate_run_record(
     required = {
         "analysis_run_id", "project", "requested_module", "started_at", "finished_at",
         "source_root", "workspace", "record_scope", "source_snapshot_id", "resume_count", "resumed_at",
+        "finalization_count", "finalized_at", "quality_gate_attempts",
         "stages", "files_scanned", "files_read", "context_files_read", "files_reused_without_content_read",
         "files_written", "stale_evidence", "unresolved_questions", "final_status",
     }
@@ -158,12 +159,21 @@ def validate_run_record(
     for key in ("files_scanned", "files_read", "context_files_read", "files_reused_without_content_read", "files_written", "stale_evidence", "unresolved_questions", "resumed_at"):
         if key in record and not isinstance(record[key], list):
             errors.append(f"analysis run {key} must be an array: {path}")
+    for key in ("finalized_at", "quality_gate_attempts"):
+        if key in record and not isinstance(record[key], list):
+            errors.append(f"analysis run {key} must be an array: {path}")
     if record.get("record_scope") != "AUTOMATED_PIPELINE":
         errors.append(f"analysis run record_scope must be AUTOMATED_PIPELINE: {path}")
     if not _integer(record.get("resume_count")) or record.get("resume_count", -1) < 0:
         errors.append(f"analysis run resume_count is invalid: {path}")
     elif isinstance(record.get("resumed_at"), list) and len(record["resumed_at"]) != record["resume_count"]:
         errors.append(f"analysis run resumed_at does not match resume_count: {path}")
+    if not _integer(record.get("finalization_count")) or record.get("finalization_count", -1) < 0:
+        errors.append(f"analysis run finalization_count is invalid: {path}")
+    elif isinstance(record.get("finalized_at"), list) and len(record["finalized_at"]) != record["finalization_count"]:
+        errors.append(f"analysis run finalized_at does not match finalization_count: {path}")
+    elif isinstance(record.get("quality_gate_attempts"), list) and len(record["quality_gate_attempts"]) != record["finalization_count"]:
+        errors.append(f"analysis run quality_gate_attempts does not match finalization_count: {path}")
     if isinstance(record.get("resumed_at"), list):
         for value in record["resumed_at"]:
             if not isinstance(value, str):
@@ -173,6 +183,26 @@ def validate_run_record(
                 datetime.fromisoformat(value.replace("Z", "+00:00"))
             except ValueError:
                 errors.append(f"analysis run resumed_at contains an invalid ISO date-time: {path}")
+    if isinstance(record.get("finalized_at"), list):
+        for value in record["finalized_at"]:
+            if not isinstance(value, str):
+                errors.append(f"analysis run finalized_at contains a non-string timestamp: {path}")
+                continue
+            try:
+                datetime.fromisoformat(value.replace("Z", "+00:00"))
+            except ValueError:
+                errors.append(f"analysis run finalized_at contains an invalid ISO date-time: {path}")
+    if isinstance(record.get("quality_gate_attempts"), list):
+        for position, attempt in enumerate(record["quality_gate_attempts"]):
+            if not isinstance(attempt, dict) or not {"name", "command", "exit_code"} <= set(attempt):
+                errors.append(f"analysis run quality_gate_attempts[{position}] is incomplete: {path}")
+                continue
+            if attempt.get("name") != "quality_gates" or not isinstance(attempt.get("command"), list) or not _integer(attempt.get("exit_code")):
+                errors.append(f"analysis run quality_gate_attempts[{position}] has invalid identity or types: {path}")
+            if not _integer(attempt.get("duration_ms")) or attempt.get("duration_ms", -1) < 0:
+                errors.append(f"analysis run quality_gate_attempts[{position}] has invalid duration: {path}")
+            if not isinstance(attempt.get("stdout"), str) or not isinstance(attempt.get("stderr"), str):
+                errors.append(f"analysis run quality_gate_attempts[{position}] is missing captured output: {path}")
     for key in ("requested_module", "started_at", "source_root", "workspace", "final_status"):
         if key in record and (not isinstance(record[key], str) or not record[key]):
             errors.append(f"analysis run {key} must be a non-empty string: {path}")
@@ -232,6 +262,19 @@ def validate_evidence(
         errors.append("evidence_type must be a non-empty string")
     if not isinstance(item.get("semantic_basis"), str) or not item["semantic_basis"]:
         errors.append("semantic_basis must be a non-empty string")
+    if isinstance(item.get("evidence_type"), str) and item["evidence_type"].endswith("_absence"):
+        if item.get("semantic_basis") != "reviewed_negative_evidence":
+            errors.append("absence evidence requires reviewed_negative_evidence")
+        if not isinstance(item.get("reviewer"), str) or not item["reviewer"].strip():
+            errors.append("absence evidence requires a reviewer")
+        reviewed_at = item.get("reviewed_at")
+        if not isinstance(reviewed_at, str):
+            errors.append("absence evidence requires reviewed_at")
+        else:
+            try:
+                datetime.fromisoformat(reviewed_at.replace("Z", "+00:00"))
+            except ValueError:
+                errors.append("absence evidence reviewed_at is invalid")
     relative = item.get("file")
     source = source_by_file.get(relative) if isinstance(relative, str) else None
     if source is None:
@@ -404,8 +447,8 @@ def validate_project_indexes(
     ownership_keys = ("primary_files", "secondary_files", "shared_files", "infrastructure_files", "unknown_files")
     for position, row in enumerate(modules):
         prefix = f"module-index.jsonl:{position}"
-        module = row.get("module")
-        if row.get("project") != project or not isinstance(module, str) or not module:
+        indexed_module = row.get("module")
+        if row.get("project") != project or not isinstance(indexed_module, str) or not indexed_module:
             errors.append(f"{prefix}: invalid project or module")
             continue
         required = {"status", "aliases", "boundary_confidence", "primary_files", "secondary_files", "shared_files", "infrastructure_files", "unknown_files", "upstream_modules", "downstream_modules", "core_tables", "apis", "business_rules", "open_questions", "stale_evidence", "last_analysis_run_id", "quality_gates"}
@@ -416,9 +459,9 @@ def validate_project_indexes(
             errors.append(f"{prefix}: invalid status")
         if row.get("boundary_confidence") not in {"HIGH", "MEDIUM", "LOW"}:
             errors.append(f"{prefix}: invalid boundary_confidence")
-        if module in module_names:
-            errors.append(f"{prefix}: duplicate module {module}")
-        module_names.add(module)
+        if indexed_module in module_names:
+            errors.append(f"{prefix}: duplicate module {indexed_module}")
+        module_names.add(indexed_module)
         for key in ownership_keys:
             values = row.get(key, [])
             if not isinstance(values, list):
@@ -429,6 +472,10 @@ def validate_project_indexes(
                     errors.append(f"{prefix}: unknown owned file {relative}")
 
     known_tables = {row.get("table") for row in tables if isinstance(row.get("table"), str)}
+    known_api_ids = {
+        row.get("api_id") for row in indexes["api-index.jsonl"]
+        if row.get("project") == project and isinstance(row.get("api_id"), str)
+    }
     run_references: set[tuple[str, str | None]] = set()
     for name in ("api-index.jsonl", "business-index.jsonl"):
         for position, row in enumerate(indexes[name]):
@@ -437,14 +484,14 @@ def validate_project_indexes(
             prefix = f"{name}:{position}"
             if row.get("project") != project:
                 errors.append(f"{prefix}: project mismatch")
-            module = row.get("module")
-            if not isinstance(module, str) or not module:
+            record_module = row.get("module")
+            if not isinstance(record_module, str) or not record_module:
                 errors.append(f"{prefix}: missing module")
             run_id = row.get("analysis_run_id")
             if not isinstance(run_id, str) or not run_id:
                 errors.append(f"{prefix}: missing analysis_run_id")
             else:
-                run_references.add((run_id, module if isinstance(module, str) else None))
+                run_references.add((run_id, record_module if isinstance(record_module, str) else None))
             evidence, structural = evidence_fields(row)
             errors.extend(f"{prefix}: {error}" for error in structural)
             for evidence_position, item in enumerate(evidence):
@@ -519,6 +566,26 @@ def validate_project_indexes(
                 ]
                 if missing_semantics:
                     errors.append(f"{prefix}: semantic fields are missing or empty: {missing_semantics}")
+                related_apis = row.get("related_apis")
+                if not isinstance(related_apis, list):
+                    errors.append(f"{prefix}: related_apis must be an array")
+                else:
+                    for api_id in related_apis:
+                        if api_id not in known_api_ids:
+                            errors.append(f"{prefix}: unknown related API {api_id}")
+                if isinstance(row.get("type"), str) and row["type"].endswith("_absence"):
+                    if not isinstance(row.get("reviewer"), str) or not row["reviewer"].strip():
+                        errors.append(f"{prefix}: reviewed absence requires reviewer")
+                    reviewed_at = row.get("reviewed_at")
+                    if not isinstance(reviewed_at, str):
+                        errors.append(f"{prefix}: reviewed absence requires reviewed_at")
+                    else:
+                        try:
+                            datetime.fromisoformat(reviewed_at.replace("Z", "+00:00"))
+                        except ValueError:
+                            errors.append(f"{prefix}: reviewed absence reviewed_at is invalid")
+                    if any(item.get("evidence_type") != row.get("type") for item in row.get("evidence", []) if isinstance(item, dict)):
+                        errors.append(f"{prefix}: reviewed absence evidence_type must match record type")
 
     for run_id, module in sorted(run_references):
         errors.extend(validate_run_record(workspace, project, run_id, module, allow_in_progress_runs))
