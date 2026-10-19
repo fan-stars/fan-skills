@@ -1,0 +1,10 @@
+---
+name: executing-plans
+description: PLACEHOLDER — 本机 ~/.openspec-profiles/opsx/commands 为空；待 openspec update 或 profile-switch 再生后替换。
+---
+
+# /superpowers:executing-plans
+
+占位命令。完整流程以 skill `superpowers-executing-plans`（`.agents/skills/superpowers-executing-plans`）为准。
+
+再生后请用 vault 规范嵌套路径覆盖本文件，勿手写业务步骤。
