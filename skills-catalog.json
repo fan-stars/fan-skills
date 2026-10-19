@@ -556,6 +556,12 @@
       "categories": [
         "java"
       ]
+    },
+    "f-skills-library-ingest": {
+      "categories": [
+        "fan",
+        "workflow"
+      ]
     }
   }
 }

@@ -656,6 +656,14 @@
       "scenarios": "现有 Java 工程首次引入 native image 时使用。也可在用户明确点名该技能时启用。",
       "coverage": "覆盖支持项添加顺序与基本验证。细节以仓库内 SKILL.md 与引用文档为准。细节以仓库内 SKILL.md 与引用文档为准。",
       "notes": "引入后需在 CI 或本地跑通至少一次 native 构建。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-skills-library-ingest": {
+      "contentHash": "1caf4da1cdc920903512ffd3fa1ebca8a9337c9091f00661a6d575e082ec7cd3",
+      "summary": "将散落的 Agent Skills 有选择地纳入分类目录库的通用入库流程。",
+      "capabilities": "盘点多扫描根候选 skill，与目录库真相源做差集，确认后再拷贝并更新 catalog，可选写入 commands 占位，最后交给 sync 渲染。",
+      "scenarios": "新建或扩充 skills 目录库、全局与库内不一致、整理 OpenSpec/superpowers 分类，或用户要求 skills 入库整理时使用。",
+      "coverage": "覆盖扫描根约定、黑名单、分类启发式、commands 嵌套占位、与 sync-skills-catalog 的衔接及常见错误纠正。",
+      "notes": "确认前不写盘；禁止手改 skills/ 派生产物；路径可移植，不绑死单机。与用户显式指令冲突时以用户为准。"
     }
   }
 }

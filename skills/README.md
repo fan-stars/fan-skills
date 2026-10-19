@@ -27,10 +27,10 @@
 | `java` | Java — Spring Boot、Fan 后端与 Java 重构 | 7 | [README](java/README.md) |
 | `spec` | 规范 / Spec — 通用规格文档技能（非 OpenSpec 套件） | 2 | [README](spec/README.md) |
 | `docs` | 文档与办公 — Word、PDF、PPT、表格处理 | 4 | [README](docs/README.md) |
-| `workflow` | 工作流 — 规划质询、领域建模、架构词汇与技能发现 | 12 | [README](workflow/README.md) |
+| `workflow` | 工作流 — 规划质询、领域建模、架构词汇与技能发现 | 13 | [README](workflow/README.md) |
 | `mcp` | MCP — MCP Server 构建与评估 | 1 | [README](mcp/README.md) |
 | `testing` | 测试 — Web 应用自动化测试 | 3 | [README](testing/README.md) |
-| `fan` | Fan 自研 — Fan 团队自行编写、非来自公开开源项目的 skills | 14 | [README](fan/README.md) |
+| `fan` | Fan 自研 — Fan 团队自行编写、非来自公开开源项目的 skills | 15 | [README](fan/README.md) |
 | `openspec-legacy` | OpenSpec（旧版） — 仓内原有 OpenSpec 技能套件（proposal-creation 等），与 opsx 新套件并存但不混用 | 5 | [README](openspec-legacy/README.md) |
 | `opsx/openspec` | Opsx / OpenSpec — OpenSpec CLI 新技能套件（/opsx:*），与 commands/opsx 对应 | 12 | [README](opsx/openspec/README.md) |
 | `opsx/superpowers` | Opsx / Superpowers — Superpowers 工作流技能（/superpowers:*），与 commands/superpowers 对应 | 14 | [README](opsx/superpowers/README.md) |

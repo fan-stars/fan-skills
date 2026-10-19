@@ -19,6 +19,7 @@ Fan 团队自行编写、非来自公开开源项目的 skills
 | `f-project-runtime-manager` | `skills/fan/f-project-runtime-manager/` | 探测 Java/Spring Boot 与 Vue/Vite 项目结构，生成可移植的启停/状态脚本，不改原文件。 | 暂无 | [本仓库](../../.agents/skills/f-project-runtime-manager/SKILL.md) |
 | `f-site-rewrite-implement` | `skills/fan/f-site-rewrite-implement/` | 按既有脚手架推进站点重写实现与对照。。用于目录浏览与选型。 | 暂无 | [本仓库](../../.agents/skills/f-site-rewrite-implement/SKILL.md) |
 | `f-site-rewrite-init` | `skills/fan/f-site-rewrite-init/` | 站点重写项目的脚手架与索引初始化。。用于目录浏览与选型。 | 暂无 | [本仓库](../../.agents/skills/f-site-rewrite-init/SKILL.md) |
+| `f-skills-library-ingest` | `skills/fan/f-skills-library-ingest/` | 将散落的 Agent Skills 有选择地纳入分类目录库的通用入库流程。 | 暂无 | [本仓库](../../.agents/skills/f-skills-library-ingest/SKILL.md) |
 | `f-springboot-native` | `skills/fan/f-springboot-native/` | Spring Boot 应用 GraalVM Native Image 落地指南。 | 暂无 | [本仓库](../../.agents/skills/f-springboot-native/SKILL.md) |
 | `f-yudao-boot-mini-graalvm` | `skills/fan/f-yudao-boot-mini-graalvm/` | 芋道 boot-mini 场景下的 GraalVM 原生构建经验。 | 暂无 | [本仓库](../../.agents/skills/f-yudao-boot-mini-graalvm/SKILL.md) |
 | `f-zjmf-addon-plugin` | `skills/fan/f-zjmf-addon-plugin/` | 魔方云/ZJMF 插件后台开发约定与约束。。用于目录浏览与选型。 | 暂无 | [本仓库](../../.agents/skills/f-zjmf-addon-plugin/SKILL.md) |
@@ -244,6 +245,26 @@ init 完成后逐模块迁移页面/数据时使用。也可在用户明确点�
 #### 注意事项
 
 先 init 再 implement；密钥只用本地 secrets，勿提交。与用户显式指令冲突时以用户指令为准。
+
+### `f-skills-library-ingest`
+
+**路径**：`skills/fan/f-skills-library-ingest/`
+
+#### 核心能力
+
+盘点多扫描根候选 skill，与目录库真相源做差集，确认后再拷贝并更新 catalog，可选写入 commands 占位，最后交给 sync 渲染。
+
+#### 适用场景
+
+新建或扩充 skills 目录库、全局与库内不一致、整理 OpenSpec/superpowers 分类，或用户要求 skills 入库整理时使用。
+
+#### 主要覆盖内容
+
+覆盖扫描根约定、黑名单、分类启发式、commands 嵌套占位、与 sync-skills-catalog 的衔接及常见错误纠正。
+
+#### 注意事项
+
+确认前不写盘；禁止手改 skills/ 派生产物；路径可移植，不绑死单机。与用户显式指令冲突时以用户为准。
 
 ### `f-springboot-native`
 

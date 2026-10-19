@@ -14,6 +14,7 @@
 | `f-base-project-initializer-cn` | `skills/workflow/f-base-project-initializer-cn/` | 中文指引：从固定 fan-base / fan-base-vben 模板初始化并重命名 Fan 全栈项目。 | 暂无 | [本仓库](../../.agents/skills/f-base-project-initializer-cn/SKILL.md) |
 | `f-enterprise-source-reverse-engineering` | `skills/workflow/f-enterprise-source-reverse-engineering/` | 面向双 PHP 遗留系统的项目强隔离、增量证据索引、可恢复运行与失败关闭质量门禁技能。 | 暂无 | [本仓库](../../.agents/skills/f-enterprise-source-reverse-engineering/SKILL.md) |
 | `f-project-runtime-manager` | `skills/workflow/f-project-runtime-manager/` | 探测 Java/Spring Boot 与 Vue/Vite 项目结构，生成可移植的启停/状态脚本，不改原文件。 | 暂无 | [本仓库](../../.agents/skills/f-project-runtime-manager/SKILL.md) |
+| `f-skills-library-ingest` | `skills/workflow/f-skills-library-ingest/` | 将散落的 Agent Skills 有选择地纳入分类目录库的通用入库流程。 | 暂无 | [本仓库](../../.agents/skills/f-skills-library-ingest/SKILL.md) |
 | `find-skills` | `skills/workflow/find-skills/` | 从开放 skills 生态检索并安装可扩展 Agent 能力的技能包。 | [skills.sh](https://skills.sh/vercel-labs/skills/find-skills) | [GitHub](https://github.com/vercel-labs/skills/blob/main/skills/find-skills/SKILL.md) |
 | `grill-me` | `skills/workflow/grill-me/` | 启动一轮严厉质询会话，压力测试计划或设计直至达成共识。 | [skills.sh](https://skills.sh/mattpocock/skills/grill-me) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/productivity/grill-me/SKILL.md) |
 | `grill-with-docs` | `skills/workflow/grill-with-docs/` | 严厉质询方案的同时，用领域建模把 ADR 与词汇表边问边写下来。 | [skills.sh](https://skills.sh/mattpocock/skills/grill-with-docs) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/engineering/grill-with-docs/SKILL.md) |
@@ -142,6 +143,26 @@
 #### 注意事项
 
 禁止使用固定模板或硬编码路径；禁止改动 application*.yml、package.json、pom.xml 等既有文件，仅新增 `scripts/`。幂等生成，再次运行先读已有脚本增量更新。Fan 本地自建 skill，无公开仓库。
+
+### `f-skills-library-ingest`
+
+**路径**：`skills/workflow/f-skills-library-ingest/`
+
+#### 核心能力
+
+盘点多扫描根候选 skill，与目录库真相源做差集，确认后再拷贝并更新 catalog，可选写入 commands 占位，最后交给 sync 渲染。
+
+#### 适用场景
+
+新建或扩充 skills 目录库、全局与库内不一致、整理 OpenSpec/superpowers 分类，或用户要求 skills 入库整理时使用。
+
+#### 主要覆盖内容
+
+覆盖扫描根约定、黑名单、分类启发式、commands 嵌套占位、与 sync-skills-catalog 的衔接及常见错误纠正。
+
+#### 注意事项
+
+确认前不写盘；禁止手改 skills/ 派生产物；路径可移植，不绑死单机。与用户显式指令冲突时以用户为准。
 
 ### `find-skills`
 

@@ -81,7 +81,8 @@
     "f-springboot-native": "69d1dfe024473e29a2a1508f04b21706381fd23a2a5b06aecd7fb9130fbdf59a",
     "f-yudao-boot-mini-graalvm": "eae3953697ec2296b938cd38f54f5b663947c552a91a6635c99d963c3ff82200",
     "graal": "1f43d1d600cf8c0219462c6bfc286913996d9086e2ed185c0f992e97b9fdd65b",
-    "java-add-graalvm-native-image-support": "7579cfe6d95194fb4998eb07b5c3ba16439ce30b6b5fd19a17d81ecc072235f3"
+    "java-add-graalvm-native-image-support": "7579cfe6d95194fb4998eb07b5c3ba16439ce30b6b5fd19a17d81ecc072235f3",
+    "f-skills-library-ingest": "1caf4da1cdc920903512ffd3fa1ebca8a9337c9091f00661a6d575e082ec7cd3"
   },
   "reusable": [
     "agent-browser",
@@ -165,7 +166,8 @@
     "f-springboot-native",
     "f-yudao-boot-mini-graalvm",
     "graal",
-    "java-add-graalvm-native-image-support"
+    "java-add-graalvm-native-image-support",
+    "f-skills-library-ingest"
   ],
   "needGenerate": [],
   "invalid": [],
