@@ -19,7 +19,7 @@
     },
     "spec": {
       "title": "规范 / Spec",
-      "description": "OpenSpec 与规格文档相关 skills"
+      "description": "通用规格文档技能（非 OpenSpec 套件）"
     },
     "docs": {
       "title": "文档与办公",
@@ -40,6 +40,18 @@
     "fan": {
       "title": "Fan 自研",
       "description": "Fan 团队自行编写、非来自公开开源项目的 skills"
+    },
+    "openspec-legacy": {
+      "title": "OpenSpec（旧版）",
+      "description": "仓内原有 OpenSpec 技能套件（proposal-creation 等），与 opsx 新套件并存但不混用"
+    },
+    "opsx/openspec": {
+      "title": "Opsx / OpenSpec",
+      "description": "OpenSpec CLI 新技能套件（/opsx:*），与 commands/opsx 对应"
+    },
+    "opsx/superpowers": {
+      "title": "Opsx / Superpowers",
+      "description": "Superpowers 工作流技能（/superpowers:*），与 commands/superpowers 对应"
     }
   },
   "skills": {
@@ -234,35 +246,35 @@
     },
     "openspec-archiving": {
       "categories": [
-        "spec"
+        "openspec-legacy"
       ],
       "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-archiving",
       "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-archiving/SKILL.md"
     },
     "openspec-context-loading": {
       "categories": [
-        "spec"
+        "openspec-legacy"
       ],
       "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-context-loading",
       "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-context-loading/SKILL.md"
     },
     "openspec-implementation": {
       "categories": [
-        "spec"
+        "openspec-legacy"
       ],
       "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-implementation",
       "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-implementation/SKILL.md"
     },
     "openspec-proposal-creation": {
       "categories": [
-        "spec"
+        "openspec-legacy"
       ],
       "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-proposal-creation",
       "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-proposal-creation/SKILL.md"
     },
     "openspec-proposal-creation-cn": {
       "categories": [
-        "spec"
+        "openspec-legacy"
       ],
       "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-proposal-creation-cn",
       "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-proposal-creation-cn/SKILL.md"
@@ -336,6 +348,214 @@
       ],
       "skillsShUrl": "https://skills.sh/anthropics/skills/xlsx",
       "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/xlsx/SKILL.md"
+    },
+    "openspec-apply-change": {
+      "categories": [
+        "opsx/openspec"
+      ]
+    },
+    "openspec-archive-change": {
+      "categories": [
+        "opsx/openspec"
+      ]
+    },
+    "openspec-bulk-archive-change": {
+      "categories": [
+        "opsx/openspec"
+      ]
+    },
+    "openspec-continue-change": {
+      "categories": [
+        "opsx/openspec"
+      ]
+    },
+    "openspec-explore": {
+      "categories": [
+        "opsx/openspec"
+      ]
+    },
+    "openspec-ff-change": {
+      "categories": [
+        "opsx/openspec"
+      ]
+    },
+    "openspec-new-change": {
+      "categories": [
+        "opsx/openspec"
+      ]
+    },
+    "openspec-onboard": {
+      "categories": [
+        "opsx/openspec"
+      ]
+    },
+    "openspec-propose": {
+      "categories": [
+        "opsx/openspec"
+      ]
+    },
+    "openspec-sync-specs": {
+      "categories": [
+        "opsx/openspec"
+      ]
+    },
+    "openspec-update-change": {
+      "categories": [
+        "opsx/openspec"
+      ]
+    },
+    "openspec-verify-change": {
+      "categories": [
+        "opsx/openspec"
+      ]
+    },
+    "superpowers-brainstorming": {
+      "categories": [
+        "opsx/superpowers"
+      ]
+    },
+    "superpowers-dispatching-parallel-agents": {
+      "categories": [
+        "opsx/superpowers"
+      ]
+    },
+    "superpowers-executing-plans": {
+      "categories": [
+        "opsx/superpowers"
+      ]
+    },
+    "superpowers-finishing-a-development-branch": {
+      "categories": [
+        "opsx/superpowers"
+      ]
+    },
+    "superpowers-receiving-code-review": {
+      "categories": [
+        "opsx/superpowers"
+      ]
+    },
+    "superpowers-requesting-code-review": {
+      "categories": [
+        "opsx/superpowers"
+      ]
+    },
+    "superpowers-subagent-driven-development": {
+      "categories": [
+        "opsx/superpowers"
+      ]
+    },
+    "superpowers-systematic-debugging": {
+      "categories": [
+        "opsx/superpowers"
+      ]
+    },
+    "superpowers-test-driven-development": {
+      "categories": [
+        "opsx/superpowers"
+      ]
+    },
+    "superpowers-using-git-worktrees": {
+      "categories": [
+        "opsx/superpowers"
+      ]
+    },
+    "superpowers-using-superpowers": {
+      "categories": [
+        "opsx/superpowers"
+      ]
+    },
+    "superpowers-verification-before-completion": {
+      "categories": [
+        "opsx/superpowers"
+      ]
+    },
+    "superpowers-writing-plans": {
+      "categories": [
+        "opsx/superpowers"
+      ]
+    },
+    "superpowers-writing-skills": {
+      "categories": [
+        "opsx/superpowers"
+      ]
+    },
+    "finesse-brief": {
+      "categories": [
+        "web/design"
+      ]
+    },
+    "finesse-term": {
+      "categories": [
+        "web/design"
+      ]
+    },
+    "finesse-ui": {
+      "categories": [
+        "web/design"
+      ]
+    },
+    "frame-smith": {
+      "categories": [
+        "web/design"
+      ]
+    },
+    "f-git-origin-doc": {
+      "categories": [
+        "fan"
+      ]
+    },
+    "f-git-origin-pull": {
+      "categories": [
+        "fan"
+      ]
+    },
+    "f-openspec-profile-switch": {
+      "categories": [
+        "fan"
+      ]
+    },
+    "f-antd-spacing-layout-governance": {
+      "categories": [
+        "fan",
+        "web/react"
+      ]
+    },
+    "f-zjmf-addon-plugin": {
+      "categories": [
+        "fan"
+      ]
+    },
+    "f-site-rewrite-init": {
+      "categories": [
+        "fan"
+      ]
+    },
+    "f-site-rewrite-implement": {
+      "categories": [
+        "fan"
+      ]
+    },
+    "f-springboot-native": {
+      "categories": [
+        "fan",
+        "java"
+      ]
+    },
+    "f-yudao-boot-mini-graalvm": {
+      "categories": [
+        "fan",
+        "java"
+      ]
+    },
+    "graal": {
+      "categories": [
+        "java"
+      ]
+    },
+    "java-add-graalvm-native-image-support": {
+      "categories": [
+        "java"
+      ]
     }
   }
 }
