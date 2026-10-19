@@ -124,7 +124,7 @@
         "workflow"
       ],
       "skillsShUrl": null,
-      "githubUrl": null
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-base-project-initializer/SKILL.md"
     },
     "f-base-project-initializer-cn": {
       "categories": [
@@ -132,7 +132,7 @@
         "workflow"
       ],
       "skillsShUrl": null,
-      "githubUrl": null
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-base-project-initializer-cn/SKILL.md"
     },
     "f-enterprise-source-reverse-engineering": {
       "categories": [
@@ -141,7 +141,7 @@
         "testing"
       ],
       "skillsShUrl": null,
-      "githubUrl": null
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-enterprise-source-reverse-engineering/SKILL.md"
     },
     "f-java-springboot": {
       "categories": [
@@ -149,7 +149,7 @@
         "fan"
       ],
       "skillsShUrl": null,
-      "githubUrl": null
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-java-springboot/SKILL.md"
     },
     "f-project-runtime-manager": {
       "categories": [
@@ -157,7 +157,7 @@
         "fan"
       ],
       "skillsShUrl": null,
-      "githubUrl": null
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-project-runtime-manager/SKILL.md"
     },
     "find-skills": {
       "categories": [
@@ -235,7 +235,7 @@
         "web/react"
       ],
       "skillsShUrl": "https://skills.sh/vercel-labs/next-browser/next-browser",
-      "githubUrl": null
+      "githubUrl": "https://github.com/vercel-labs/next-browser/blob/main/skills/next-browser/SKILL.md"
     },
     "nuxt": {
       "categories": [
@@ -352,132 +352,158 @@
     "openspec-apply-change": {
       "categories": [
         "opsx/openspec"
-      ]
+      ],
+      "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-apply-change/SKILL.md"
     },
     "openspec-archive-change": {
       "categories": [
         "opsx/openspec"
-      ]
+      ],
+      "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-archive-change/SKILL.md"
     },
     "openspec-bulk-archive-change": {
       "categories": [
         "opsx/openspec"
-      ]
+      ],
+      "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-bulk-archive-change/SKILL.md"
     },
     "openspec-continue-change": {
       "categories": [
         "opsx/openspec"
-      ]
+      ],
+      "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-continue-change/SKILL.md"
     },
     "openspec-explore": {
       "categories": [
         "opsx/openspec"
-      ]
+      ],
+      "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-explore/SKILL.md"
     },
     "openspec-ff-change": {
       "categories": [
         "opsx/openspec"
-      ]
+      ],
+      "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-ff-change/SKILL.md"
     },
     "openspec-new-change": {
       "categories": [
         "opsx/openspec"
-      ]
+      ],
+      "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-new-change/SKILL.md"
     },
     "openspec-onboard": {
       "categories": [
         "opsx/openspec"
-      ]
+      ],
+      "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-onboard/SKILL.md"
     },
     "openspec-propose": {
       "categories": [
         "opsx/openspec"
-      ]
+      ],
+      "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-propose/SKILL.md"
     },
     "openspec-sync-specs": {
       "categories": [
         "opsx/openspec"
-      ]
+      ],
+      "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-sync-specs/SKILL.md"
     },
     "openspec-update-change": {
       "categories": [
         "opsx/openspec"
-      ]
+      ],
+      "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-update-change/SKILL.md"
     },
     "openspec-verify-change": {
       "categories": [
         "opsx/openspec"
-      ]
+      ],
+      "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-verify-change/SKILL.md"
     },
     "superpowers-brainstorming": {
       "categories": [
         "opsx/superpowers"
-      ]
+      ],
+      "githubUrl": "https://github.com/obra/superpowers/blob/main/skills/brainstorming/SKILL.md"
     },
     "superpowers-dispatching-parallel-agents": {
       "categories": [
         "opsx/superpowers"
-      ]
+      ],
+      "githubUrl": "https://github.com/obra/superpowers/blob/main/skills/dispatching-parallel-agents/SKILL.md"
     },
     "superpowers-executing-plans": {
       "categories": [
         "opsx/superpowers"
-      ]
+      ],
+      "githubUrl": "https://github.com/obra/superpowers/blob/main/skills/executing-plans/SKILL.md"
     },
     "superpowers-finishing-a-development-branch": {
       "categories": [
         "opsx/superpowers"
-      ]
+      ],
+      "githubUrl": "https://github.com/obra/superpowers/blob/main/skills/finishing-a-development-branch/SKILL.md"
     },
     "superpowers-receiving-code-review": {
       "categories": [
         "opsx/superpowers"
-      ]
+      ],
+      "githubUrl": "https://github.com/obra/superpowers/blob/main/skills/receiving-code-review/SKILL.md"
     },
     "superpowers-requesting-code-review": {
       "categories": [
         "opsx/superpowers"
-      ]
+      ],
+      "githubUrl": "https://github.com/obra/superpowers/blob/main/skills/requesting-code-review/SKILL.md"
     },
     "superpowers-subagent-driven-development": {
       "categories": [
         "opsx/superpowers"
-      ]
+      ],
+      "githubUrl": "https://github.com/obra/superpowers/blob/main/skills/subagent-driven-development/SKILL.md"
     },
     "superpowers-systematic-debugging": {
       "categories": [
         "opsx/superpowers"
-      ]
+      ],
+      "githubUrl": "https://github.com/obra/superpowers/blob/main/skills/systematic-debugging/SKILL.md"
     },
     "superpowers-test-driven-development": {
       "categories": [
         "opsx/superpowers"
-      ]
+      ],
+      "githubUrl": "https://github.com/obra/superpowers/blob/main/skills/test-driven-development/SKILL.md"
     },
     "superpowers-using-git-worktrees": {
       "categories": [
         "opsx/superpowers"
-      ]
+      ],
+      "githubUrl": "https://github.com/obra/superpowers/blob/main/skills/using-git-worktrees/SKILL.md"
     },
     "superpowers-using-superpowers": {
       "categories": [
         "opsx/superpowers"
-      ]
+      ],
+      "githubUrl": "https://github.com/obra/superpowers/blob/main/skills/using-superpowers/SKILL.md"
     },
     "superpowers-verification-before-completion": {
       "categories": [
         "opsx/superpowers"
-      ]
+      ],
+      "githubUrl": "https://github.com/obra/superpowers/blob/main/skills/verification-before-completion/SKILL.md"
     },
     "superpowers-writing-plans": {
       "categories": [
         "opsx/superpowers"
-      ]
+      ],
+      "githubUrl": "https://github.com/obra/superpowers/blob/main/skills/writing-plans/SKILL.md"
     },
     "superpowers-writing-skills": {
       "categories": [
         "opsx/superpowers"
-      ]
+      ],
+      "githubUrl": "https://github.com/obra/superpowers/blob/main/skills/writing-skills/SKILL.md"
     },
     "finesse-brief": {
       "categories": [
@@ -502,50 +528,59 @@
     "f-git-origin-doc": {
       "categories": [
         "fan"
-      ]
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-git-origin-doc/SKILL.md"
     },
     "f-git-origin-pull": {
       "categories": [
         "fan"
-      ]
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-git-origin-pull/SKILL.md"
     },
     "f-openspec-profile-switch": {
       "categories": [
         "fan"
-      ]
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-openspec-profile-switch/SKILL.md"
     },
     "f-antd-spacing-layout-governance": {
       "categories": [
         "fan",
         "web/react"
-      ]
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-antd-spacing-layout-governance/SKILL.md"
     },
     "f-zjmf-addon-plugin": {
       "categories": [
         "fan"
-      ]
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-zjmf-addon-plugin/SKILL.md"
     },
     "f-site-rewrite-init": {
       "categories": [
         "fan"
-      ]
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-site-rewrite-init/SKILL.md"
     },
     "f-site-rewrite-implement": {
       "categories": [
         "fan"
-      ]
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-site-rewrite-implement/SKILL.md"
     },
     "f-springboot-native": {
       "categories": [
         "fan",
         "java"
-      ]
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-springboot-native/SKILL.md"
     },
     "f-yudao-boot-mini-graalvm": {
       "categories": [
         "fan",
         "java"
-      ]
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-yudao-boot-mini-graalvm/SKILL.md"
     },
     "graal": {
       "categories": [
@@ -561,7 +596,8 @@
       "categories": [
         "fan",
         "workflow"
-      ]
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-library-ingest/SKILL.md"
     }
   }
 }
