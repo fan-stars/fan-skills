@@ -73,7 +73,8 @@ git rev-parse --show-toplevel
 2. **整文件覆盖** `.git-origin/README.md`
 3. 必须含契约规定的 `<!-- git-origin-manifest:start -->` … `end` YAML 块
 4. 人读部分用契约短模板；有祖先则加「勿混用」节；有软连接则逐条说明
-5. `reference/` 容器本身不写专项大章；其下独立仓已在 `repos` 即可
+5. 若某仓同时有 Gitee `origin` 与 `github` 远程：按 reference 写入「推送与镜像约定」（Gitee 自动同步 GitHub，勿 push `github`）
+6. `reference/` 容器本身不写专项大章；其下独立仓已在 `repos` 即可
 
 ### 5. 汇报
 

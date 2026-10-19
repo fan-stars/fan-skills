@@ -12,6 +12,15 @@ Fan 项目选用的 Agent Skills **目录库**：供其他新项目按技术栈�
 | `skills-catalog.json` | 分类映射与中文简介 |
 | `.cursor/skills/sync-skills-catalog/` | 运维同步 skill（**不**进入分类目录） |
 
+## 远程与推送
+
+| 远程名 | 地址 | 用途 |
+| --- | --- | --- |
+| `origin` | `git@gitee.com:fan-stars/fan-skills.git` | **日常 push / pull** |
+| `github` | `git@github.com:fan-stars/fan-skills.git` | 对照 / fetch；**不要 push** |
+
+Gitee 已配置自动同步到 GitHub：推送到 `origin` 即可，无需再推 `github`。
+
 ## 更新与同步
 
 ```bash
