@@ -1,0 +1,14 @@
+# =============================================================================
+# 已阅读源码索引 — 每次读完旧站源码后更新（按 path 去重）
+# 供 f-site-rewrite-implement 下次速查，避免重复摸索
+# =============================================================================
+
+entries: []
+  # - path: ""                 # 文件或目录路径（相对仓库根或绝对路径）
+  #   treeId: ""               # 对应 refactor.config.yaml → sourceTrees[].id
+  #   moduleIds: []            # 关联的重写模块 id 列表
+  #   kind: template           # template | css | script | api | other
+  #   summary: ""              # 一行摘要：对本模块重写有何关键
+  #   keySymbols: []           # 可选：模块 key、类名、接口名等
+  #   lastRead: YYYY-MM-DD     # 最近阅读日期
+  #   notes: ""                # 补充说明（如 hidden 语义、易错点）

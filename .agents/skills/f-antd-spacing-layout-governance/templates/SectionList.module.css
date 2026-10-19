@@ -1,0 +1,6 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  /* Reuse the Ant margin-xl size; sibling layout is controlled by gap. */
+  gap: var(--ant-margin-xl);
+}

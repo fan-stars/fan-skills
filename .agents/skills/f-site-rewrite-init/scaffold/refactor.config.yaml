@@ -1,0 +1,99 @@
+# =============================================================================
+# 站点重写配置（通用）
+# - 路径：site-rewrite/refactor.config.yaml
+# - 由 f-site-rewrite-init 填写；勿在此文件写入账号 / 密码 / token / cookie
+# - 密钥请放 secrets.local.env（已 gitignore）
+# =============================================================================
+
+# 项目短 id（用户自定义，短横线命名）
+projectId: ""
+
+# ---------- 要重构的网站（行为 / IA 主对照）----------
+legacySite:
+  id: legacy          # 站内短 id，观测文件名会用到
+  name: ""            # 显示名
+  baseUrl: ""         # 根 URL，如 https://example.com
+  # notes: ""         # 可选备注
+
+# ---------- 参考网站（可多个：竞品 / 同主题演示等）----------
+referenceSites: []
+  # - id: ref-1
+  #   name: ""
+  #   baseUrl: ""
+  #   notes: ""
+
+# ---------- 重构后本站（本地或预览，可多环境）----------
+rewriteSite:
+  environments: []
+  # - id: local
+  #   name: 本地开发
+  #   baseUrl: http://127.0.0.1:3000
+
+# ---------- 数据接口（旧站/源平台供服务端或抓包对照的 API；可多个环境）----------
+# 与访客前台 legacySite 区分：此处是取数基址（如 pathPrefix=/v33），不是运营后台 UI 名称
+dataApis: []
+  # - id: primary                 # 短 id；secrets 可用 DATA_API_<ID>_ 前缀
+  #   name: ""                    # 显示名，如「测站数据接口」
+  #   baseUrl: ""                 # 根 URL（不含或含网关前缀均可，与 pathPrefix 组合）
+  #   pathPrefix: ""              # 可选统一前缀，如 /v33、/api
+  #   env: test                   # 可选：test | prod | other
+  #   notes: ""                   # 如「纯 /v33；失败硬失败」
+  #   secretsPrefix: DATA_API_PRIMARY_  # 对应 secrets.local.env 中变量前缀
+
+# ---------- 旧站源码树（只读对照）----------
+sourceTrees: []
+  # - id: theme
+  #   path: ""              # 相对仓库根或绝对路径
+  #   role: legacy-theme    # 角色说明，自由文本
+  #   notes: ""
+
+# ---------- 新栈示例 / 模板项目 ----------
+exampleProjects: []
+  # - id: ui-examples
+  #   path: ""
+  #   role: ui-reference
+  #   notes: ""
+
+# ---------- 目标技术栈 ----------
+target:
+  framework: ""         # 框架：next | nuxt | vue | react | other
+  uiLibrary: ""         # UI 库：antd | element-plus | none | …
+  appRoot: ""           # 新应用可写根目录（通常即应用 git 根）
+  packageManager: ""    # pnpm | npm | yarn
+  cssStrategy: ""       # 如 css-modules / 设计 token / 禁止 Tailwind 等
+
+# ---------- 鉴权（仅引用 secrets 文件，不写真实密钥）----------
+auth:
+  secretsFile: secrets.local.env   # 相对 site-rewrite/ 的密钥文件
+  legacyLoginPath: null            # 旧站登录路径；无需登录则 null
+  referenceLoginPaths: {}          # 参考站登录路径：{ "ref-1": "/login" }
+
+# ---------- 文档与工作区路径（默认均在 site-rewrite/）----------
+docs:
+  contextFile: ""                              # 可选：仓库级术语/上下文文档
+  playbooksDir: site-rewrite/playbooks         # 过程总结目录
+  pitfallsFile: site-rewrite/playbooks/pitfalls.md  # 踩坑清单
+  observationsDir: site-rewrite/observations   # Playwright 观测
+  matchesDir: site-rewrite/matches             # 模块匹配评分
+  indexesDir: site-rewrite/indexes             # 已读源码等索引
+  dataApisDir: site-rewrite/data-apis          # 数据接口请求/响应记录（可提交；无密钥）
+
+# ---------- 关联 Agent Skills（init 预填；implement 第 5 步再分析并写入 indexes/skills-planned.yaml）----------
+skills:
+  uiLibrary: []                         # UI 库 skill 名列表，如 [antd, ant-design]
+  proposal: openspec-proposal-creation-cn   # 或 openspec-proposal-creation
+  implementation: openspec-implementation
+  grill: grill-with-docs
+  archiving: openspec-archiving
+
+# ---------- 质量与提交约定 ----------
+quality:
+  matchThreshold: 0.95                  # 模块对比通过阈值（默认 95%）
+  matchScope: information-architecture  # IA+完整视觉表（字体/背景/边距/大小/边框/圆角/阴影/主色/图标/hover/激活/角标/动效等）；pixel=更严
+  commitLanguage: zh                    # 模块提交说明语言：zh
+  requireUserSkipExplicit: true         # true=用户未明确跳过某步则必须执行
+
+# ---------- 模块切片（grill / 提案阶段填写）----------
+modules: []
+  # - id: header
+  #   title: 顶栏

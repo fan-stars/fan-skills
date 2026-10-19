@@ -1,0 +1,11 @@
+.root {
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--ant-padding-lg) var(--ant-padding-xl) var(--ant-padding-xl);
+}
+
+.constrained {
+  /* Content dimension, not a spacing token; align with project layout policy. */
+  max-width: 1280px;
+  margin-inline: auto;
+}

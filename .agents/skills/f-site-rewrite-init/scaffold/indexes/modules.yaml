@@ -1,0 +1,13 @@
+# =============================================================================
+# 模块切片状态 — 提案拆分模块后维护；每次匹配评分后更新
+# =============================================================================
+
+modules: []
+  # - id: ""                      # 模块短 id
+  #   title: ""                   # 显示名
+  #   status: pending             # pending | in_progress | match_failed | done
+  #   lastMatchScore: null        # 最近匹配分 0~1；未评则为 null
+  #   lastMatchFile: ""           # matches/ 下对应记录文件
+  #   sourceIndexRefs: []         # 关联的源码 path 列表
+  #   observationRefs: []         # 关联的观测文件列表
+  #   updated: YYYY-MM-DD

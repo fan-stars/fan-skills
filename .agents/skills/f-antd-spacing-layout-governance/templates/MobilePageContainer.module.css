@@ -1,0 +1,7 @@
+.root {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100%;
+  padding: var(--ant-padding) var(--ant-padding)
+    calc(var(--ant-padding-lg) + env(safe-area-inset-bottom));
+}

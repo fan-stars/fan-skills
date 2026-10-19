@@ -1,0 +1,15 @@
+.root {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100%;
+  padding: var(--ant-padding) var(--ant-padding)
+    calc(
+      var(--bottom-nav-height) + var(--ant-padding) +
+        env(safe-area-inset-bottom)
+    );
+}
+
+/*
+ * This template assumes --bottom-nav-height excludes safe area.
+ * Remove the env() term if the project's BottomNav height already includes it.
+ */

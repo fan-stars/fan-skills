@@ -1,0 +1,10 @@
+# =============================================================================
+# Playwright 观测文件目录 — 每写入 observations/ 下文件后更新
+# =============================================================================
+
+entries: []
+  # - file: observations/xxx.md   # 相对 site-rewrite/ 的路径
+  #   siteId: legacy              # legacy | 参考站 id | 本站环境 id
+  #   moduleId: ""                # 关联模块；全页观测可空
+  #   screenshots: []             # 截图路径列表
+  #   created: YYYY-MM-DD
