@@ -1,0 +1,4 @@
+interface:
+  display_name: "ZJMF Addon 插件开发"
+  short_description: "开发、验证和部署 ZJMF 3.5.8 addon 插件"
+  default_prompt: "使用 $f-zjmf-addon-plugin 开发并验证一个 ZJMF addon 插件。"

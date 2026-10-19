@@ -1,0 +1,27 @@
+# =============================================================================
+# 本轮拟用 Skills 清单 — 对应 f-site-rewrite-implement 第 5 步
+# 每轮重写 / 每个大模块开始前更新；必用项必须先 Read SKILL.md
+# =============================================================================
+
+# 本轮标识（日期或变更 id）
+roundId: ""
+
+updated: ""
+
+# 必用：开始 grill/提案前必须已阅读
+required: []
+  # - name: antd
+  #   reason: "UI 库组件 API"
+  #   skillPath: .agents/skills/antd/SKILL.md
+  #   read: false          # 读完改为 true
+
+# 按需：出现触发条件再读
+optional: []
+  # - name: next-browser
+  #   when: "Next 水合 / 组件树调试"
+  #   skillPath: .agents/skills/next-browser/SKILL.md
+
+# 不适用：避免误用
+skipped: []
+  # - name: ""
+  #   reason: ""

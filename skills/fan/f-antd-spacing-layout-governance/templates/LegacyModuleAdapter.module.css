@@ -1,0 +1,8 @@
+.root {
+  width: 100%;
+}
+
+/*
+ * Add only narrowly scoped legacy compatibility here after inspecting the
+ * immutable component. Do not copy negative-margin escapes into business CSS.
+ */

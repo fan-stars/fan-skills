@@ -1,0 +1,106 @@
+# =============================================================================
+# 站点重写配置模板（通用）
+# - 复制目标：site-rewrite/refactor.config.yaml
+# - 禁止写入密钥；禁止写死某一客户站 / 品牌 / 域名作为默认值
+# =============================================================================
+
+# 项目短 id（用户自定义，短横线命名）
+projectId: ""
+
+# ---------- 要重构的网站（行为 / IA 主对照）----------
+legacySite:
+  id: legacy          # 站内短 id，观测文件名会用到
+  name: ""            # 显示名
+  baseUrl: ""         # 根 URL
+  notes: ""           # 可选备注
+
+# ---------- 参考网站（可多个）----------
+referenceSites: []
+  # - id: ref-1
+  #   name: ""
+  #   baseUrl: ""
+  #   notes: ""
+
+# ---------- 重构后本站（可多环境）----------
+rewriteSite:
+  environments: []
+  # - id: local
+  #   name: 本地开发
+  #   baseUrl: http://127.0.0.1:3000
+
+# ---------- 数据接口（源平台取数 API；可多环境）----------
+dataApis: []
+  # - id: primary
+  #   name: ""
+  #   baseUrl: ""
+  #   pathPrefix: ""              # 如 /v33
+  #   env: test
+  #   notes: ""
+  #   secretsPrefix: DATA_API_PRIMARY_
+
+# ---------- 旧站源码树（只读）----------
+sourceTrees: []
+  # - id: theme
+  #   path: ""
+  #   role: legacy-theme
+  #   notes: ""
+
+# ---------- 新栈示例 / 模板 ----------
+exampleProjects: []
+  # - id: ui-examples
+  #   path: ""
+  #   role: ui-reference
+  #   notes: ""
+
+# ---------- 目标技术栈 ----------
+target:
+  framework: ""         # next | nuxt | vue | react | other
+  uiLibrary: ""         # antd | element-plus | none | …
+  appRoot: ""           # 新应用可写根目录
+  packageManager: ""    # pnpm | npm | yarn
+  cssStrategy: ""
+
+# ---------- 鉴权（仅引用 secrets，不写真实密钥）----------
+auth:
+  secretsFile: secrets.local.env
+  legacyLoginPath: null            # 无需登录则 null
+  referenceLoginPaths: {}
+  # 可选：源平台运营后台（有验证码时勿自动化登录，复用已建立会话）
+  # adminConsole:
+  #   id: console
+  #   name: ""
+  #   baseUrl: ""
+  #   hashRoute: ""
+  #   fullUrl: ""
+  #   captcha: true
+  #   loginViaTunnel: true
+  #   sessionReady: false
+  #   notes: ""
+
+# ---------- 文档与工作区（默认 site-rewrite/）----------
+docs:
+  contextFile: ""                  # 可选：仓库级上下文文档
+  playbooksDir: site-rewrite/playbooks
+  pitfallsFile: site-rewrite/playbooks/pitfalls.md
+  observationsDir: site-rewrite/observations
+  matchesDir: site-rewrite/matches
+  indexesDir: site-rewrite/indexes
+  dataApisDir: site-rewrite/data-apis          # 已请求接口的 URL/参数/响应记录
+
+# ---------- 关联 Skills（implement 第 5 步另写入 indexes/skills-planned.yaml）----------
+skills:
+  uiLibrary: []                         # 如 [antd, ant-design]
+  proposal: openspec-proposal-creation-cn
+  implementation: openspec-implementation
+  grill: grill-with-docs
+  archiving: openspec-archiving
+
+# ---------- 质量与提交 ----------
+quality:
+  matchThreshold: 0.95
+  matchScope: information-architecture  # 含完整视觉评分表；或 pixel（需用户明确要求）
+  commitLanguage: zh
+  requireUserSkipExplicit: true         # 未明确跳步则必须执行全流程
+
+# ---------- 模块切片（grill / 提案时填写）----------
+modules: []

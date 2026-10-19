@@ -1,0 +1,5 @@
+.root {
+  box-sizing: border-box;
+  width: 100%;
+  padding-inline: var(--ant-padding);
+}

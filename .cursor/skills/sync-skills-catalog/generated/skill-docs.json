@@ -328,6 +328,334 @@
       "coverage": "覆盖 A/B 根目录和事实读取隔离、源码与解析结果增量缓存、外部 SQL 的工作区边界及真实文件哈希行号校验、解析器版本失效、多模块追加归属及显式角色替换、路由到 Controller、验证、Service、持久化、事务和副作用的接口证据链、PRESENT 与 UNRESOLVED 及经审核的 NOT_APPLICABLE、STALE 传播、门禁候选与最终提交分离、完整自动管线及门禁尝试记录、JSON Schema 和十八项门禁。",
       "notes": "核心脚本仅依赖 Python 标准库并兼容 Windows 与 Linux，Schema 和平台格式测试需安装测试依赖。外部 SQL 必须位于分析工作区内，不能用范围标记绕过文件存在、SHA-256、扩展名和行号检查；源码可信快照也不豁免这些检查。独立门禁只产生候选结果，补证后必须使用同一运行 ID 的 --finalize 完成最终提交。PHP 解析仍是保守候选解析，动态调用、复杂语法、非 HTTP 入口及是否真正不适用仍需人工补证。",
       "contentHash": "a1a027cd7ff754f01c030508bb849cd5bff3c6a5a94f520b01a800e92d4d6ef3"
+    },
+    "openspec-apply-change": {
+      "contentHash": "ca92bda61b33011cbeeb5354ad7bd1b373fd89b9d2ce7117c2b615ccac7e95c6",
+      "summary": "按 OpenSpec change 的 tasks 逐步实现代码。",
+      "capabilities": "读取 apply 指令与任务列表，驱动实现并回写完成状态。并给出可执行的步骤与约束说明。",
+      "scenarios": "提案已就绪、准备编码落地时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 apply 指令、任务勾选与实现约束。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "只实现已批准范围内的任务，避免顺手扩 scope。与用户显式指令冲突时以用户指令为准。"
+    },
+    "openspec-archive-change": {
+      "contentHash": "f3106940540a13f90d8f980ec1c54f4d12aac5c2b57fb82dea48d9e04e1b6284",
+      "summary": "归档已完成的 OpenSpec change 并同步主规格。",
+      "capabilities": "将 delta specs 合入主 specs，并移动 change 到 archive。",
+      "scenarios": "验证通过、变更已上线或可关闭时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 archive 命令、规格同步与收尾检查。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "未验证通过勿归档；归档后主 specs 即新基线。与用户显式指令冲突时以用户指令为准。"
+    },
+    "openspec-bulk-archive-change": {
+      "contentHash": "38b3b56304a4353899932198361303332c8da26f8e6de41a28b230d5a248d908",
+      "summary": "批量归档多个已完成的 OpenSpec change。",
+      "capabilities": "在并行变更收尾时一次处理多个 archive，减少重复操作。并给出可执行的步骤与约束说明。",
+      "scenarios": "有多条已完成 change 待清理时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖批量选择、失败隔离与结果汇总。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "逐条确认可归档状态，避免把未完成项卷进去。与用户显式指令冲突时以用户指令为准。与用户显式指令冲突时以用户指令为准。"
+    },
+    "openspec-continue-change": {
+      "contentHash": "22a9f9e49dee677debb71f1c2aace952b25995398c2f59f4ce88f78fab5d4279",
+      "summary": "继续推进进行中的 OpenSpec change 下一工件。",
+      "capabilities": "根据 status 找到下一个 ready artifact 并产出内容。并给出可执行的步骤与约束说明。",
+      "scenarios": "中途暂停后恢复、或需要补齐下一份文档时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 continue 流程与依赖阻塞处理。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "若被未请求的前置工件阻塞，应先征得同意再扩展。与用户显式指令冲突时以用户指令为准。"
+    },
+    "openspec-explore": {
+      "contentHash": "d463202b29fd9642944a611cf0da5940f56575b62f7406a2edece52439cf56d0",
+      "summary": "OpenSpec 探索模式：在动手实现前澄清需求与方案。",
+      "capabilities": "提供探索姿态下的对话、可视化与 OpenSpec 上下文读取，帮助在写提案前理清问题边界。",
+      "scenarios": "适合需求模糊、需要对比方案或盘点现状时使用，例如 /opsx:explore 会话。",
+      "coverage": "覆盖 explore 流程、artifact 捕获边界与不自动落地实现的护栏。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "探索模式默认不写业务代码；要落地需另行确认并创建 change。与用户显式指令冲突时以用户指令为准。"
+    },
+    "openspec-ff-change": {
+      "contentHash": "30f4cab9b1e04c86e40f3d614de17e9eb5dbd4031429970b07ebb11d8a626bd0",
+      "summary": "快进生成实现前所需的全部 OpenSpec 工件。",
+      "capabilities": "在已明确意图时批量创建提案相关 artifact，减少逐步询问。并给出可执行的步骤与约束说明。",
+      "scenarios": "适合目标清晰、希望尽快进入实现门禁的场景。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 ff-change 流程与工件齐套检查。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "快进不等于跳过评审；实现前仍应核对 proposal/tasks。与用户显式指令冲突时以用户指令为准。"
+    },
+    "openspec-new-change": {
+      "contentHash": "1b8869de38c9f03ab46631899a5cf74ef562a5cce87ed1ae3c364f55f1bc46e5",
+      "summary": "创建新的 OpenSpec change 脚手架与元数据。",
+      "capabilities": "用 CLI 生成带 .openspec.yaml 的 change 目录，避免手建漏文件。",
+      "scenarios": "开始一项受控变更、尚未写提案正文时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 new change 命名、store 参数与脚手架布局。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "不要手建 openspec/changes 目录；必须走该流程或 CLI。与用户显式指令冲突时以用户指令为准。"
+    },
+    "openspec-onboard": {
+      "contentHash": "678cbf6df1029e95cff7da11017292d81ef1ded6f745c736b625fd6a4e12d90c",
+      "summary": "引导完成一轮 OpenSpec 工作流上手体验。",
+      "capabilities": "串联讲解与实操，帮助新用户走完从想到归档的闭环。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "团队首次引入 OpenSpec 或培训新成员时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 onboarding 叙事、命令顺序与常见坑。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "演示环境尽量用样例 change，避免污染真实主规格。与用户显式指令冲突时以用户指令为准。"
+    },
+    "openspec-propose": {
+      "contentHash": "8a14113136028be0f21a773aee067be4a73c3676700103b1f548f569c948eeda",
+      "summary": "一键生成 OpenSpec change 的完整提案工件。",
+      "capabilities": "串联新建 change 与 proposal/design/tasks 等工件生成，加快提案起步。",
+      "scenarios": "当已想清楚要做什么、希望快速产出可评审提案时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 propose 命令流程与工件依赖顺序。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "生成后仍需人工审阅提案内容，勿把草稿当已批准规格。与用户显式指令冲突时以用户指令为准。"
+    },
+    "openspec-sync-specs": {
+      "contentHash": "1a4a68f33749ad4efb32f77a365b67feda031693b0d99640f54bc47e9eca3215",
+      "summary": "在不归档的情况下把 delta specs 同步到主规格。",
+      "capabilities": "适用于需要提前更新主 specs、但 change 仍继续的场景。并给出可执行的步骤与约束说明。",
+      "scenarios": "主规格需先行对齐、或分阶段合入时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 sync-specs 流程与冲突处理提示。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "同步后检查主 specs 是否仍与进行中 change 语义一致。与用户显式指令冲突时以用户指令为准。"
+    },
+    "openspec-update-change": {
+      "contentHash": "bb104d093700c112d83869b5e8d53c30f48bba76d9615a5cfba4b82ddf1cd826",
+      "summary": "修订已有 OpenSpec change 的规划工件并保持一致。",
+      "capabilities": "在需求漂移时更新 proposal/design/tasks，避免文档互相矛盾。",
+      "scenarios": "实现中发现范围变化、需要改计划时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖更新顺序与一致性检查要点。细节以仓库内 SKILL.md 与引用文档为准。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "更新后重新跑 status/validate，确认无残留冲突描述。与用户显式指令冲突时以用户指令为准。"
+    },
+    "openspec-verify-change": {
+      "contentHash": "d6dd7fdecbc1b1ed4033f1fa08b1654d7ca24c7c88b7b5be2252c695f350597a",
+      "summary": "在归档前核对实现与 change 工件是否一致。",
+      "capabilities": "检查任务完成度、行为与规格偏差，给出可归档结论。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "准备 archive 前或怀疑实现漏项时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖验证清单与常见不一致类型。细节以仓库内 SKILL.md 与引用文档为准。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "验证失败应回到 apply/update，而不是强行归档。与用户显式指令冲突时以用户指令为准。"
+    },
+    "superpowers-brainstorming": {
+      "contentHash": "3f22629ed4f1cde4cf5f263a1778fc205d88fa12a5702029df2c62440f98281d",
+      "summary": "创意与需求澄清：实现前先对齐意图与方案。。用于目录浏览与选型。",
+      "capabilities": "通过结构化提问与可视化探索功能边界，再进入计划。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "新功能、模糊需求或设计分歧较大时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖头脑风暴流程、视觉伴侣与决策沉淀方式。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "未澄清前不要直接写代码；用户指令优先于技能默认。与用户显式指令冲突时以用户指令为准。"
+    },
+    "superpowers-dispatching-parallel-agents": {
+      "contentHash": "6f85a00af7ae36fae408382d663cbcb440964a8a53ee4ee12ae32fccb9b3a841",
+      "summary": "把互不依赖的工作拆给并行子代理处理。。用于目录浏览与选型。",
+      "capabilities": "识别可并行任务、分派与汇总结果，缩短墙钟时间。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "多模块独立调研或修改时可使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖任务拆分、隔离与结果合并。细节以仓库内 SKILL.md 与引用文档为准。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "有共享状态或顺序依赖时不要强行并行。与用户显式指令冲突时以用户指令为准。与用户显式指令冲突时以用户指令为准。"
+    },
+    "superpowers-executing-plans": {
+      "contentHash": "547f982d4ce5769963206a14fa3ba9dd1584173a06e18c04400dc55a5b83bfe7",
+      "summary": "按既有实现计划逐步执行并设检查点。。用于目录浏览与选型。",
+      "capabilities": "加载计划、按任务推进、失败即停，完成后进入收尾技能。并给出可执行的步骤与约束说明。",
+      "scenarios": "已有书面计划、希望本会话连续落地时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖执行节奏、验证步骤与求助条件。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "有子代理时更推荐 subagent-driven-development。与用户显式指令冲突时以用户指令为准。"
+    },
+    "superpowers-finishing-a-development-branch": {
+      "contentHash": "a29b2da762c9d8705f422ad91b8057d2d5147cd069aa09a69bb809726619cdbe",
+      "summary": "实现完成后选择合并、PR 或清理的收尾路径。。用于目录浏览与选型。",
+      "capabilities": "在测试通过后给出集成选项并执行用户选择。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "功能做完、准备合流或关闭分支时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖验证、选项呈现与收尾动作。细节以仓库内 SKILL.md 与引用文档为准。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "未验证通过不要宣称完成或强推远程。与用户显式指令冲突时以用户指令为准。与用户显式指令冲突时以用户指令为准。"
+    },
+    "superpowers-receiving-code-review": {
+      "contentHash": "b90b1e180f11fa06053fc0f9fb0a957935dce35168897d1aff6be33e14545b3e",
+      "summary": "严谨消化代码审查意见并落地修改。。用于目录浏览与选型。",
+      "capabilities": "区分必改与建议，验证技术正确性后再改，避免盲从。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "收到 PR/审查评论需要处理时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖意见分类、争议处理与回归验证。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "不清楚的反馈先问清，不把错误建议直接合入。与用户显式指令冲突时以用户指令为准。与用户显式指令冲突时以用户指令为准。"
+    },
+    "superpowers-requesting-code-review": {
+      "contentHash": "4ac36baa8e00f0460ea480baf965e83b837a65e66a784055c46ee24f5f94a7c1",
+      "summary": "在合并前发起结构化代码审查请求。。用于目录浏览与选型。",
+      "capabilities": "整理变更说明与审查焦点，便于审查者高效反馈。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "完成大功能、准备合并或需要第二双眼睛时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖审查请求内容与关注点清单。细节以仓库内 SKILL.md 与引用文档为准。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "审查意见回来后配合 receiving-code-review 处理。与用户显式指令冲突时以用户指令为准。"
+    },
+    "superpowers-subagent-driven-development": {
+      "contentHash": "1a5b2633feb47c7317f46b748747806209b2a393c22dc3fa96a923f0f283ef77",
+      "summary": "按计划为每个任务派生子代理并两阶段复查。。用于目录浏览与选型。",
+      "capabilities": "主代理编排，子代理实现，降低上下文污染与遗漏。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "多任务独立、适合并行或严格分任务质检时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖派发、审查与合入节奏。细节以仓库内 SKILL.md 与引用文档为准。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "子代理需给足路径与验收标准，避免口头含糊委托。与用户显式指令冲突时以用户指令为准。"
+    },
+    "superpowers-systematic-debugging": {
+      "contentHash": "81f5e240ad23978fa09d6701bb75190f0ff03c08addbba2bc07f23be7707b349",
+      "summary": "系统化排查缺陷：先复现取证再改代码。。用于目录浏览与选型。",
+      "capabilities": "强调根因追踪、防回归与分层验证，避免盲改。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "任何 bug、测试失败或异常行为在提修复前使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖取证、假设检验与防御性加固思路。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "禁止跳过复现直接大面积重写。与用户显式指令冲突时以用户指令为准。与用户显式指令冲突时以用户指令为准。"
+    },
+    "superpowers-test-driven-development": {
+      "contentHash": "b078532e190983b849818c11a7d4797dcbae9dfe04fadabf9b90ca5ee63650c8",
+      "summary": "强制先写失败测试再写实现的 TDD 节奏。。用于目录浏览与选型。",
+      "capabilities": "用红-绿-重构约束改动，降低无测试直改生产代码风险。并给出可执行的步骤与约束说明。",
+      "scenarios": "功能开发与缺陷修复在可测代码库中优先使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖测试先行、最小实现与重构边界。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "若环境无法运行测试，应先说明限制再调整策略。与用户显式指令冲突时以用户指令为准。"
+    },
+    "superpowers-using-git-worktrees": {
+      "contentHash": "20806a49e07faff9d830c15d882fbad4f9e40a6762c34c64f42f07a02c28d3bd",
+      "summary": "用 git worktree 隔离功能开发目录。",
+      "capabilities": "创建或确认独立工作树，避免污染主工作区。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "并行功能、执行计划前需要干净目录时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 worktree 创建、路径约定与清理注意点。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "不要在未隔离的脏主树上硬开大改动。与用户显式指令冲突时以用户指令为准。与用户显式指令冲突时以用户指令为准。"
+    },
+    "superpowers-using-superpowers": {
+      "contentHash": "b3ead3c48558d7cec17c078a2ecba24404e6e8b2df6246d352cc14823741d170",
+      "summary": "会话开始时建立“先调用相关技能”的工作纪律。。用于目录浏览与选型。",
+      "capabilities": "要求在响应前检查并调用适用技能，统一跨工具行为。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "几乎所有会话开场都应考虑；子代理执行专项任务时可跳过。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖技能优先级、调用时机与平台差异说明。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "用户显式指令始终高于技能默认策略。与用户显式指令冲突时以用户指令为准。与用户显式指令冲突时以用户指令为准。"
+    },
+    "superpowers-verification-before-completion": {
+      "contentHash": "9f704f1335e61a3ce258270d9f492cf487af55f1db0b9fc1bc5fa2173ebd38fa",
+      "summary": "声称完成前必须跑验证命令并核对输出。。用于目录浏览与选型。",
+      "capabilities": "禁止在未验证时宣告 fixed/passing；以命令结果为准。并给出可执行的步骤与约束说明。",
+      "scenarios": "准备提交、开 PR 或回复“已修好”之前使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖验证命令选择与失败处理。细节以仓库内 SKILL.md 与引用文档为准。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "验证失败则继续修，不得用“应该没问题”代替。与用户显式指令冲突时以用户指令为准。"
+    },
+    "superpowers-writing-plans": {
+      "contentHash": "6d34ebebd29f4131bf098bbd85dc0ed59b12c84beff1c911770896f6a7183c73",
+      "summary": "把已明确的需求写成可执行的分步实现计划。。用于目录浏览与选型。",
+      "capabilities": "产出含精确路径、命令与验收的任务清单，便于代理执行。并给出可执行的步骤与约束说明。",
+      "scenarios": "规格已清、准备开工或交给执行技能前使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖计划结构、任务粒度、禁止空洞步骤等约束。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "计划默认写在约定 plans 目录；本工作区可将计划放根 docs。与用户显式指令冲突时以用户指令为准。"
+    },
+    "superpowers-writing-skills": {
+      "contentHash": "95b35c08db398d68dde370d6e32e1aa076a7cbb9fc5ac140de3676206792dc07",
+      "summary": "编写、修改并验证 Agent Skill 本身。",
+      "capabilities": "指导 SKILL.md 结构、可测性与落地前自检。并给出可执行的步骤与约束说明。",
+      "scenarios": "创建新技能或大改现有技能时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖技能写作原则、测试思路与示例。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "技能应可执行可验证，避免只写口号式描述。与用户显式指令冲突时以用户指令为准。与用户显式指令冲突时以用户指令为准。"
+    },
+    "finesse-brief": {
+      "contentHash": "7a69f03e01c16e91086b10149a34cf36de130a418d874061730a5e495d6d935c",
+      "summary": "Workbench 架构师：把模糊一句话收成可构建规格。",
+      "capabilities": "在界面还不存在时澄清工作台类型、领域与交接物。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "新产品工作台、复杂后台从 0 构思时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖发现提问、语法与 handoff 产物。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "先 brief 再交给 UI 实现技能，避免边做边猜。与用户显式指令冲突时以用户指令为准。"
+    },
+    "finesse-term": {
+      "contentHash": "fe83de4021ccc2b1704563e805db53fc90d028baf975c9a5d3990aca7c344125",
+      "summary": "把口语化界面描述译成可发给代理的准确说法。。用于目录浏览与选型。",
+      "capabilities": "检索 Web/H5 术语库，补全用户叫不出名的控件与状态。并给出可执行的步骤与约束说明。",
+      "scenarios": "任何轮次用户用大白话描述界面效果或故障时可用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖术语检索、说法层输出与多端词库。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "输出应可直接粘贴给实现代理，不要只堆名词解释。与用户显式指令冲突时以用户指令为准。"
+    },
+    "finesse-ui": {
+      "contentHash": "885506ee42b0a7f90d529e23133e37eca6604f67c282cfa761060add78e1f290",
+      "summary": "高工艺 Web/H5 界面实现：品牌向与动效向。",
+      "capabilities": "强调真实视觉锚点、有克制的动效与反廉价设计检查。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "落地页、品牌站、作品集或高质量产品壳时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖设计 DNA、动效、审计与示例库。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "若已有设计系统，优先遵循现有体系而非另起炉灶。与用户显式指令冲突时以用户指令为准。"
+    },
+    "frame-smith": {
+      "contentHash": "bef372fc0672d8cf63677160b848d399b75ccec99a476e1e46a713b3e7c0633b",
+      "summary": "用 Remotion 做电影感宣传短片合成。。用于目录浏览与选型。",
+      "capabilities": "提供镜头结构、特效菜单与运行环境检查，产出可渲染成片。并给出可执行的步骤与约束说明。",
+      "scenarios": "需要产品宣传片、主题翻转或数据叙事短视频时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖节拍结构、特效目录、声音与预检脚本。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "先确认运行时依赖，再堆特效；避免无预检直接渲染失败。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-git-origin-doc": {
+      "contentHash": "6a07522c9894d74620dc7be25e23dd1f3636b4c8c75fb6d881a00378ca14d0e0",
+      "summary": "盘点工作区独立 Git 仓与软链并生成 .git-origin 文档。",
+      "capabilities": "覆盖写入含 YAML 机器块的 README，供后续拉取技能消费。并给出可执行的步骤与约束说明。",
+      "scenarios": "新建工作区、子仓变更或需要远程来源盘点时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖仓发现、祖先 gitlink、软链与契约字段。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "默认不改根 .gitignore；不记录 commit hash。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-git-origin-pull": {
+      "contentHash": "e804cba1a2eab4907cc97978a045c7ddd2a2c2cb22ffe041a7fd8a4cb3172ea2",
+      "summary": "按 .git-origin 机器块 clone/fetch 独立仓，不合并不切换分支。",
+      "capabilities": "缺失则克隆，已有则补 remote 并 fetch；远程 URL 冲突则停等确认。",
+      "scenarios": "按文档恢复工作区子仓或同步远程时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖解析 manifest、remote 冲突策略与软链跳过规则。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "禁止 merge/rebase/pull/checkout；软链需人工确保。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-openspec-profile-switch": {
+      "contentHash": "bba4961d200bdb55b1b2bc6835d938ab0fd52467c64d281e47957c174c434e05",
+      "summary": "在 legacy 与 opsx 两套 OpenSpec 技能配置间切换。",
+      "capabilities": "通过中央 vault 停放/投影 skills 与 commands，并同步仓库 spec 根。",
+      "scenarios": "需要从旧 OpenSpec 技能切到 /opsx 套件或反向时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 init/switch/specs-only、ACTIVE 与投影根。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "默认 dry-run；--apply 后建议重启 Agent 会话。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-antd-spacing-layout-governance": {
+      "contentHash": "74227e5f75446e88a35a6dedfb33b2514aeb863770a51ce553fdabc373ee34e4",
+      "summary": "Ant Design 项目间距与跨页布局契约治理。",
+      "capabilities": "提供审计规则、迁移策略、扫描脚本与容器模板，统一间距语义。并给出可执行的步骤与约束说明。",
+      "scenarios": "Ant Design 6 项目出现间距混乱、迁移或 PR 审计时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 token 规则、gap/margin、响应式与页面契约。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "先定布局契约再改组件，避免只调像素不改结构。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-zjmf-addon-plugin": {
+      "contentHash": "fc1b1691826283034eac1c0d589144e1ec327e955a95a1742a9edb0480778534",
+      "summary": "魔方云/ZJMF 插件后台开发约定与约束。。用于目录浏览与选型。",
+      "capabilities": "沉淀插件页面对齐、测试站操作与 Ant Design/Layui 边界等团队规则。",
+      "scenarios": "在 fan-zjmf 插件目录开发后台页或联调测试站时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖插件约束、UI 边界与常见操作注意点。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "仍用 Layui 的旧插件不要强行改成 Ant Design。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-site-rewrite-init": {
+      "contentHash": "abad0072334454d6da575e31860fe4f1dd563097a3106e3a0503351f1331deca",
+      "summary": "站点重写项目的脚手架与索引初始化。。用于目录浏览与选型。",
+      "capabilities": "生成观察/对照/配置骨架，建立可续写的重写工作区。并给出可执行的步骤与约束说明。",
+      "scenarios": "开始从旧站到新站的系统重写时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖配置模板、indexes 与 secrets 示例。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "先 init 再 implement；密钥只用本地 secrets，勿提交。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-site-rewrite-implement": {
+      "contentHash": "5da9bb5aa42d993237fd28af386e739d8b5915f2b461aef5b69cc741b6ccb4ec",
+      "summary": "按既有脚手架推进站点重写实现与对照。。用于目录浏览与选型。",
+      "capabilities": "用观察记录与匹配量规驱动模块级重写，保持可追溯。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "init 完成后逐模块迁移页面/数据时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 observation、match rubric 与实现节奏。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "对照未记录清楚时不要宣称模块完成。与用户显式指令冲突时以用户指令为准。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-springboot-native": {
+      "contentHash": "69d1dfe024473e29a2a1508f04b21706381fd23a2a5b06aecd7fb9130fbdf59a",
+      "summary": "Spring Boot 应用 GraalVM Native Image 落地指南。",
+      "capabilities": "覆盖原生配置、RuntimeHints、审计与排障，帮助可启动原生镜像。并给出可执行的步骤与约束说明。",
+      "scenarios": "要把 Boot 服务打成 native 或排查原生启动失败时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 native-config、hints 与 troubleshooting 参考。",
+      "notes": "先保证 JVM 模式测试通过，再迭代原生可达性元数据。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-yudao-boot-mini-graalvm": {
+      "contentHash": "eae3953697ec2296b938cd38f54f5b663947c552a91a6635c99d963c3ff82200",
+      "summary": "芋道 boot-mini 场景下的 GraalVM 原生构建经验。",
+      "capabilities": "针对 yudao-boot-mini 结构给出 native 构建与验证步骤。并给出可执行的步骤与约束说明。",
+      "scenarios": "在 fan 演示或 boot-mini 派生项目启用原生镜像时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖与该模板相关的构建注意点与验证。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "模板版本变化时先核对依赖与提示配置是否仍适用。与用户显式指令冲突时以用户指令为准。"
+    },
+    "graal": {
+      "contentHash": "1f43d1d600cf8c0219462c6bfc286913996d9086e2ed185c0f992e97b9fdd65b",
+      "summary": "GraalVM / Native Image 基础概念与构建工具说明。",
+      "capabilities": "介绍 native-image、可达性元数据与常见构建问题定位。并给出可执行的步骤与约束说明。",
+      "scenarios": "需要理解或配置 GraalVM 原生编译链路时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 build tools、reachability metadata 与排障文档。",
+      "notes": "与具体框架技能（如 f-springboot-native）配合效果更好。与用户显式指令冲突时以用户指令为准。"
+    },
+    "java-add-graalvm-native-image-support": {
+      "contentHash": "7579cfe6d95194fb4998eb07b5c3ba16439ce30b6b5fd19a17d81ecc072235f3",
+      "summary": "为 Java 项目补齐 GraalVM Native Image 支持的操作技能。",
+      "capabilities": "指导添加插件/配置并验证原生构建是否可重复成功。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "现有 Java 工程首次引入 native image 时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖支持项添加顺序与基本验证。细节以仓库内 SKILL.md 与引用文档为准。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "引入后需在 CI 或本地跑通至少一次 native 构建。与用户显式指令冲突时以用户指令为准。"
     }
   }
 }

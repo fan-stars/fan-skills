@@ -10,6 +10,7 @@ React、Next.js 与 Ant Design 相关 skills
 | --- | --- | --- | --- | --- |
 | `ant-design` | `skills/web/react/ant-design/` | antd 6.x 与 Pro/X 组件选型、主题与 CLI 决策指南，偏官方 API 而非教程。 | [skills.sh](https://skills.sh/ant-design/antd-skill/ant-design) | [GitHub](https://github.com/ant-design/antd-skill/blob/main/skills/ant-design/SKILL.md) |
 | `antd` | `skills/web/react/antd/` | 基于 @ant-design/cli 的离线 antd 知识库：查 API、示例、文档、诊断与迁移。 | [skills.sh](https://skills.sh/ant-design/antd-skill/antd) | [GitHub](https://github.com/ant-design/antd-skill/blob/main/skills/antd/SKILL.md) |
+| `f-antd-spacing-layout-governance` | `skills/web/react/f-antd-spacing-layout-governance/` | Ant Design 项目间距与跨页布局契约治理。 | 暂无 | [本仓库](../../../.agents/skills/f-antd-spacing-layout-governance/SKILL.md) |
 | `frontend-design` | `skills/web/react/frontend-design/` | 做有辨识度的前端视觉设计：排版、调色与布局避免模板感默认解。 | [skills.sh](https://skills.sh/anthropics/skills/frontend-design) | [GitHub](https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md) |
 | `next` | `skills/web/react/next/` | 用 @json-render/next 把 JSON 规格渲染成带路由与 SSR 的 Next.js 应用。 | [skills.sh](https://skills.sh/vercel-labs/json-render/next) | [GitHub](https://github.com/vercel-labs/json-render/blob/main/skills/next/SKILL.md) |
 | `next-browser` | `skills/web/react/next-browser/` | 把 React DevTools 与 Next.js dev overlay 变成 shell 命令，供 Agent 调试 Next 应用。 | [skills.sh](https://skills.sh/vercel-labs/next-browser/next-browser) | [本仓库](../../../.agents/skills/next-browser/SKILL.md) |
@@ -58,6 +59,26 @@ React、Next.js 与 Ant Design 相关 skills
 #### 注意事项
 
 不要凭记忆写 props；始终加 `--format json`。本 skill 侧重 CLI 操作，更广的选型与架构决策可配合 `ant-design` skill。
+
+### `f-antd-spacing-layout-governance`
+
+**路径**：`skills/web/react/f-antd-spacing-layout-governance/`
+
+#### 核心能力
+
+提供审计规则、迁移策略、扫描脚本与容器模板，统一间距语义。并给出可执行的步骤与约束说明。
+
+#### 适用场景
+
+Ant Design 6 项目出现间距混乱、迁移或 PR 审计时使用。也可在用户明确点名该技能时启用。
+
+#### 主要覆盖内容
+
+覆盖 token 规则、gap/margin、响应式与页面契约。细节以仓库内 SKILL.md 与引用文档为准。
+
+#### 注意事项
+
+先定布局契约再改组件，避免只调像素不改结构。与用户显式指令冲突时以用户指令为准。
 
 ### `frontend-design`
 

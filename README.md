@@ -8,6 +8,7 @@ Fan 项目选用的 Agent Skills **目录库**：供其他新项目按技术栈�
 | --- | --- |
 | `.agents/skills/` | **真相源**（经 `skills-lock.json` 安装/更新） |
 | `skills/` | **只读派生产物**（按分类多副本，禁止手改） |
+| `commands/` | opsx / superpowers 配套 slash 命令（canonical 嵌套；可占位） |
 | `skills-catalog.json` | 分类映射与中文简介 |
 | `.cursor/skills/sync-skills-catalog/` | 运维同步 skill（**不**进入分类目录） |
 
@@ -33,10 +34,16 @@ python3 .cursor/skills/sync-skills-catalog/scripts/sync.py
 
 - `skills/web/react` — React / Ant Design / Next  
 - `skills/web/vue` — Nuxt / Vben  
-- `skills/web/design` — 视觉与界面规范  
-- `skills/java` — Spring Boot / Fan 后端  
-- `skills/spec` — OpenSpec / 规格  
+- `skills/web/design` — 视觉与界面规范（含 Finesse / Frame-smith）  
+- `skills/java` — Spring Boot / Fan 后端 / GraalVM  
+- `skills/openspec-legacy` — 旧版 OpenSpec 套件  
+- `skills/opsx/openspec` — 新 OpenSpec（`/opsx:*`）  
+- `skills/opsx/superpowers` — Superpowers（`/superpowers:*`）  
+- `commands/opsx` · `commands/superpowers` — 配套 slash 命令（canonical；可占位）  
+- `skills/spec` — 通用规格（create-agentsmd 等，不含 OpenSpec 套件）  
 - `skills/docs` — 办公文档  
 - `skills/workflow` — 质询与建模  
 - `skills/mcp` — MCP 构建  
 - `skills/testing` — Web 测试  
+- `skills/fan` — Fan 自研技能  
+

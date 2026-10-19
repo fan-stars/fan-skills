@@ -1,0 +1,4 @@
+interface:
+  display_name: "F Antd Spacing Governance"
+  short_description: "审计 Ant Design 6 间距所有权与跨页面布局契约"
+  default_prompt: "Use $f-antd-spacing-layout-governance to audit this React and Ant Design project's cross-page layout contracts without modifying code."

@@ -1,0 +1,16 @@
+# =============================================================================
+# 数据接口调用索引 — 每次对照/抓包/出站探测后更新（按 apiId + method + path 去重）
+# 详情文件在 site-rewrite/data-apis/；本文件只做速查目录
+# 严禁写入 token / cookie / 密码；响应样例须脱敏
+# =============================================================================
+
+entries: []
+  # - id: ""                         # 记录短 id，如 primary-getmodule-footer
+  #   apiId: primary                 # 对应 refactor.config.yaml → dataApis[].id
+  #   method: GET
+  #   path: Module/GetModule         # 相对 pathPrefix 的路径
+  #   fullUrlHint: ""                # 可选：打码后的完整 URL 形态（无密钥）
+  #   moduleIds: []                  # 关联重写模块
+  #   recordFile: data-apis/xxx.md   # 详情（请求参数 + 响应字段）
+  #   summary: ""                    # 一行：用途 / 关键字段
+  #   lastCalled: YYYY-MM-DD

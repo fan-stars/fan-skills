@@ -1,0 +1,4 @@
+interface:
+  display_name: Spring Boot Native
+  short_description: Native Image audit and minimal adaptation
+  default_prompt: Use $f-springboot-native to audit or minimally adapt this Spring Boot project for GraalVM Native Image.
