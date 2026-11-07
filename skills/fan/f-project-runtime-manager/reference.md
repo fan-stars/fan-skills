@@ -113,7 +113,7 @@ scripts/runtime/<os>/
 
 两个主入口都存在时才生成三个 `*-all` 脚本。`start-all` 先调用每个 Java 入口的 start，再调用每个 Node 入口的 start。前一个非零则停止后续调用。
 
-`windows/` 把 `.sh` 换成 `.ps1`，公共库是 `lib/common.ps1`。参数位置与 bash 相同。
+`windows/` 把 `.sh` 换成 `.ps1`，公共库是 `lib/common.ps1`。参数位置与 bash 相同。三个汇总脚本仍按 bash 的顺序调用入口，但每次 `&` 之后要看 `$LASTEXITCODE`。子脚本正常结束时这个值可能仍是空，空不是失败；非 0 就 `exit` 这个码。`$ErrorActionPreference = 'Stop'` 接不住子脚本里的 `exit`。
 
 example 从可执行模块 `src/main/resources` 的基础配置收集占位符。基础文件是实际存在的 `application.yaml`、`application.yml` 或 `application.properties`。再读 `spring.profiles.active` 的第一个字面 profile，文件名为同目录的 `application-<profile>`，扩展名与基础文件相同。先去掉注释和引号；逗号分隔或列表只取第一个。该值本身是 `${...}` 时，只读基础文件，并在探测说明里写明 profile 没有解析。不读其他 profile 文件，不读 `target/classes`。profile 文件应当存在却缺失时，停止生成并说明缺哪一个。
 
@@ -138,7 +138,7 @@ scripts/runtime/*/logs/
 
 ## 6. 进程文件
 
-`macos` 的进程控制以 [templates/macos/common.sh](templates/macos/common.sh) 为准，生成时原样复制为 `scripts/runtime/macos/lib/common.sh`。`linux` 的进程控制以 [templates/linux/common.sh](templates/linux/common.sh) 为准，生成时原样复制为 `scripts/runtime/linux/lib/common.sh`。不要改写这两份进程库，也不要把 macOS 那份复制到 linux。windows 仍用 6.4，本次不要新增 windows 模板。6.2 与 6.3 是两套 bash 进程库共同遵守的行为；平台差别只在 6.5 与 6.6。
+`macos` 的进程控制以 [templates/macos/common.sh](templates/macos/common.sh) 为准，生成时原样复制为 `scripts/runtime/macos/lib/common.sh`。`linux` 的进程控制以 [templates/linux/common.sh](templates/linux/common.sh) 为准，生成时原样复制为 `scripts/runtime/linux/lib/common.sh`。`windows` 的进程控制以 [templates/windows/common.ps1](templates/windows/common.ps1) 为准，生成时原样复制为 `scripts/runtime/windows/lib/common.ps1`。不要改写这三份进程库，也不要跨系统复制。6.2 与 6.3 是 bash 进程库的行为；平台差别在 6.5、6.6 与 6.7。
 
 | 文件 | 内容 |
 | --- | --- |
@@ -207,13 +207,7 @@ Node 的应用进程是 dev server 本身，不是包管理器包装进程。Vit
 
 ### 6.4 Windows
 
-寻找应用进程时只看启动器的子孙进程，用父进程 ID 加命令行核对，并排除启动器自身。停止时用该 PID 的进程路径和命令行核对身份，然后：
-
-```powershell
-Stop-Process -Id $AppPid
-```
-
-等待使用 `Wait-Process -Id $AppPid -Timeout 25`。超时后只对这个 ID 执行 `Stop-Process -Id $AppPid -Force`。禁止 `taskkill /IM java`。launcher 与应用 PID 的分工和 bash 相同。
+进程库是 `templates/windows/common.ps1`，原样复制为 `scripts/runtime/windows/lib/common.ps1`。入口脚本是同名 `.ps1`，参数位置与 bash 相同。行为见 6.7。不要把 6.4 再写成另一份进程库。
 
 ### 6.5 macOS 模板
 
@@ -250,6 +244,35 @@ example 按第 5 节收集。加载时跳过空值和 `change-me`。
 
 和 macOS 的差别只有读取进程和查找 JDK。工作目录读 `/proc/<pid>/cwd`，命令行读 `/proc/<pid>/cmdline`。不要依赖 lsof，也不要调用 `/usr/libexec/java_home`。监听 PID 用 `ss -ltnp` 按本地端口读取。`ss` 没有给出 PID 时，再用 `/proc/net/tcp` 与 `/proc/net/tcp6` 确认端口是否已在监听；确认被占用但读不到 PID 就失败，不要去杀进程。候选进程可以用 `pgrep -f`，但必须再用 `/proc` 里的完整命令行复核，并跳过 pgrep 自己。JDK 只查已设置的 `JAVA_HOME`、当前 `java`，以及 `/usr/lib/jvm` 这类系统约定位置。不要写死家目录或某一台机器上的安装路径。
 
+### 6.7 Windows 模板
+
+只用于 `scripts/runtime/windows/`。进程库是技能里的 `templates/windows/common.ps1`，原样复制为 `lib/common.ps1`。不要改写，也不要把 bash 进程库翻译进 windows。身份放在生成的 `lib/app-<app>.ps1`。不要把项目名写进模板。
+
+入口脚本是同名 `.ps1`。参数位置与 bash 相同：省略或 `run`、`jar` 仍是第一个参数。入口向上三级得到工作区根，点源 `lib/common.ps1` 和 `lib/app-<app>.ps1`，再调用 `runtime_start`、`runtime_stop`、`runtime_restart` 或 `runtime_status`。`usage_and_exit` 使用当前入口脚本的文件名。从调用栈由近到远找，跳过 `common.ps1`，不要取最外层的汇总脚本。
+
+语法停在 Windows PowerShell 5.1。不要使用 PowerShell 7 才有的 `&&`、三元运算符和空值合并运算符。
+
+行为与 6.5 相同。命令参数数组直接交给进程。解析命令时优先 `.exe`，然后 `.cmd`、`.bat`。无扩展名的同名文件不要拿来启动。只有 `.ps1` 垫片时，用 `powershell.exe -File` 执行它，后面仍是原来的参数。不要在模板里写 `cmd /c`。不要用 `taskkill /IM java`，也不要按进程名模糊停止。
+
+同步命令若启动失败或退出码不是 0，把旁路输出并入 `logs/<app>.log`，删掉旁路文件，再以「命令失败」退出。不要留下 `logs/.<app>.sync.stdout` 这类文件，也不要把 `Start-Process` 的原始错误留成未处理异常。
+
+启动分三段：先停命令行核对得上的本应用进程；端口上还有其他 PID 就列出并失败，不杀它们；60 秒内在启动器子孙里找到恰好一个应用进程，排除启动器自身。探测到端口后的等待与 6.5 第 3 段相同，默认 180 秒。进程在监听前退出就删掉 PID 文件并失败。没有探测到端口则跳过端口等待。
+
+Java `run` 用全限定主类名。`jar` 用 `target/<finalName>.jar`，工作目录按启动目录核对。Node 用 `APP_CMD_MARKER`；Vite 填 `vite/bin/vite`。包装进程只算启动器。
+
+停止使用 `Stop-Process -Id`。等待使用 `Wait-Process -Id -Timeout 25`。超时后只对这个 ID 执行 `Stop-Process -Id -Force`。停完再扫一次，仍有匹配进程就列出 PID 并失败。父进程只沿本次的 pnpm、npm 或 yarn 上溯；Java 启动器仍按 mvn、gradle、classworlds 核对。遇到 PID 0、PID 4，或不属于该应用，就停止上溯。
+
+已设置且主版本符合的 `JAVA_HOME` 直接使用，不用更高版本替换。找不到要求的 JDK 就失败，并提示写到 `config/<app>.env`。example 只写占位符，口令类用 `change-me`，加载时跳过空值和 `change-me`。
+
+和 bash 的差别只有这些：
+
+- 用 `Win32_Process` 的 `CommandLine` 和 `ParentProcessId` 识别进程。能可靠读到工作目录时再核对工作目录。读不到就不要编一个路径，也不要单凭缺工作目录判成不匹配；读到了就必须和工作目录规则一致。
+- 监听端口用 `Get-NetTCPConnection` 按本地端口读取，不要只加 `-State Listen`。`State` 为 `Listen` 算监听。IPv6 `::` 上有些监听记录的 `State` 是 0 或空，远端端口仍是 0，也算监听。远端端口不是 0 的已建立连接不算。读到监听但没有可用 PID 时失败，不要杀进程。
+- 新进程用 `Start-Process -PassThru` 启动，记下返回的进程 ID。标准输出和标准错误追加到 `logs/<app>.log`。`.cmd` 由系统启动，返回的进程 ID 仍是这次 `Start-Process` 的结果。
+- 失败摘要按 UTF-8 读 `logs/<app>.log`，打开时使用 `FileShare.ReadWrite`，日志泵占着文件也能读。读失败只写一行说明，然后继续原来的失败退出。进程刚退出时先等日志泵结束，最多 1 秒。控制台按 UTF-8 写，不沿用代码页 936。
+- 启动 Java 时把 `stdout.encoding`、`stderr.encoding`、`sun.stdout.encoding`、`sun.stderr.encoding` 设为 UTF-8。`jar` 写在 `java` 命令里、`-jar` 之前。`run` 写进 `JAVA_TOOL_OPTIONS`，让 Maven 或 Gradle 拉起的 JVM 继承。这样 `System.out` 不再按代码页 936 写入日志。
+- JDK 只查已设置的 `JAVA_HOME`、当前 `java`，以及 Program Files 下的 Java、Eclipse Adoptium 这类安装目录。不要写死某一台机器的用户目录。
+
 ## 7. 生成前复查
 
 - [ ] 只写了 `scripts/runtime/<os>/`，且 `<os>` 是本次目标系统
@@ -262,4 +285,6 @@ example 按第 5 节收集。加载时跳过空值和 `change-me`。
 - [ ] example 中没有真实口令
 - [ ] `macos` 的 `lib/common.sh` 与 `templates/macos/common.sh` 一致，没有改写
 - [ ] `linux` 的 `lib/common.sh` 与 `templates/linux/common.sh` 一致，没有改写
-- [ ] 本次没有新增 windows 模板
+- [ ] `windows` 的 `lib/common.ps1` 与 `templates/windows/common.ps1` 一致，没有改写
+- [ ] `windows` 的三个汇总脚本在每次 `&` 之后检查 `$LASTEXITCODE`，只有非 0 才退出
+- [ ] `windows` 优先启动 `.exe` / `.cmd`；只有 `.ps1` 时用 `powershell.exe -File`。失败摘要是 UTF-8，旁路文件已删除

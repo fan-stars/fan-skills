@@ -130,19 +130,19 @@
 
 #### 核心能力
 
-先探测工作区候选运行根与唯一主入口，再在 scripts/runtime/<os>/ 生成 start/stop/restart/status（多入口另有 *-all）；外置 config/*.env.example；安全按 PID+命令行+工作目录停进程；含 macos 与 linux 进程库模板，默认只生成当前系统。
+先探测工作区候选运行根与唯一主入口，再在 scripts/runtime/<os>/ 生成 start/stop/restart/status（多入口另有 *-all）；外置 config/*.env.example；按 PID、命令行与工作目录核对后停进程。进程库含 macos、linux 的 bash 与 windows 的 PowerShell 5.1，默认只生成当前系统。
 
 #### 适用场景
 
-用户要求项目启动脚本、本地前后端进程管理，或提到 spring.application.name、scripts/runtime、macos/linux/windows 时使用，覆盖单模块与多模块仓库。
+用户要求项目启动脚本、本地前后端进程管理，或提到 spring.application.name、scripts/runtime、macos、linux、windows 时使用，覆盖单模块与多模块仓库。
 
 #### 主要覆盖内容
 
-候选根判定、Java/Node 主入口与脚本基名规则、run/jar 模式命令、PID 停止算法、gitignore 忽略规则、再次生成时的差异确认；细节见 reference.md、examples.md 与 templates/macos、templates/linux。
+候选根判定、Java 与 Node 主入口及脚本基名、run 与 jar 命令、PID 停止算法、gitignore 规则、再次生成时的差异确认。细节见 reference.md、examples.md，以及 templates 下 macos、linux、windows 三份进程库。
 
 #### 注意事项
 
-不改项目既有配置与源文件；主入口不明确时只列候选并等待。禁止 killall/pkill 与模糊杀进程。已有脚本不一致时先展示 diff，真实 .env 永不覆盖。Fan 本地自建 skill。
+不改项目既有配置与源文件；主入口不明确时只列候选并等待。禁止 killall、pkill、taskkill /IM java 和按进程名模糊匹配。已有脚本不一致时先展示 diff，真实 .env 永不覆盖。三份进程库必须原样复制。Fan 本地自建 skill。
 
 ### `f-skills-library-ingest`
 

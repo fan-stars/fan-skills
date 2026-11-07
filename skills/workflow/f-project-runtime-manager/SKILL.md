@@ -21,7 +21,7 @@ description: >-
 6. 脚本基名是项目名。不要用 `backend` 或 `frontend` 做前缀。
 7. 真实 `config/<app>.env`、`run/`、`logs/` 不提交。`*.env.example` 和脚本可以提交。
 8. 停进程只杀死记录下来、且命令行与工作目录都核对属于该应用的 PID。禁止 `killall`、`pkill`、`taskkill /IM java`，以及按进程名模糊匹配。
-9. `macos` 与 `linux` 使用 `#!/usr/bin/env bash`，语法停在 bash 3.2：不用关联数组，不用 `${var,,}`，不依赖 `mapfile`。同一条 `local` 里不要引用刚声明的变量，`set -u` 会把它当成未绑定。`windows` 使用 PowerShell 5.1 的 `.ps1`。
+9. `macos` 与 `linux` 使用 `#!/usr/bin/env bash`，语法停在 bash 3.2：不用关联数组，不用 `${var,,}`，不依赖 `mapfile`。同一条 `local` 里不要引用刚声明的变量，`set -u` 会把它当成未绑定。`windows` 使用 Windows PowerShell 5.1 的 `.ps1`，不要使用 PowerShell 7 才有的 `&&`、三元运算符和空值合并运算符。
 10. 已有脚本与本次探测不一致时，先展示差异，确认前不覆盖。已存在的 `config/<app>.env` 不覆盖。
 11. 示例只使用虚构的目录名和项目名。生成脚本时写入本次探测结果，不要把示例名字写进目标项目。
 
@@ -43,7 +43,7 @@ Task Progress:
 
 工作区根是用户当前打开的工作区。单仓库时它就是仓库根。多仓库时脚本写在工作区根，不写进子仓库。
 
-入口脚本从自身位置向上三级得到工作区根：`<workspace>/scripts/runtime/<os>/<name>.sh`。应用目录写成相对工作区根的路径。`lib/common.sh` 比入口脚本深一层，向上四级才是工作区根。
+入口脚本从自身位置向上三级得到工作区根：`<workspace>/scripts/runtime/<os>/<name>.sh`。windows 入口是同名 `.ps1`。应用目录写成相对工作区根的路径。`lib/common.sh` 或 `lib/common.ps1` 比入口脚本深一层，向上四级才是工作区根。
 
 | 探测值 | 目录 |
 | --- | --- |
@@ -91,9 +91,9 @@ Node 基名取该包 `package.json` 的 `name`，去掉 scope，折成小写 `[a
 
 文件布局、`run` / `jar` 参数、PID 与停止算法见 [reference.md](reference.md)。单模块示意名是虚构的 `ledger`，前端示意名是 `shop-console`。根脚本没有引用的包，例如 `shop-mobile`，只写进探测说明，不生成脚本。多模块命令只写 `<module>`，不写死某一套父子目录。命令示意见 [examples.md](examples.md)。示例里的目录名、包名、端口和 jar 路径都是虚构的，必须换成本次探测结果。
 
-生成 `macos` 时，把 [templates/macos/common.sh](templates/macos/common.sh) 原样复制为 `scripts/runtime/macos/lib/common.sh`。生成 `linux` 时，把 [templates/linux/common.sh](templates/linux/common.sh) 原样复制为 `scripts/runtime/linux/lib/common.sh`。不要改写这两份进程库，也不要把 macOS 那份复制到 linux。每个主入口另写 `lib/app-<app>.sh`，只放本次探测到的身份、端口变量和命令数组。入口脚本只负责定位工作区、source 这两个文件，并调用 `runtime_start`、`runtime_stop`、`runtime_restart` 或 `runtime_status`。windows 的模板留到对应机器，本次不要新增。
+生成 `macos` 时，把 [templates/macos/common.sh](templates/macos/common.sh) 原样复制为 `scripts/runtime/macos/lib/common.sh`。生成 `linux` 时，把 [templates/linux/common.sh](templates/linux/common.sh) 原样复制为 `scripts/runtime/linux/lib/common.sh`。生成 `windows` 时，把 [templates/windows/common.ps1](templates/windows/common.ps1) 原样复制为 `scripts/runtime/windows/lib/common.ps1`。不要改写这三份进程库，也不要跨系统复制。Windows 命令优先 `.exe` / `.cmd`，只有 `.ps1` 垫片时用 `powershell.exe -File`；失败摘要按 UTF-8 读日志并按 UTF-8 写控制台。Java 的 `System.out` 通过 `sun.stdout.encoding` 和 `stdout.encoding` 写成 UTF-8。细节见 [reference.md](reference.md)。每个主入口另写 `lib/app-<app>.sh`；windows 写 `lib/app-<app>.ps1`。身份文件只放本次探测到的身份、端口变量和命令数组。入口脚本只负责定位工作区、载入进程库和身份文件，并调用 `runtime_start`、`runtime_stop`、`runtime_restart` 或 `runtime_status`。windows 入口是同名 `.ps1`，参数位置与 bash 相同。
 
-每个主入口四份脚本：`<app>-start`、`<app>-stop`、`<app>-restart`、`<app>-status`。两个及以上主入口时再生成 `start-all`、`stop-all`、`status-all`。`start-all` 先启动 Java，再启动 Node。前一个失败则不再启动后面的。
+每个主入口四份脚本：`<app>-start`、`<app>-stop`、`<app>-restart`、`<app>-status`。两个及以上主入口时再生成 `start-all`、`stop-all`、`status-all`。`start-all` 先启动 Java，再启动 Node。前一个失败则不再启动后面的。Windows 汇总脚本每次 `&` 之后，`$LASTEXITCODE` 非 0 就 `exit` 这个码；这个值为空不是失败。
 
 Java 默认模式 `run` 不要先做 `package`。单模块在候选根执行 `mvn spring-boot:run`，或 `./gradlew bootRun`。多模块的 `run` 分两步，都在 reactor 根执行：先 `mvn -pl <module> -am -DskipTests install`，再只对可执行模块执行 `mvn -pl <module> org.springframework.boot:spring-boot-maven-plugin:<version>:run`，这一步不要加 `-am`。插件坐标和 `<version>` 的读法见 [reference.md](reference.md)。Gradle 多模块仍用 `./gradlew :<gradlePath>:bootRun`。第一个参数为 `jar` 时才打包再 `java -jar`。Node 脚本收到 `jar` 时退出码为 2，并打印用法。`node_modules` 不存在时先 install 一次，不在 dev 之前做生产构建。
 
@@ -114,6 +114,7 @@ scripts/runtime/*/logs/
 
 - `macos` 与 `linux`：对每个生成的 `.sh` 执行 `bash -n`。
 - `linux` 的 `lib/common.sh` 必须与 `templates/linux/common.sh` 一致，没有改写。
+- `windows`：用 Windows PowerShell 5.1 的 `Parser.ParseFile` 检查每个 `.ps1`。`lib/common.ps1` 必须与 `templates/windows/common.ps1` 一致，没有改写。
 - 执行每个 `*-status` 脚本，确认它不启动进程。
 - 向用户交付：目标系统、探测清单（含明确不生成的包）、新增文件、最短启动/停止/状态命令、配置路径。
 - 明确声明：未修改项目既有配置与源文件。

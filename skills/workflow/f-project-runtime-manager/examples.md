@@ -68,7 +68,7 @@ not generated:
 未修改项目既有配置与源文件。示例名字是虚构的。
 ```
 
-用户明确要求 Linux 脚本时，只生成 `scripts/runtime/linux/`。Windows 则是 `scripts/runtime/windows/` 下的同名 `.ps1`。不要因为当前机器是 macOS 就额外写出另外两套。windows 的模板留到对应机器。Linux 进程库见 F，原样复制 `templates/linux/common.sh`，不要把 macOS 的 `common.sh` 复制到 linux。
+用户明确要求 Linux 脚本时，只生成 `scripts/runtime/linux/`。Windows 则是 `scripts/runtime/windows/` 下的同名 `.ps1`，参数位置与 bash 相同。不要因为当前机器是 macOS 就额外写出另外两套。Linux 进程库见 F，原样复制 `templates/linux/common.sh`。Windows 进程库见 H，原样复制 `templates/windows/common.ps1`。不要把 macOS 的 `common.sh` 复制到 linux 或 windows。
 
 ## E. macOS 拼装
 
@@ -148,4 +148,44 @@ LEDGER_DB_PASSWORD=change-me
 JAVA_HOME=
 ```
 
-`JAVA_HOME` 只在 `JAVA_REQUIRED` 非空时出现。`SERVER_PORT` 不写入赋值。这些名字必须换成本次探测结果。
+`JAVA_HOME` 只在 `JAVA_REQUIRED` 非空时出现。`SERVER_PORT` 不写入赋值。这些名字必须换成本次探测结果。加载时跳过空值和 `change-me`。
+
+## H. Windows 拼装
+
+进程库使用技能里的 `templates/windows/common.ps1`，原样复制为 `scripts/runtime/windows/lib/common.ps1`。不要改写，也不要改成某一份项目脚本。不要把 bash 的 `common.sh` 翻译进 windows。
+
+Windows 解析命令时优先 `.exe`，其次 `.cmd`、`.bat`。只有 `.ps1` 时用 `powershell.exe -File`。失败时退出文本是「命令失败」，日志按 UTF-8 读取，错误输出按 UTF-8 书写。Java 启动要带上 `sun.stdout.encoding=UTF-8` 和 `stdout.encoding=UTF-8`，`System.out` 才不会按代码页 936 写入日志。
+
+入口脚本是同名 `.ps1`，参数位置与 bash 相同。ledger 与 shop-console 的字段和 E 相同。语法停在 Windows PowerShell 5.1。
+
+```powershell
+powershell -NoProfile -File .\scripts\runtime\windows\ledger-start.ps1
+powershell -NoProfile -File .\scripts\runtime\windows\ledger-start.ps1 jar
+powershell -NoProfile -File .\scripts\runtime\windows\ledger-status.ps1
+powershell -NoProfile -File .\scripts\runtime\windows\shop-console-start.ps1
+```
+
+`ledger-start.ps1`：
+
+```powershell
+$ErrorActionPreference = 'Stop'
+$SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
+$WORKSPACE_ROOT = (Resolve-Path (Join-Path $SCRIPT_DIR '..\..\..')).Path
+. (Join-Path $SCRIPT_DIR 'lib\common.ps1')
+. (Join-Path $SCRIPT_DIR 'lib\app-ledger.ps1')
+runtime_start @args
+```
+
+`stop`、`restart`、`status` 把最后一行换成 `runtime_stop`、`runtime_restart @args` 或 `runtime_status`。`lib/app-ledger.ps1` 使用与 E 相同的虚构字段，数组写成 `@('mvn', 'spring-boot:run')`。`MAIN_CLASS` 仍是 `com.example.ledger.LedgerApplication`。`lib/app-shop-console.ps1` 的 `APP_CMD_MARKER` 仍是 `vite/bin/vite`。这些名字是虚构的，必须换成本次探测结果。
+
+`start-all.ps1` 先调用 ledger，再调用 shop-console。`stop-all.ps1` 与 `status-all.ps1` 同样在每次调用后检查退出码。非法参数的用法提示写当前入口名，例如 `ledger-start.ps1`，不要写成 `start-all.ps1`。
+
+```powershell
+$ErrorActionPreference = 'Stop'
+$SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+& (Join-Path $SCRIPT_DIR 'ledger-start.ps1') @args
+if ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+& (Join-Path $SCRIPT_DIR 'shop-console-start.ps1')
+if ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+```

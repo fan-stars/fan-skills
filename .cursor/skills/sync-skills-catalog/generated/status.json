@@ -13,7 +13,7 @@
     "f-base-project-initializer-cn": "91413e0c3b5b5ba871e43d4805611c396a32b05c80a83e7fb0a7f10dc2a4bdb2",
     "f-enterprise-source-reverse-engineering": "a1a027cd7ff754f01c030508bb849cd5bff3c6a5a94f520b01a800e92d4d6ef3",
     "f-java-springboot": "cedffacd0b5722b43181bcfc63d9a17f1556c31d664e974da34582b82fbde2cb",
-    "f-project-runtime-manager": "3c41d8092660f4c3eed9f99c57e31eb37e515c2516af79ede8d9691e9de8725d",
+    "f-project-runtime-manager": "77080ae61585c777eacecee3ed8fdb0b7a39413e2c5b71f2f2fe8abab4b6c0bc",
     "find-skills": "b146008599c31057cef1c145774cea5d5afb30e8f43fa802e47a4b461419aaaf",
     "frontend-design": "665c585455decbcb02116bc928adf5148b9cd0f67b7eb4908c8c0d647c00f68a",
     "grill-me": "000514e9633b1a2df8bef98549e99b6eaf1a8c3fabfad0e3b328440b3b226c90",
@@ -98,6 +98,7 @@
     "f-base-project-initializer-cn",
     "f-enterprise-source-reverse-engineering",
     "f-java-springboot",
+    "f-project-runtime-manager",
     "find-skills",
     "frontend-design",
     "grill-me",
@@ -168,11 +169,7 @@
     "java-add-graalvm-native-image-support",
     "f-skills-library-ingest"
   ],
-  "needGenerate": [
-    "f-project-runtime-manager"
-  ],
-  "invalid": [
-    "f-project-runtime-manager"
-  ],
+  "needGenerate": [],
+  "invalid": [],
   "docsPath": ".cursor/skills/sync-skills-catalog/generated/skill-docs.json"
 }
