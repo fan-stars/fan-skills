@@ -115,7 +115,13 @@ scripts/runtime/<os>/
 
 `windows/` 把 `.sh` 换成 `.ps1`，公共库是 `lib/common.ps1`。参数位置与 bash 相同。
 
-example 只写占位符，例如 `SPRING_DATASOURCE_PASSWORD=change-me`。脚本加载 env 时跳过空值和 `change-me`，避免覆盖项目自带配置。真实 env 不存在时复制 example，已存在则不覆盖。
+example 从可执行模块 `src/main/resources` 的基础配置收集占位符。基础文件是实际存在的 `application.yaml`、`application.yml` 或 `application.properties`。再读 `spring.profiles.active` 的第一个字面 profile，文件名为同目录的 `application-<profile>`，扩展名与基础文件相同。先去掉注释和引号；逗号分隔或列表只取第一个。该值本身是 `${...}` 时，只读基础文件，并在探测说明里写明 profile 没有解析。不读其他 profile 文件，不读 `target/classes`。profile 文件应当存在却缺失时，停止生成并说明缺哪一个。
+
+不读注释。只收集 `${NAME}` 和 `${NAME:缺省}`，且 `NAME` 匹配 `[A-Z][A-Z0-9_]*`。同名只写一次。基础文件和 profile 都有缺省时，注释用 profile 的缺省。
+
+名字含 `PASSWORD`、`SECRET`、`TOKEN`、`ACCESS_KEY`、`PRIVATE_KEY` 或 `_KEY` 的，值写 `change-me`。注释只说明配置里有缺省，不抄缺省口令。其余键值留空，注释写配置缺省。
+
+example 始终包含空的 `PORT_WAIT_SECONDS=`。`JAVA_REQUIRED` 非空时另写空的 `JAVA_HOME=`，注释只写要求的主版本。不导出 `SERVER_PORT`。脚本加载 env 时跳过空值和 `change-me`，避免覆盖项目自带配置。真实 env 不存在时复制 example，已存在则不覆盖。
 
 端口只读：Java 读生效配置里的 `server.port`；Vite 读 `server.port`；Next 读脚本中的 `-p` 或 `PORT`。status 在读到端口时打印它。
 
@@ -132,7 +138,7 @@ scripts/runtime/*/logs/
 
 ## 6. 进程文件
 
-`macos` 的进程控制以 [templates/macos/common.sh](templates/macos/common.sh) 为准，生成时原样复制。linux 与 windows 的模板留到对应机器；在那之前，linux 仍用本节 6.2 与 6.3，windows 仍用 6.4。
+`macos` 的进程控制以 [templates/macos/common.sh](templates/macos/common.sh) 为准，生成时原样复制为 `scripts/runtime/macos/lib/common.sh`。`linux` 的进程控制以 [templates/linux/common.sh](templates/linux/common.sh) 为准，生成时原样复制为 `scripts/runtime/linux/lib/common.sh`。不要改写这两份进程库，也不要把 macOS 那份复制到 linux。windows 仍用 6.4，本次不要新增 windows 模板。6.2 与 6.3 是两套 bash 进程库共同遵守的行为；平台差别只在 6.5 与 6.6。
 
 | 文件 | 内容 |
 | --- | --- |
@@ -178,7 +184,7 @@ workspace_root() {
 
 找到这一个时，把它的 PID 写入 `run/<app>.pid`，并把 `run` 写入 `run/<app>.mode`。超时，或匹配数不是 1：只对本次 launcher PID 发送 `kill -TERM`，等待 25 秒后仍在则只对它 `kill -KILL`。然后打印日志末尾并退出非零。不要碰其它 Java 进程。
 
-macOS 读工作目录用 `lsof -a -p <pid> -d cwd`，读命令行用 `ps -p <pid> -ww -o command=`。不要省略 `-ww`，长 classpath 会被截断，主类名会落在被截掉的部分。Linux 读 `/proc/<pid>/cwd` 与 `/proc/<pid>/cmdline`。
+macOS 读工作目录用 `lsof -a -p <pid> -d cwd`，读命令行用 `ps -p <pid> -ww -o command=`。不要省略 `-ww`，长 classpath 会被截断，主类名会落在被截掉的部分。Linux 读 `/proc/<pid>/cwd` 与 `/proc/<pid>/cmdline`。生成 linux 脚本时不要重写这段读取，原样复制 `templates/linux/common.sh`。
 
 `jar` 模式同样放进新会话再后台运行 `java -jar`。命令行通常没有主类名，用 jar 路径识别：包含 `<module>/target/<finalName>.jar` 或 `target/<finalName>.jar`。工作目录是启动它的目录，多模块即 reactor 根，单模块即候选根。只把该 PID 写入 `run/<app>.pid`，模式文件写 `jar`。
 
@@ -197,7 +203,7 @@ Node 的应用进程是 dev server 本身，不是包管理器包装进程。Vit
 
 停掉 Node 应用进程后，沿父进程向上。父进程的命令行属于这次的包管理器，且工作目录是候选根或该包目录时，用同样的 TERM、等待、KILL 停掉它。遇到 PID 1，或父进程不属于该应用，就停止上溯。不要停 IDE 或其他无关父进程。
 
-`start` 发现应用 PID 仍属于本应用时，先完成停止，再按本次参数启动。结束时打印应用名、模式、pid、日志路径、配置路径、已知端口。
+`start` 发现应用 PID 仍属于本应用时，先完成停止，再按本次参数启动。只有确认本 PID 正在监听时，才打印应用名、模式、pid、日志路径、配置路径和端口。
 
 ### 6.4 Windows
 
@@ -219,13 +225,30 @@ Stop-Process -Id $AppPid
 
 1. 先停本应用里命令行和工作目录都核对得上的进程。端口上若还有其他 PID 在监听，列出这些 PID 并失败，不要杀掉它们。
 2. 最多 60 秒，在启动器子孙里找到恰好一个应用进程。Java `run` 要有全限定主类名，且工作目录在可执行单元目录下。`jar` 用 `target/<finalName>.jar` 识别，工作目录是 reactor 根或该单元目录。Node 用 `APP_CMD_MARKER`；Vite 填 `vite/bin/vite`。超时或不是恰好一个时，只终止本次启动器。
-3. 探测到端口时再等最多 90 秒。进程在监听前退出：删除刚写的 PID 文件并失败。端口由其他 PID 监听，或自己的进程仍在但端口还没听上：警告，保留 PID，退出码为 0。没有探测到端口则跳过这一段。
+3. 探测到端口时，从找到应用进程之后再等。默认最多 180 秒。`PORT_WAIT_SECONDS` 为空或 `change-me` 时用 180，不含前导零的正整数才覆盖。60 秒寻找应用进程的那段不改。四条结果：
+
+   - 本 PID 已在该端口的监听者里：成功。`runtime_start` 这时才调用 `print_running`。
+   - 进程在监听前退出：删除刚写的 PID、launcher、mode 文件，非零退出。
+   - 等到上限，本进程还在，端口仍没人听：非零退出。保留 PID、launcher 和 mode，不杀进程，不调用 `print_running`。
+   - 端口上出现别的 PID：立刻非零退出。保留自己的 PID、launcher 和 mode，不杀对方。本 PID 也在监听者里时算成功。
+
+   没有探测到端口则跳过等待，启动成功，不调用 `print_running`。`print_running` 仍供 `runtime_status` 使用。
 
 发现候选进程时用 `pgrep -f` 读取完整参数，再用 `ps -p <pid> -ww -o command=` 复核。跳过 `pgrep` 自己。停完再扫一次，仍有匹配进程就列出 PID 并失败。
 
 Java 的 JAVA_REQUIRED 来自构建文件里的 java.version 或 release，没有则留空。已设置的 JAVA_HOME 满足该主版本就用它，不用更高版本替换。不满足时再用 `/usr/libexec/java_home`，然后才查找常见安装位置。找不到就失败，并提示写到 `config/<app>.env`。
 
-example 只写这次探测到的覆盖项。口令类用 `change-me`，其余留空。加载时跳过空值和 `change-me`。
+example 按第 5 节收集。加载时跳过空值和 `change-me`。
+
+### 6.6 Linux 模板
+
+只用于 `scripts/runtime/linux/`。进程库是技能里的 `templates/linux/common.sh`，原样复制为 `lib/common.sh`。不要改写，也不要把 `templates/macos/common.sh` 复制过来。身份仍放在生成的 `lib/app-<app>.sh`。不要把项目名写进模板。
+
+行为与 6.5 相同。bash 3.2：不用关联数组，不用 `${var,,}`，不依赖 `mapfile`。同一条 `local` 里不要引用刚声明的变量。用 execvpe 执行命令数组。不要用 bash -c，不要用 nohup。没有 python3 且没有 setsid 时，启动失败并说明原因。
+
+启动分三段：先停命令行和工作目录都核对得上的本应用进程；端口上还有其他 PID 就列出并失败，不杀它们；60 秒内在启动器子孙里找到恰好一个应用进程；探测到端口后的等待与 6.5 第 3 段相同。没有探测到端口则跳过等待。Java `run` 要有全限定主类名，且工作目录在可执行单元目录下。`jar` 用 `target/<finalName>.jar` 识别，工作目录是 reactor 根或该单元目录。Node 用 `APP_CMD_MARKER`；Vite 填 `vite/bin/vite`。停完再扫一次，仍有匹配进程就列出 PID 并失败。父进程只沿本次的 pnpm、npm 或 yarn 上溯，遇到 PID 1 或不属于该应用就停止。已设置且主版本符合的 `JAVA_HOME` 直接使用，不用更高版本替换。找不到要求的 JDK 就失败。
+
+和 macOS 的差别只有读取进程和查找 JDK。工作目录读 `/proc/<pid>/cwd`，命令行读 `/proc/<pid>/cmdline`。不要依赖 lsof，也不要调用 `/usr/libexec/java_home`。监听 PID 用 `ss -ltnp` 按本地端口读取。`ss` 没有给出 PID 时，再用 `/proc/net/tcp` 与 `/proc/net/tcp6` 确认端口是否已在监听；确认被占用但读不到 PID 就失败，不要去杀进程。候选进程可以用 `pgrep -f`，但必须再用 `/proc` 里的完整命令行复核，并跳过 pgrep 自己。JDK 只查已设置的 `JAVA_HOME`、当前 `java`，以及 `/usr/lib/jvm` 这类系统约定位置。不要写死家目录或某一台机器上的安装路径。
 
 ## 7. 生成前复查
 
@@ -238,4 +261,5 @@ example 只写这次探测到的覆盖项。口令类用 `change-me`，其余留
 - [ ] 没有修改项目原配置
 - [ ] example 中没有真实口令
 - [ ] `macos` 的 `lib/common.sh` 与 `templates/macos/common.sh` 一致，没有改写
-- [ ] 本次没有新增 linux 或 windows 模板
+- [ ] `linux` 的 `lib/common.sh` 与 `templates/linux/common.sh` 一致，没有改写
+- [ ] 本次没有新增 windows 模板

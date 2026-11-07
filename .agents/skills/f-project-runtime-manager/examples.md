@@ -68,7 +68,7 @@ not generated:
 未修改项目既有配置与源文件。示例名字是虚构的。
 ```
 
-用户明确要求 Linux 脚本时，只生成 `scripts/runtime/linux/`。Windows 则是 `scripts/runtime/windows/` 下的同名 `.ps1`。不要因为当前机器是 macOS 就额外写出另外两套。linux 与 windows 的模板留到对应机器，下面的 macOS 拼装不要照搬到那两个系统。
+用户明确要求 Linux 脚本时，只生成 `scripts/runtime/linux/`。Windows 则是 `scripts/runtime/windows/` 下的同名 `.ps1`。不要因为当前机器是 macOS 就额外写出另外两套。windows 的模板留到对应机器。Linux 进程库见 F，原样复制 `templates/linux/common.sh`，不要把 macOS 的 `common.sh` 复制到 linux。
 
 ## E. macOS 拼装
 
@@ -119,3 +119,33 @@ runtime_start "$@"
 ```
 
 `stop`、`restart`、`status` 把最后一行换成 `runtime_stop`、`runtime_restart "$@"` 或 `runtime_status "$@"`。这些目录名和命令都不可照抄，必须换成本次探测结果。
+
+## F. Linux 拼装
+
+进程库使用技能里的 `templates/linux/common.sh`，原样复制为 `scripts/runtime/linux/lib/common.sh`。不要改写，也不要改成某一份项目脚本。不要把 `templates/macos/common.sh` 复制过来。
+
+ledger 与 shop-console 的字段和上面的 macOS 示例相同，只是目录换成 `scripts/runtime/linux/`。
+
+```bash
+./scripts/runtime/linux/ledger-start.sh
+./scripts/runtime/linux/ledger-status.sh
+./scripts/runtime/linux/shop-console-start.sh
+```
+
+`ledger-status.sh` 最后一行是 `runtime_status "$@"`。这些名字是虚构的，必须换成本次探测结果。
+
+## G. 示例环境变量
+
+`config/ledger.env.example` 只含收集到的占位符和固定键。口令值是 `change-me`，其他键为空。注释里的缺省是虚构的。
+
+```bash
+PORT_WAIT_SECONDS=
+# 配置缺省 5432
+LEDGER_DB_PORT=
+# 配置有缺省，不写入缺省口令
+LEDGER_DB_PASSWORD=change-me
+# 模块要求 JDK 17
+JAVA_HOME=
+```
+
+`JAVA_HOME` 只在 `JAVA_REQUIRED` 非空时出现。`SERVER_PORT` 不写入赋值。这些名字必须换成本次探测结果。

@@ -420,11 +420,30 @@ wait_for_descendant() {
   fail_launcher "$launcher"
 }
 
+port_wait_limit() {
+  local raw=""
+  raw="${PORT_WAIT_SECONDS-}"
+  case "$raw" in
+    ''|change-me)
+      printf '180\n'
+      return 0
+      ;;
+  esac
+  case "$raw" in
+    *[!0-9]*|0*)
+      printf '180\n'
+      return 0
+      ;;
+  esac
+  printf '%s\n' "$raw"
+}
+
 confirm_port() {
-  local pid="$1" port elapsed=0 holders
+  local pid="$1" port="" elapsed=0 holders="" limit=""
   port="$(app_port)"
   [[ -n "$port" ]] || return 0
-  while [[ "$elapsed" -lt 90 ]]; do
+  limit="$(port_wait_limit)"
+  while [[ "$elapsed" -lt "$limit" ]]; do
     if ! pid_alive "$pid"; then
       rm -f "$PID_FILE" "$LAUNCHER_FILE" "$MODE_FILE"
       tail_log
@@ -436,8 +455,7 @@ confirm_port() {
       return 0
     fi
     if [[ -n "$holders" ]]; then
-      echo "警告: 端口 $port 由其他 PID 监听: $holders" >&2
-      return 0
+      die "端口 $port 由其他 PID 监听: $holders"
     fi
     sleep 1
     elapsed=$((elapsed + 1))
@@ -447,7 +465,7 @@ confirm_port() {
     tail_log
     die "$APP_NAME 在监听端口 $port 前退出"
   fi
-  echo "警告: 端口 $port 尚未监听，进程 $pid 仍在" >&2
+  die "端口 $port 在 ${limit} 秒内尚未监听，进程 $pid 仍保留"
 }
 
 java_major_of() {
@@ -650,7 +668,9 @@ runtime_start() {
     app_pid="$(read_pid_file "$PID_FILE")"
   fi
   confirm_port "$app_pid"
-  print_running
+  if [[ -n "$(app_port)" ]]; then
+    print_running
+  fi
 }
 
 runtime_restart() {

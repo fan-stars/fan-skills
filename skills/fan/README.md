@@ -192,7 +192,7 @@ Ant Design 6 项目出现间距混乱、迁移或 PR 审计时使用。也可在
 
 #### 核心能力
 
-先探测工作区候选运行根与唯一主入口，再在 scripts/runtime/<os>/ 生成 start/stop/restart/status（多入口另有 *-all）；外置 config/*.env.example，安全按 PID+命令行+工作目录停进程；含 macos 进程库模板，默认只生成当前系统。
+先探测工作区候选运行根与唯一主入口，再在 scripts/runtime/<os>/ 生成 start/stop/restart/status（多入口另有 *-all）；外置 config/*.env.example；安全按 PID+命令行+工作目录停进程；含 macos 与 linux 进程库模板，默认只生成当前系统。
 
 #### 适用场景
 
@@ -200,7 +200,7 @@ Ant Design 6 项目出现间距混乱、迁移或 PR 审计时使用。也可在
 
 #### 主要覆盖内容
 
-候选根判定、Java/Node 主入口与脚本基名规则、run/jar 模式命令、PID 停止算法、gitignore 忽略规则、再次生成时的差异确认；细节见 reference.md、examples.md 与 templates/macos。
+候选根判定、Java/Node 主入口与脚本基名规则、run/jar 模式命令、PID 停止算法、gitignore 忽略规则、再次生成时的差异确认；细节见 reference.md、examples.md 与 templates/macos、templates/linux。
 
 #### 注意事项
 
