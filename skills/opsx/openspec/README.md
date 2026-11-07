@@ -8,18 +8,18 @@ OpenSpec CLI 新技能套件（/opsx:*），与 commands/opsx 对应
 
 | Skill 名称 | 路径 | 简介 | skills.sh | GitHub |
 | --- | --- | --- | --- | --- |
-| `openspec-apply-change` | `skills/opsx/openspec/openspec-apply-change/` | 按 OpenSpec change 的 tasks 逐步实现代码。 | 暂无 | [本仓库](../../../.agents/skills/openspec-apply-change/SKILL.md) |
-| `openspec-archive-change` | `skills/opsx/openspec/openspec-archive-change/` | 归档已完成的 OpenSpec change 并同步主规格。 | 暂无 | [本仓库](../../../.agents/skills/openspec-archive-change/SKILL.md) |
-| `openspec-bulk-archive-change` | `skills/opsx/openspec/openspec-bulk-archive-change/` | 批量归档多个已完成的 OpenSpec change。 | 暂无 | [本仓库](../../../.agents/skills/openspec-bulk-archive-change/SKILL.md) |
-| `openspec-continue-change` | `skills/opsx/openspec/openspec-continue-change/` | 继续推进进行中的 OpenSpec change 下一工件。 | 暂无 | [本仓库](../../../.agents/skills/openspec-continue-change/SKILL.md) |
-| `openspec-explore` | `skills/opsx/openspec/openspec-explore/` | OpenSpec 探索模式：在动手实现前澄清需求与方案。 | 暂无 | [本仓库](../../../.agents/skills/openspec-explore/SKILL.md) |
-| `openspec-ff-change` | `skills/opsx/openspec/openspec-ff-change/` | 快进生成实现前所需的全部 OpenSpec 工件。 | 暂无 | [本仓库](../../../.agents/skills/openspec-ff-change/SKILL.md) |
-| `openspec-new-change` | `skills/opsx/openspec/openspec-new-change/` | 创建新的 OpenSpec change 脚手架与元数据。 | 暂无 | [本仓库](../../../.agents/skills/openspec-new-change/SKILL.md) |
-| `openspec-onboard` | `skills/opsx/openspec/openspec-onboard/` | 引导完成一轮 OpenSpec 工作流上手体验。 | 暂无 | [本仓库](../../../.agents/skills/openspec-onboard/SKILL.md) |
-| `openspec-propose` | `skills/opsx/openspec/openspec-propose/` | 一键生成 OpenSpec change 的完整提案工件。 | 暂无 | [本仓库](../../../.agents/skills/openspec-propose/SKILL.md) |
-| `openspec-sync-specs` | `skills/opsx/openspec/openspec-sync-specs/` | 在不归档的情况下把 delta specs 同步到主规格。 | 暂无 | [本仓库](../../../.agents/skills/openspec-sync-specs/SKILL.md) |
-| `openspec-update-change` | `skills/opsx/openspec/openspec-update-change/` | 修订已有 OpenSpec change 的规划工件并保持一致。 | 暂无 | [本仓库](../../../.agents/skills/openspec-update-change/SKILL.md) |
-| `openspec-verify-change` | `skills/opsx/openspec/openspec-verify-change/` | 在归档前核对实现与 change 工件是否一致。 | 暂无 | [本仓库](../../../.agents/skills/openspec-verify-change/SKILL.md) |
+| `openspec-apply-change` | `skills/opsx/openspec/openspec-apply-change/` | 按 OpenSpec change 的 tasks 逐步实现代码。 | 暂无 | [GitHub](https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-apply-change/SKILL.md) |
+| `openspec-archive-change` | `skills/opsx/openspec/openspec-archive-change/` | 归档已完成的 OpenSpec change 并同步主规格。 | 暂无 | [GitHub](https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-archive-change/SKILL.md) |
+| `openspec-bulk-archive-change` | `skills/opsx/openspec/openspec-bulk-archive-change/` | 批量归档多个已完成的 OpenSpec change。 | 暂无 | [GitHub](https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-bulk-archive-change/SKILL.md) |
+| `openspec-continue-change` | `skills/opsx/openspec/openspec-continue-change/` | 继续推进进行中的 OpenSpec change 下一工件。 | 暂无 | [GitHub](https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-continue-change/SKILL.md) |
+| `openspec-explore` | `skills/opsx/openspec/openspec-explore/` | OpenSpec 探索模式：在动手实现前澄清需求与方案。 | 暂无 | [GitHub](https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-explore/SKILL.md) |
+| `openspec-ff-change` | `skills/opsx/openspec/openspec-ff-change/` | 快进生成实现前所需的全部 OpenSpec 工件。 | 暂无 | [GitHub](https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-ff-change/SKILL.md) |
+| `openspec-new-change` | `skills/opsx/openspec/openspec-new-change/` | 创建新的 OpenSpec change 脚手架与元数据。 | 暂无 | [GitHub](https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-new-change/SKILL.md) |
+| `openspec-onboard` | `skills/opsx/openspec/openspec-onboard/` | 引导完成一轮 OpenSpec 工作流上手体验。 | 暂无 | [GitHub](https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-onboard/SKILL.md) |
+| `openspec-propose` | `skills/opsx/openspec/openspec-propose/` | 一键生成 OpenSpec change 的完整提案工件。 | 暂无 | [GitHub](https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-propose/SKILL.md) |
+| `openspec-sync-specs` | `skills/opsx/openspec/openspec-sync-specs/` | 在不归档的情况下把 delta specs 同步到主规格。 | 暂无 | [GitHub](https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-sync-specs/SKILL.md) |
+| `openspec-update-change` | `skills/opsx/openspec/openspec-update-change/` | 修订已有 OpenSpec change 的规划工件并保持一致。 | 暂无 | [GitHub](https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-update-change/SKILL.md) |
+| `openspec-verify-change` | `skills/opsx/openspec/openspec-verify-change/` | 在归档前核对实现与 change 工件是否一致。 | 暂无 | [GitHub](https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-verify-change/SKILL.md) |
 
 ## 详细介绍
 

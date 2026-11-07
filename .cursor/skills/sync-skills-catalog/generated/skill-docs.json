@@ -98,12 +98,12 @@
       "contentHash": "cedffacd0b5722b43181bcfc63d9a17f1556c31d664e974da34582b82fbde2cb"
     },
     "f-project-runtime-manager": {
-      "summary": "探测 Java/Spring Boot 与 Vue/Vite 项目结构，生成可移植的启停/状态脚本，不改原文件。",
-      "capabilities": "先分析仓库（构建工具、可执行模块、包管理器、dev/build 脚本、端口/profile 只读推断），再在 `scripts/` 下生成 start/stop/restart/status（多应用可聚合）脚本；配置外置到 `scripts/config/`，安全停进程（PID 优先，禁用 killall/pkill），启动前必编译。",
-      "scenarios": "用户要求生成项目启动管理脚本、本地启停管理器、前后端进程管理或统一启动脚本时使用，尤其是 Spring Boot + Vue 单仓或 monorepo。",
-      "coverage": "管理根目录判定、后端/前端探测启发式、脚本文件布局与生成规则、dry-run 校验与完成时输出；细节见 reference.md 与 examples.md。",
-      "notes": "禁止使用固定模板或硬编码路径；禁止改动 application*.yml、package.json、pom.xml 等既有文件，仅新增 `scripts/`。幂等生成，再次运行先读已有脚本增量更新。Fan 本地自建 skill，无公开仓库。",
-      "contentHash": "adc1a464d58a9e7798918a09dd91b2dae2bca4c1e3f28fdba87e9a4af79e34a5"
+      "summary": "按探测结果为 Java/Spring Boot 与 React/Next/Vue/Nuxt 等 Node 应用生成可移植启停脚本。",
+      "capabilities": "先探测工作区候选运行根与唯一主入口，再在 scripts/runtime/<os>/ 生成 start/stop/restart/status（多入口另有 *-all）；外置 config/*.env.example，安全按 PID+命令行+工作目录停进程；含 macos 进程库模板，默认只生成当前系统。",
+      "scenarios": "用户要求项目启动脚本、本地前后端进程管理，或提到 spring.application.name、scripts/runtime、macos/linux/windows 时使用，覆盖单模块与多模块仓库。",
+      "coverage": "候选根判定、Java/Node 主入口与脚本基名规则、run/jar 模式命令、PID 停止算法、gitignore 忽略规则、再次生成时的差异确认；细节见 reference.md、examples.md 与 templates/macos。",
+      "notes": "不改项目既有配置与源文件；主入口不明确时只列候选并等待。禁止 killall/pkill 与模糊杀进程。已有脚本不一致时先展示 diff，真实 .env 永不覆盖。Fan 本地自建 skill。",
+      "contentHash": "6e34d67e9ba77529bd155f0cc980d87dbfd487297826aac30a8f4d71d5e7cba7"
     },
     "find-skills": {
       "summary": "从开放 skills 生态检索并安装可扩展 Agent 能力的技能包。",
@@ -570,12 +570,12 @@
       "notes": "先确认运行时依赖，再堆特效；避免无预检直接渲染失败。与用户显式指令冲突时以用户指令为准。"
     },
     "f-git-origin-doc": {
-      "contentHash": "6a07522c9894d74620dc7be25e23dd1f3636b4c8c75fb6d881a00378ca14d0e0",
-      "summary": "盘点工作区独立 Git 仓与软链并生成 .git-origin 文档。",
-      "capabilities": "覆盖写入含 YAML 机器块的 README，供后续拉取技能消费。并给出可执行的步骤与约束说明。",
-      "scenarios": "新建工作区、子仓变更或需要远程来源盘点时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖仓发现、祖先 gitlink、软链与契约字段。细节以仓库内 SKILL.md 与引用文档为准。",
-      "notes": "默认不改根 .gitignore；不记录 commit hash。与用户显式指令冲突时以用户指令为准。"
+      "summary": "盘点工作区内独立 Git 仓与软连接，覆盖生成 .git-origin/README.md。",
+      "capabilities": "扫描独立 Git 工作树与符号链接，解析祖先仓与 gitlink，按契约写出含 YAML 机器块与人读短文的 .git-origin/README.md，记录全部远程与分支边界。",
+      "scenarios": "需要生成或刷新远程来源文档、工作区仓库边界盘点、独立子仓/远程变更后同步 .git-origin 时使用；与 f-git-origin-pull 配套。",
+      "coverage": "独立仓盘点与排除依赖嵌套 .git、软连接收集、祖先与 gitlink 说明、机器块字段与人读模板、维护约定；格式以 reference.md 为准。",
+      "notes": "默认不改根 .gitignore，不记录 commit hash，不自动提交。依赖树内嵌套仓库不写入 repos。覆盖写文档前应确认工作区根正确。",
+      "contentHash": "e82da8ac1810f326f4125296466f879430e55ebacacc9f25e48cc65e6e7f07b5"
     },
     "f-git-origin-pull": {
       "contentHash": "e804cba1a2eab4907cc97978a045c7ddd2a2c2cb22ffe041a7fd8a4cb3172ea2",

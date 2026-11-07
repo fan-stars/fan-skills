@@ -8,21 +8,21 @@ Fan 团队自行编写、非来自公开开源项目的 skills
 
 | Skill 名称 | 路径 | 简介 | skills.sh | GitHub |
 | --- | --- | --- | --- | --- |
-| `f-antd-spacing-layout-governance` | `skills/fan/f-antd-spacing-layout-governance/` | Ant Design 项目间距与跨页布局契约治理。 | 暂无 | [本仓库](../../.agents/skills/f-antd-spacing-layout-governance/SKILL.md) |
-| `f-base-project-initializer` | `skills/fan/f-base-project-initializer/` | 从固定 fan-base / fan-base-vben 模板克隆并重命名，生成可运行的 Fan 全栈新项目。 | 暂无 | [本仓库](../../.agents/skills/f-base-project-initializer/SKILL.md) |
-| `f-base-project-initializer-cn` | `skills/fan/f-base-project-initializer-cn/` | 中文指引：从固定 fan-base / fan-base-vben 模板初始化并重命名 Fan 全栈项目。 | 暂无 | [本仓库](../../.agents/skills/f-base-project-initializer-cn/SKILL.md) |
-| `f-enterprise-source-reverse-engineering` | `skills/fan/f-enterprise-source-reverse-engineering/` | 面向双 PHP 遗留系统的项目强隔离、增量证据索引、可恢复运行与失败关闭质量门禁技能。 | 暂无 | [本仓库](../../.agents/skills/f-enterprise-source-reverse-engineering/SKILL.md) |
-| `f-git-origin-doc` | `skills/fan/f-git-origin-doc/` | 盘点工作区独立 Git 仓与软链并生成 .git-origin 文档。 | 暂无 | [本仓库](../../.agents/skills/f-git-origin-doc/SKILL.md) |
-| `f-git-origin-pull` | `skills/fan/f-git-origin-pull/` | 按 .git-origin 机器块 clone/fetch 独立仓，不合并不切换分支。 | 暂无 | [本仓库](../../.agents/skills/f-git-origin-pull/SKILL.md) |
-| `f-java-springboot` | `skills/fan/f-java-springboot/` | Fan 后端 Spring Boot 硬性约定：MyBatis-Plus、Lombok 日志与仓库外本地配置。 | 暂无 | [本仓库](../../.agents/skills/f-java-springboot/SKILL.md) |
-| `f-openspec-profile-switch` | `skills/fan/f-openspec-profile-switch/` | 在 legacy 与 opsx 两套 OpenSpec 技能配置间切换。 | 暂无 | [本仓库](../../.agents/skills/f-openspec-profile-switch/SKILL.md) |
-| `f-project-runtime-manager` | `skills/fan/f-project-runtime-manager/` | 探测 Java/Spring Boot 与 Vue/Vite 项目结构，生成可移植的启停/状态脚本，不改原文件。 | 暂无 | [本仓库](../../.agents/skills/f-project-runtime-manager/SKILL.md) |
-| `f-site-rewrite-implement` | `skills/fan/f-site-rewrite-implement/` | 按既有脚手架推进站点重写实现与对照。。用于目录浏览与选型。 | 暂无 | [本仓库](../../.agents/skills/f-site-rewrite-implement/SKILL.md) |
-| `f-site-rewrite-init` | `skills/fan/f-site-rewrite-init/` | 站点重写项目的脚手架与索引初始化。。用于目录浏览与选型。 | 暂无 | [本仓库](../../.agents/skills/f-site-rewrite-init/SKILL.md) |
-| `f-skills-library-ingest` | `skills/fan/f-skills-library-ingest/` | 将散落的 Agent Skills 有选择地纳入分类目录库的通用入库流程。 | 暂无 | [本仓库](../../.agents/skills/f-skills-library-ingest/SKILL.md) |
-| `f-springboot-native` | `skills/fan/f-springboot-native/` | Spring Boot 应用 GraalVM Native Image 落地指南。 | 暂无 | [本仓库](../../.agents/skills/f-springboot-native/SKILL.md) |
-| `f-yudao-boot-mini-graalvm` | `skills/fan/f-yudao-boot-mini-graalvm/` | 芋道 boot-mini 场景下的 GraalVM 原生构建经验。 | 暂无 | [本仓库](../../.agents/skills/f-yudao-boot-mini-graalvm/SKILL.md) |
-| `f-zjmf-addon-plugin` | `skills/fan/f-zjmf-addon-plugin/` | 魔方云/ZJMF 插件后台开发约定与约束。。用于目录浏览与选型。 | 暂无 | [本仓库](../../.agents/skills/f-zjmf-addon-plugin/SKILL.md) |
+| `f-antd-spacing-layout-governance` | `skills/fan/f-antd-spacing-layout-governance/` | Ant Design 项目间距与跨页布局契约治理。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-antd-spacing-layout-governance/SKILL.md) |
+| `f-base-project-initializer` | `skills/fan/f-base-project-initializer/` | 从固定 fan-base / fan-base-vben 模板克隆并重命名，生成可运行的 Fan 全栈新项目。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-base-project-initializer/SKILL.md) |
+| `f-base-project-initializer-cn` | `skills/fan/f-base-project-initializer-cn/` | 中文指引：从固定 fan-base / fan-base-vben 模板初始化并重命名 Fan 全栈项目。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-base-project-initializer-cn/SKILL.md) |
+| `f-enterprise-source-reverse-engineering` | `skills/fan/f-enterprise-source-reverse-engineering/` | 面向双 PHP 遗留系统的项目强隔离、增量证据索引、可恢复运行与失败关闭质量门禁技能。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-enterprise-source-reverse-engineering/SKILL.md) |
+| `f-git-origin-doc` | `skills/fan/f-git-origin-doc/` | 盘点工作区内独立 Git 仓与软连接，覆盖生成 .git-origin/README.md。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-git-origin-doc/SKILL.md) |
+| `f-git-origin-pull` | `skills/fan/f-git-origin-pull/` | 按 .git-origin 机器块 clone/fetch 独立仓，不合并不切换分支。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-git-origin-pull/SKILL.md) |
+| `f-java-springboot` | `skills/fan/f-java-springboot/` | Fan 后端 Spring Boot 硬性约定：MyBatis-Plus、Lombok 日志与仓库外本地配置。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-java-springboot/SKILL.md) |
+| `f-openspec-profile-switch` | `skills/fan/f-openspec-profile-switch/` | 在 legacy 与 opsx 两套 OpenSpec 技能配置间切换。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-openspec-profile-switch/SKILL.md) |
+| `f-project-runtime-manager` | `skills/fan/f-project-runtime-manager/` | 按探测结果为 Java/Spring Boot 与 React/Next/Vue/Nuxt 等 Node 应用生成可移植启停脚本。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-project-runtime-manager/SKILL.md) |
+| `f-site-rewrite-implement` | `skills/fan/f-site-rewrite-implement/` | 按既有脚手架推进站点重写实现与对照。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-site-rewrite-implement/SKILL.md) |
+| `f-site-rewrite-init` | `skills/fan/f-site-rewrite-init/` | 站点重写项目的脚手架与索引初始化。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-site-rewrite-init/SKILL.md) |
+| `f-skills-library-ingest` | `skills/fan/f-skills-library-ingest/` | 将散落的 Agent Skills 有选择地纳入分类目录库的通用入库流程。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-library-ingest/SKILL.md) |
+| `f-springboot-native` | `skills/fan/f-springboot-native/` | Spring Boot 应用 GraalVM Native Image 落地指南。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-springboot-native/SKILL.md) |
+| `f-yudao-boot-mini-graalvm` | `skills/fan/f-yudao-boot-mini-graalvm/` | 芋道 boot-mini 场景下的 GraalVM 原生构建经验。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-yudao-boot-mini-graalvm/SKILL.md) |
+| `f-zjmf-addon-plugin` | `skills/fan/f-zjmf-addon-plugin/` | 魔方云/ZJMF 插件后台开发约定与约束。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-zjmf-addon-plugin/SKILL.md) |
 
 ## 详细介绍
 
@@ -112,19 +112,19 @@ Ant Design 6 项目出现间距混乱、迁移或 PR 审计时使用。也可在
 
 #### 核心能力
 
-覆盖写入含 YAML 机器块的 README，供后续拉取技能消费。并给出可执行的步骤与约束说明。
+扫描独立 Git 工作树与符号链接，解析祖先仓与 gitlink，按契约写出含 YAML 机器块与人读短文的 .git-origin/README.md，记录全部远程与分支边界。
 
 #### 适用场景
 
-新建工作区、子仓变更或需要远程来源盘点时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。
+需要生成或刷新远程来源文档、工作区仓库边界盘点、独立子仓/远程变更后同步 .git-origin 时使用；与 f-git-origin-pull 配套。
 
 #### 主要覆盖内容
 
-覆盖仓发现、祖先 gitlink、软链与契约字段。细节以仓库内 SKILL.md 与引用文档为准。
+独立仓盘点与排除依赖嵌套 .git、软连接收集、祖先与 gitlink 说明、机器块字段与人读模板、维护约定；格式以 reference.md 为准。
 
 #### 注意事项
 
-默认不改根 .gitignore；不记录 commit hash。与用户显式指令冲突时以用户指令为准。
+默认不改根 .gitignore，不记录 commit hash，不自动提交。依赖树内嵌套仓库不写入 repos。覆盖写文档前应确认工作区根正确。
 
 ### `f-git-origin-pull`
 
@@ -192,19 +192,19 @@ Ant Design 6 项目出现间距混乱、迁移或 PR 审计时使用。也可在
 
 #### 核心能力
 
-先分析仓库（构建工具、可执行模块、包管理器、dev/build 脚本、端口/profile 只读推断），再在 `scripts/` 下生成 start/stop/restart/status（多应用可聚合）脚本；配置外置到 `scripts/config/`，安全停进程（PID 优先，禁用 killall/pkill），启动前必编译。
+先探测工作区候选运行根与唯一主入口，再在 scripts/runtime/<os>/ 生成 start/stop/restart/status（多入口另有 *-all）；外置 config/*.env.example，安全按 PID+命令行+工作目录停进程；含 macos 进程库模板，默认只生成当前系统。
 
 #### 适用场景
 
-用户要求生成项目启动管理脚本、本地启停管理器、前后端进程管理或统一启动脚本时使用，尤其是 Spring Boot + Vue 单仓或 monorepo。
+用户要求项目启动脚本、本地前后端进程管理，或提到 spring.application.name、scripts/runtime、macos/linux/windows 时使用，覆盖单模块与多模块仓库。
 
 #### 主要覆盖内容
 
-管理根目录判定、后端/前端探测启发式、脚本文件布局与生成规则、dry-run 校验与完成时输出；细节见 reference.md 与 examples.md。
+候选根判定、Java/Node 主入口与脚本基名规则、run/jar 模式命令、PID 停止算法、gitignore 忽略规则、再次生成时的差异确认；细节见 reference.md、examples.md 与 templates/macos。
 
 #### 注意事项
 
-禁止使用固定模板或硬编码路径；禁止改动 application*.yml、package.json、pom.xml 等既有文件，仅新增 `scripts/`。幂等生成，再次运行先读已有脚本增量更新。Fan 本地自建 skill，无公开仓库。
+不改项目既有配置与源文件；主入口不明确时只列候选并等待。禁止 killall/pkill 与模糊杀进程。已有脚本不一致时先展示 diff，真实 .env 永不覆盖。Fan 本地自建 skill。
 
 ### `f-site-rewrite-implement`
 

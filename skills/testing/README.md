@@ -9,7 +9,7 @@ Web 应用自动化测试
 | Skill 名称 | 路径 | 简介 | skills.sh | GitHub |
 | --- | --- | --- | --- | --- |
 | `agent-browser` | `skills/testing/agent-browser/` | Rust 浏览器自动化 CLI，用无障碍树快照与 @eN 引用让 Agent 低 token 操作网页。 | [skills.sh](https://skills.sh/vercel-labs/agent-browser/agent-browser) | [GitHub](https://github.com/vercel-labs/agent-browser/blob/main/skills/agent-browser/SKILL.md) |
-| `f-enterprise-source-reverse-engineering` | `skills/testing/f-enterprise-source-reverse-engineering/` | 面向双 PHP 遗留系统的项目强隔离、增量证据索引、可恢复运行与失败关闭质量门禁技能。 | 暂无 | [本仓库](../../.agents/skills/f-enterprise-source-reverse-engineering/SKILL.md) |
+| `f-enterprise-source-reverse-engineering` | `skills/testing/f-enterprise-source-reverse-engineering/` | 面向双 PHP 遗留系统的项目强隔离、增量证据索引、可恢复运行与失败关闭质量门禁技能。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-enterprise-source-reverse-engineering/SKILL.md) |
 | `webapp-testing` | `skills/testing/webapp-testing/` | 用 Playwright 与辅助脚本测试本地 Web 应用：交互、截图与日志。 | [skills.sh](https://skills.sh/anthropics/skills/webapp-testing) | [GitHub](https://github.com/anthropics/skills/blob/main/skills/webapp-testing/SKILL.md) |
 
 ## 详细介绍

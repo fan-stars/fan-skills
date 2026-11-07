@@ -8,9 +8,9 @@ Spring Boot、Fan 后端与 Java 重构
 
 | Skill 名称 | 路径 | 简介 | skills.sh | GitHub |
 | --- | --- | --- | --- | --- |
-| `f-java-springboot` | `skills/java/f-java-springboot/` | Fan 后端 Spring Boot 硬性约定：MyBatis-Plus、Lombok 日志与仓库外本地配置。 | 暂无 | [本仓库](../../.agents/skills/f-java-springboot/SKILL.md) |
-| `f-springboot-native` | `skills/java/f-springboot-native/` | Spring Boot 应用 GraalVM Native Image 落地指南。 | 暂无 | [本仓库](../../.agents/skills/f-springboot-native/SKILL.md) |
-| `f-yudao-boot-mini-graalvm` | `skills/java/f-yudao-boot-mini-graalvm/` | 芋道 boot-mini 场景下的 GraalVM 原生构建经验。 | 暂无 | [本仓库](../../.agents/skills/f-yudao-boot-mini-graalvm/SKILL.md) |
+| `f-java-springboot` | `skills/java/f-java-springboot/` | Fan 后端 Spring Boot 硬性约定：MyBatis-Plus、Lombok 日志与仓库外本地配置。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-java-springboot/SKILL.md) |
+| `f-springboot-native` | `skills/java/f-springboot-native/` | Spring Boot 应用 GraalVM Native Image 落地指南。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-springboot-native/SKILL.md) |
+| `f-yudao-boot-mini-graalvm` | `skills/java/f-yudao-boot-mini-graalvm/` | 芋道 boot-mini 场景下的 GraalVM 原生构建经验。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-yudao-boot-mini-graalvm/SKILL.md) |
 | `graal` | `skills/java/graal/` | GraalVM / Native Image 基础概念与构建工具说明。 | 暂无 | [本仓库](../../.agents/skills/graal/SKILL.md) |
 | `java-add-graalvm-native-image-support` | `skills/java/java-add-graalvm-native-image-support/` | 为 Java 项目补齐 GraalVM Native Image 支持的操作技能。 | 暂无 | [本仓库](../../.agents/skills/java-add-graalvm-native-image-support/SKILL.md) |
 | `java-refactoring-extract-method` | `skills/java/java-refactoring-extract-method/` | 按范例在 Java 中安全实施 Extract Method，理清意图与类型边界。 | [skills.sh](https://skills.sh/github/awesome-copilot/java-refactoring-extract-method) | [GitHub](https://github.com/github/awesome-copilot/blob/main/skills/java-refactoring-extract-method/SKILL.md) |

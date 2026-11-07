@@ -8,20 +8,20 @@ Superpowers 工作流技能（/superpowers:*），与 commands/superpowers 对�
 
 | Skill 名称 | 路径 | 简介 | skills.sh | GitHub |
 | --- | --- | --- | --- | --- |
-| `superpowers-brainstorming` | `skills/opsx/superpowers/superpowers-brainstorming/` | 创意与需求澄清：实现前先对齐意图与方案。。用于目录浏览与选型。 | 暂无 | [本仓库](../../../.agents/skills/superpowers-brainstorming/SKILL.md) |
-| `superpowers-dispatching-parallel-agents` | `skills/opsx/superpowers/superpowers-dispatching-parallel-agents/` | 把互不依赖的工作拆给并行子代理处理。。用于目录浏览与选型。 | 暂无 | [本仓库](../../../.agents/skills/superpowers-dispatching-parallel-agents/SKILL.md) |
-| `superpowers-executing-plans` | `skills/opsx/superpowers/superpowers-executing-plans/` | 按既有实现计划逐步执行并设检查点。。用于目录浏览与选型。 | 暂无 | [本仓库](../../../.agents/skills/superpowers-executing-plans/SKILL.md) |
-| `superpowers-finishing-a-development-branch` | `skills/opsx/superpowers/superpowers-finishing-a-development-branch/` | 实现完成后选择合并、PR 或清理的收尾路径。。用于目录浏览与选型。 | 暂无 | [本仓库](../../../.agents/skills/superpowers-finishing-a-development-branch/SKILL.md) |
-| `superpowers-receiving-code-review` | `skills/opsx/superpowers/superpowers-receiving-code-review/` | 严谨消化代码审查意见并落地修改。。用于目录浏览与选型。 | 暂无 | [本仓库](../../../.agents/skills/superpowers-receiving-code-review/SKILL.md) |
-| `superpowers-requesting-code-review` | `skills/opsx/superpowers/superpowers-requesting-code-review/` | 在合并前发起结构化代码审查请求。。用于目录浏览与选型。 | 暂无 | [本仓库](../../../.agents/skills/superpowers-requesting-code-review/SKILL.md) |
-| `superpowers-subagent-driven-development` | `skills/opsx/superpowers/superpowers-subagent-driven-development/` | 按计划为每个任务派生子代理并两阶段复查。。用于目录浏览与选型。 | 暂无 | [本仓库](../../../.agents/skills/superpowers-subagent-driven-development/SKILL.md) |
-| `superpowers-systematic-debugging` | `skills/opsx/superpowers/superpowers-systematic-debugging/` | 系统化排查缺陷：先复现取证再改代码。。用于目录浏览与选型。 | 暂无 | [本仓库](../../../.agents/skills/superpowers-systematic-debugging/SKILL.md) |
-| `superpowers-test-driven-development` | `skills/opsx/superpowers/superpowers-test-driven-development/` | 强制先写失败测试再写实现的 TDD 节奏。。用于目录浏览与选型。 | 暂无 | [本仓库](../../../.agents/skills/superpowers-test-driven-development/SKILL.md) |
-| `superpowers-using-git-worktrees` | `skills/opsx/superpowers/superpowers-using-git-worktrees/` | 用 git worktree 隔离功能开发目录。 | 暂无 | [本仓库](../../../.agents/skills/superpowers-using-git-worktrees/SKILL.md) |
-| `superpowers-using-superpowers` | `skills/opsx/superpowers/superpowers-using-superpowers/` | 会话开始时建立“先调用相关技能”的工作纪律。。用于目录浏览与选型。 | 暂无 | [本仓库](../../../.agents/skills/superpowers-using-superpowers/SKILL.md) |
-| `superpowers-verification-before-completion` | `skills/opsx/superpowers/superpowers-verification-before-completion/` | 声称完成前必须跑验证命令并核对输出。。用于目录浏览与选型。 | 暂无 | [本仓库](../../../.agents/skills/superpowers-verification-before-completion/SKILL.md) |
-| `superpowers-writing-plans` | `skills/opsx/superpowers/superpowers-writing-plans/` | 把已明确的需求写成可执行的分步实现计划。。用于目录浏览与选型。 | 暂无 | [本仓库](../../../.agents/skills/superpowers-writing-plans/SKILL.md) |
-| `superpowers-writing-skills` | `skills/opsx/superpowers/superpowers-writing-skills/` | 编写、修改并验证 Agent Skill 本身。 | 暂无 | [本仓库](../../../.agents/skills/superpowers-writing-skills/SKILL.md) |
+| `superpowers-brainstorming` | `skills/opsx/superpowers/superpowers-brainstorming/` | 创意与需求澄清：实现前先对齐意图与方案。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/obra/superpowers/blob/main/skills/brainstorming/SKILL.md) |
+| `superpowers-dispatching-parallel-agents` | `skills/opsx/superpowers/superpowers-dispatching-parallel-agents/` | 把互不依赖的工作拆给并行子代理处理。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/obra/superpowers/blob/main/skills/dispatching-parallel-agents/SKILL.md) |
+| `superpowers-executing-plans` | `skills/opsx/superpowers/superpowers-executing-plans/` | 按既有实现计划逐步执行并设检查点。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/obra/superpowers/blob/main/skills/executing-plans/SKILL.md) |
+| `superpowers-finishing-a-development-branch` | `skills/opsx/superpowers/superpowers-finishing-a-development-branch/` | 实现完成后选择合并、PR 或清理的收尾路径。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/obra/superpowers/blob/main/skills/finishing-a-development-branch/SKILL.md) |
+| `superpowers-receiving-code-review` | `skills/opsx/superpowers/superpowers-receiving-code-review/` | 严谨消化代码审查意见并落地修改。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/obra/superpowers/blob/main/skills/receiving-code-review/SKILL.md) |
+| `superpowers-requesting-code-review` | `skills/opsx/superpowers/superpowers-requesting-code-review/` | 在合并前发起结构化代码审查请求。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/obra/superpowers/blob/main/skills/requesting-code-review/SKILL.md) |
+| `superpowers-subagent-driven-development` | `skills/opsx/superpowers/superpowers-subagent-driven-development/` | 按计划为每个任务派生子代理并两阶段复查。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/obra/superpowers/blob/main/skills/subagent-driven-development/SKILL.md) |
+| `superpowers-systematic-debugging` | `skills/opsx/superpowers/superpowers-systematic-debugging/` | 系统化排查缺陷：先复现取证再改代码。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/obra/superpowers/blob/main/skills/systematic-debugging/SKILL.md) |
+| `superpowers-test-driven-development` | `skills/opsx/superpowers/superpowers-test-driven-development/` | 强制先写失败测试再写实现的 TDD 节奏。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/obra/superpowers/blob/main/skills/test-driven-development/SKILL.md) |
+| `superpowers-using-git-worktrees` | `skills/opsx/superpowers/superpowers-using-git-worktrees/` | 用 git worktree 隔离功能开发目录。 | 暂无 | [GitHub](https://github.com/obra/superpowers/blob/main/skills/using-git-worktrees/SKILL.md) |
+| `superpowers-using-superpowers` | `skills/opsx/superpowers/superpowers-using-superpowers/` | 会话开始时建立“先调用相关技能”的工作纪律。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/obra/superpowers/blob/main/skills/using-superpowers/SKILL.md) |
+| `superpowers-verification-before-completion` | `skills/opsx/superpowers/superpowers-verification-before-completion/` | 声称完成前必须跑验证命令并核对输出。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/obra/superpowers/blob/main/skills/verification-before-completion/SKILL.md) |
+| `superpowers-writing-plans` | `skills/opsx/superpowers/superpowers-writing-plans/` | 把已明确的需求写成可执行的分步实现计划。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/obra/superpowers/blob/main/skills/writing-plans/SKILL.md) |
+| `superpowers-writing-skills` | `skills/opsx/superpowers/superpowers-writing-skills/` | 编写、修改并验证 Agent Skill 本身。 | 暂无 | [GitHub](https://github.com/obra/superpowers/blob/main/skills/writing-skills/SKILL.md) |
 
 ## 详细介绍
 

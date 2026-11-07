@@ -1,200 +1,122 @@
 ---
 name: f-project-runtime-manager
 description: >-
-  Analyzes Java/Spring Boot and Vue/Vite project structures and generates
-  portable start/stop/restart/status scripts under scripts/ with external
-  configs in scripts/config/, without modifying existing project files.
-  Use when the user asks to create project runtime scripts, start/stop
-  managers, local launch scripts, backend/frontend process managers,
-  project-runtime-manager, or unified project startup scripts.
+  Generates start/stop/restart/status scripts for Java, Spring Boot, React,
+  Next, Vue, Nuxt, and other Node apps. Use when the user asks for
+  项目启动脚本 or mentions spring.application.name, macos, linux, windows,
+  or scripts/runtime.
 ---
 
 # Project Runtime Manager
 
-通过分析当前仓库结构，自动生成统一的项目启动管理脚本。**禁止使用固定模板或硬编码路径/命令**；一切启动命令、模块名、包管理器与配置加载方式均来自对当前项目的探测结果。
+按当前工作区的探测结果生成启停脚本。构建布局、模块名、包管理器、端口和 jar 路径都来自探测。单模块与多模块使用不同命令。示例里的名字是虚构的。
 
 ## 硬性约束
 
-1. **先分析，后生成**：必须先完成结构探测与清单确认，再写脚本。
-2. **禁止改动已有项目文件**：不得修改 `application*.yml|yaml`、`bootstrap*.yml|yaml`、`.env*`、`package.json`、`vite.config.*`、`nuxt.config.*`、`pom.xml`、`build.gradle*`、`settings.gradle*` 等。仅可在 `scripts/` 下新增文件。
-3. **配置外置**：运行配置一律写入 `scripts/config/`，启动时通过 CLI 参数或环境变量加载。
-4. **相对路径**：脚本内路径相对项目根目录解析，具备跨机器可移植性。
-5. **安全停进程**：优先 PID 文件；其次精准匹配（命令行 + cwd/工作目录）；**禁止** `killall` / `pkill` / 模糊 `kill -9 $(pgrep ...)`。
-6. **启动前必编译**：Java 走 Maven/Gradle；前端走检测到的 npm/pnpm/yarn（必要时先 install，再 build/dev 所需步骤）。
+1. 先探测并展示清单。主入口集合明确后再写文件。集合不明确时停下来等用户指定。
+2. 只在 `<workspace>/scripts/runtime/<os>/` 新增运行脚本。`<os>` 只能是 `macos`、`linux`、`windows`。
+3. 默认只生成当前系统的目录。用户点名目标系统时只生成那一个目录，即使当前机器不是该系统。
+4. 不修改项目自带的 `application*.yml`、`application*.yaml`、`bootstrap*`、`.env*`、`package.json`、`vite.config.*`、`nuxt.config.*`、`pom.xml`、`build.gradle*`、`settings.gradle*`。
+5. 不修改 `scripts/runtime/` 以外的已有脚本。工作区根 `.gitignore` 只允许追加本技能规定的运行时忽略规则。
+6. 脚本基名是项目名。不要用 `backend` 或 `frontend` 做前缀。
+7. 真实 `config/<app>.env`、`run/`、`logs/` 不提交。`*.env.example` 和脚本可以提交。
+8. 停进程只杀死记录下来、且命令行与工作目录都核对属于该应用的 PID。禁止 `killall`、`pkill`、`taskkill /IM java`，以及按进程名模糊匹配。
+9. `macos` 与 `linux` 使用 `#!/usr/bin/env bash`，语法停在 bash 3.2：不用关联数组，不用 `${var,,}`，不依赖 `mapfile`。`windows` 使用 PowerShell 5.1 的 `.ps1`。
+10. 已有脚本与本次探测不一致时，先展示差异，确认前不覆盖。已存在的 `config/<app>.env` 不覆盖。
+11. 示例只使用虚构的目录名和项目名。生成脚本时写入本次探测结果，不要把示例名字写进目标项目。
 
 ## 工作流程
 
-复制并跟踪进度：
-
 ```text
 Task Progress:
-- [ ] 1. 确定管理根目录
-- [ ] 2. 探测后端（Java）
-- [ ] 3. 探测前端（Vue）
-- [ ] 4. 输出探测清单给用户确认（多应用时）
-- [ ] 5. 生成 scripts/ 骨架与 config
-- [ ] 6. 生成 start/stop/restart/status（及可选 all）
-- [ ] 7. 本地 dry-run / status 校验
-- [ ] 8. 向用户汇总路径与用法
+- [ ] 1. 确定工作区根与目标系统
+- [ ] 2. 列出候选运行根
+- [ ] 3. 确定主入口与脚本基名
+- [ ] 4. 展示清单；不明确则等待
+- [ ] 5. 生成 scripts/runtime/<os>/
+- [ ] 6. 追加尚缺的 gitignore 规则
+- [ ] 7. 语法检查与 status 空跑
+- [ ] 8. 向用户交付清单与最短命令
 ```
 
-### Step 1：确定管理根目录
+### Step 1：工作区根与系统
 
-- 若工作区是「根目录 + 多个子仓库/子项目」，为每个含 `pom.xml` / `package.json` 的可运行根分别生成，或在工作区根生成可调用各子项目的聚合脚本（由探测结果决定，不强行套模板）。
-- 单仓库：以该仓库根为 `PROJECT_ROOT`。
+工作区根是用户当前打开的工作区。单仓库时它就是仓库根。多仓库时脚本写在工作区根，不写进子仓库。
 
-### Step 2：探测后端（Java）
+入口脚本从自身位置向上三级得到工作区根：`<workspace>/scripts/runtime/<os>/<name>.sh`。应用目录写成相对工作区根的路径。`lib/common.sh` 比入口脚本深一层，向上四级才是工作区根。
 
-按探测结果决策，详见 [reference.md](reference.md)。摘要：
+| 探测值 | 目录 |
+| --- | --- |
+| `Darwin` | `macos` |
+| `Linux` | `linux` |
+| `Windows_NT`、`MINGW*`、`MSYS*`、`CYGWIN*` | `windows` |
 
-| 信号 | 含义 |
-|------|------|
-| `pom.xml` | Maven |
-| `build.gradle` / `build.gradle.kts` + `settings.gradle*` | Gradle |
-| `spring-boot-maven-plugin` / `spring-boot-gradle-plugin` / `@SpringBootApplication` | Spring Boot |
-| 多模块：`modules` / `include` | 定位可执行模块（含 main 或 boot 插件） |
-| 端口 / profile | 从现有配置**只读**推断，写入 `scripts/config/`，不改源文件 |
+在 Mac 上为 Linux 服务器准备脚本时，必须由用户显式指定 `linux`。不要一次写出三套目录。
 
-记录：构建工具、可执行模块、主类或最终 jar 路径模式、本地外置配置加载方式（如 `--spring.config.additional-location`）。
+### Step 2：候选运行根
 
-### Step 3：探测前端（Vue）
+只检查工作区根，以及它的直接子目录。目录要直接含有 `pom.xml`、`build.gradle`、`build.gradle.kts` 或 `package.json`。跳过名为 `.tmp`、`generated`、`worktrees`、`.worktree`、`node_modules`、`dist`、`target` 的子目录。不向更深层递归寻找另一个项目根。直接子目录若被父构建文件的 Maven `<modules>` 或 Gradle `include` 列出，它不是另一个候选根。
 
-| 信号 | 含义 |
-|------|------|
-| `package.json` + `vue` 依赖 | Vue 项目 |
-| `vue` major / `vite` / `nuxt` | Vue2/3、Vite、Nuxt |
-| lockfile：`pnpm-lock.yaml` / `yarn.lock` / `package-lock.json` | 包管理器 |
-| `scripts.dev` / `scripts.build` / monorepo `apps/*` | 启动与构建入口 |
+有 `pom.xml` 时用 Maven。没有 `pom.xml` 且有 Gradle 构建文件时用 Gradle。
 
-记录：包管理器、dev/build 脚本名、应用工作目录（monorepo 子包）、端口（只读推断）。
+### Step 3：主入口与脚本基名
 
-### Step 4：确认清单（多项目时必做）
+Java：统计带 `spring-boot-maven-plugin`、Gradle 插件 `org.springframework.boot` 或 `@SpringBootApplication` 的构建单元。恰好一个才生成。零个则不生成 Java 脚本。多于一个则列出路径并等待，不擅自挑选。
 
-向用户简要列出将管理的应用，例如：
+布局只在候选根上判断。可执行单元的构建文件就在候选根时，按单模块处理，命令在候选根执行。构建文件在该候选根的子目录时，按多模块处理，命令在候选根执行。不要把列在父模块清单里的子目录再当成单模块候选根。
 
-```text
-Detected apps:
-- backend: fan-server (Maven, Spring Boot, module fan-server)
-- frontend: web-antd (pnpm, Vue3+Vite, app apps/web-antd)
+Java 基名按顺序取第一个有值的结果：
+
+1. 该模块 `src/main/resources/application.yaml`、`application.yml` 或 `application.properties` 里的 `spring.application.name`。
+2. 该模块的 `artifactId`。
+3. 该模块目录名。
+
+基础文件已经有名字时，`application-<profile>.*` 不覆盖它。不要把 docker-compose 或命令行里的 `--spring.application.name` 当作脚本名。
+
+Node：读候选根的根级 `package.json`。有 `scripts.dev` 就解析它，否则解析 `scripts.start`。解析出的包是唯一 Node 主入口。`dev:*`、`build`、`preview` 不额外增加应用。根上没有 `dev` 和 `start`，且只有一个子包有 `dev` 或 `start` 时，用那个子包。多个子包各自有 `dev` 时列出并等待。
+
+从脚本文本识别包的写法见 [reference.md](reference.md)。包管理器按锁文件：`pnpm-lock.yaml`、`yarn.lock`、`package-lock.json`，然后 `packageManager` 字段，最后才是 npm。
+
+Node 基名取该包 `package.json` 的 `name`，去掉 scope，折成小写 `[a-z0-9-]`。没有 `name` 时用所在文件夹名。两个应用折成同一个基名时，后面加上父目录名。
+
+被 Step 3 选中的 Node 包只要有 `dev` 或 `start`，就生成同一套四动词脚本。依赖名只写进探测说明：`react`、`next`、`vue`、`nuxt`、`@angular/core`、`svelte`、`astro`、`express`、`fastify`、`koa`、`@nestjs/core`。对不上时写 Node。React、Next、Vue、Nuxt 因此共用这一套流程。
+
+磁盘上存在、但没有被选中脚本引用的包，写进探测说明，不生成脚本。
+
+### Step 4：清单
+
+集合明确时，展示清单后继续生成。集合不明确时，展示候选后停止，不写文件。
+
+### Step 5：生成
+
+文件布局、`run` / `jar` 参数、PID 与停止算法见 [reference.md](reference.md)。单模块示意名是虚构的 `ledger`，前端示意名是 `shop-console`。根脚本没有引用的包，例如 `shop-mobile`，只写进探测说明，不生成脚本。多模块命令只写 `<module>`，不写死某一套父子目录。命令示意见 [examples.md](examples.md)。示例里的目录名、包名、端口和 jar 路径都是虚构的，必须换成本次探测结果。
+
+生成 `macos` 时，把 [templates/macos/common.sh](templates/macos/common.sh) 原样复制为 `scripts/runtime/macos/lib/common.sh`。不要改写这份进程库。每个主入口另写 `lib/app-<app>.sh`，只放本次探测到的身份、端口变量和命令数组。入口脚本只负责定位工作区、source 这两个文件，并调用 `runtime_start`、`runtime_stop`、`runtime_restart` 或 `runtime_status`。linux 与 windows 的模板留到对应机器，本次不要新增。
+
+每个主入口四份脚本：`<app>-start`、`<app>-stop`、`<app>-restart`、`<app>-status`。两个及以上主入口时再生成 `start-all`、`stop-all`、`status-all`。`start-all` 先启动 Java，再启动 Node。前一个失败则不再启动后面的。
+
+Java 默认模式 `run` 不要先做 `package`。单模块在候选根执行 `mvn spring-boot:run`，或 `./gradlew bootRun`。多模块的 `run` 分两步，都在 reactor 根执行：先 `mvn -pl <module> -am -DskipTests install`，再只对可执行模块执行 `mvn -pl <module> org.springframework.boot:spring-boot-maven-plugin:<version>:run`，这一步不要加 `-am`。插件坐标和 `<version>` 的读法见 [reference.md](reference.md)。Gradle 多模块仍用 `./gradlew :<gradlePath>:bootRun`。第一个参数为 `jar` 时才打包再 `java -jar`。Node 脚本收到 `jar` 时退出码为 2，并打印用法。`node_modules` 不存在时先 install 一次，不在 dev 之前做生产构建。
+
+配置写入 `scripts/runtime/<os>/config/<app>.env.example`，只放占位符。真实 env 不存在时从 example 复制，之后不覆盖。项目原来没有 `--spring.config.additional-location` 约定时，不另造 yaml。已有该约定时，沿用原来的文件名和参数，把文件放到这个 `config/` 目录。
+
+### Step 6：gitignore
+
+在工作区根 `.gitignore` 追加尚不存在的规则，已有规则保持原样：
+
+```gitignore
+scripts/runtime/*/config/*.env
+!scripts/runtime/*/config/*.env.example
+scripts/runtime/*/run/
+scripts/runtime/*/logs/
 ```
 
-用户可删减或改名；确认后再生成。
+### Step 7：校验与交付
 
-### Step 5–6：生成文件布局
+- `macos` 与 `linux`：对每个生成的 `.sh` 执行 `bash -n`。
+- 执行每个 `*-status` 脚本，确认它不启动进程。
+- 向用户交付：目标系统、探测清单（含明确不生成的包）、新增文件、最短启动/停止/状态命令、配置路径。
+- 明确声明：未修改项目既有配置与源文件。
 
-仅新增（路径相对各 `PROJECT_ROOT`）：
+## 再次生成
 
-```text
-scripts/
-├── lib/
-│   ├── common.sh          # 路径、日志、PID、优雅停止
-│   └── detect-or-env.sh   # 可选：读 scripts/config
-├── config/
-│   ├── backend.env        # 或 *.yaml，按项目需要
-│   └── frontend.env
-├── backend-start.sh
-├── backend-stop.sh
-├── backend-restart.sh
-├── backend-status.sh
-├── frontend-start.sh
-├── frontend-stop.sh
-├── frontend-restart.sh
-├── frontend-status.sh
-├── start-all.sh           # 多应用时可选
-├── stop-all.sh
-└── status-all.sh
-```
-
-多后端/多前端时用显式名称：`backend-<name>-start.sh` 或子目录 `scripts/<app>/`，由探测命名，勿写死 `fan-server`。
-
-**生成规则（必须遵守）**：
-
-1. 每个脚本 `set -euo pipefail`，开头解析 `SCRIPT_DIR` → `PROJECT_ROOT`。
-2. `start`：`stop`（若在跑）→ 编译 → 启动 → 写 PID → 健康检查/短等 → 打印结果。
-3. `stop`：读 PID 文件 → 校验进程确属本应用 → `SIGTERM` → 等待 → 必要时再 `SIGKILL`（仅该 PID）→ 清理 PID。
-4. `restart`：`stop` + `start`。
-5. `status`：PID 文件 + 进程存活 + 可选端口，输出人类可读状态。
-6. 日志目录：`scripts/logs/`（gitignore 建议在生成说明中提示，**不要**擅自改已有 `.gitignore` 除非用户同意）。
-7. PID：`scripts/run/<app>.pid`。
-8. 配置：从 `scripts/config/` 加载；示例值可从现有配置**复制推导**到新文件，禁止覆盖原文件。
-
-### Step 7：校验
-
-- `bash -n` 语法检查。
-- 执行对应 `*-status.sh`（应安全、无副作用）。
-- 向用户报告生成路径与一条最短使用示例。
-
-## 使用示例
-
-### 示例 1：用户说「生成项目启动管理脚本」
-
-1. 扫描工作区根与一级子目录。
-2. 发现 Maven 多模块 Spring Boot + pnpm Vue3 Vite monorepo。
-3. 确认应用清单后，在各自项目根（或工作区约定根）写入 `scripts/`。
-4. 回复用法：
-
-```bash
-# 后端
-./scripts/backend-start.sh
-./scripts/backend-status.sh
-./scripts/backend-stop.sh
-
-# 前端
-./scripts/frontend-start.sh
-./scripts/frontend-restart.sh
-```
-
-### 示例 2：仅后端单体 Spring Boot
-
-探测到单 `pom.xml` + `@SpringBootApplication` → 只生成 backend 四件套；config 使用：
-
-```bash
-java -jar target/app.jar \
-  --spring.config.additional-location=file:scripts/config/backend-local.yaml
-```
-
-（具体 jar 名与 main 模块以探测为准。）
-
-### 示例 3：多前端应用
-
-探测到 `apps/web-antd`、`apps/web-ele` → 生成：
-
-- `scripts/frontend-web-antd-start.sh` …
-- `scripts/frontend-web-ele-start.sh` …
-- 或 `scripts/frontend.sh <app> start|stop|restart|status`
-
-## 最佳实践
-
-- **探测优先于习惯**：仓库里已有外置配置约定（如 `scripts/config/backend-local.yaml`）时，复用路径与加载参数，不另造冲突约定。
-- **编译范围最小化**：多模块只编译可运行模块及其依赖（如 `mvn -pl <module> -am`），避免全仓库无意义重编。
-- **开发态 vs 产物态**：前端本地默认用探测到的 `dev` 脚本；若用户明确要求 preview/prod，再用 `build` + `preview`。
-- **密钥不入库**：`scripts/config/*` 中的敏感示例用占位符；可生成 `scripts/config/*.example` 供复制。
-- **幂等生成**：再次执行本 Skill 时先读已有 `scripts/`，增量更新，避免无提示覆盖用户已改脚本。
-- **输出清晰**：启动结束打印 `app`、`pid`、`log`、`port`（若已知）、`config` 路径。
-
-## 可扩展点
-
-| 扩展 | 说明 |
-|------|------|
-| 更多运行时 | Node API、Go、Python（同目录约定：`scripts/<runtime>-*.sh` + `config/`） |
-| 健康检查 | HTTP `/actuator/health`、前端根 URL、TCP 端口探测 |
-| 环境切换 | `APP_ENV=dev|test` 映射到不同 `scripts/config/*.env` |
-| 聚合入口 | 工作区级 `scripts/workspace-start.sh` 按序启停多仓库 |
-| systemd/Docker | 由同一探测清单生成 unit 或 compose（仍禁止改项目原配置） |
-| Windows | 可选生成 `.ps1`，语义对齐 shell 版 |
-
-扩展时仍须：先分析、只写 `scripts/`、外置配置、安全停进程、启动前编译。
-
-## 详细参考
-
-- 探测启发式、进程匹配、脚本契约：[reference.md](reference.md)
-- 端到端生成样例（示意，非固定模板）：[examples.md](examples.md)
-
-## 完成时输出
-
-向用户交付：
-
-1. 探测到的应用清单（构建工具 / 入口 / 配置加载方式）
-2. 新增文件列表（均在 `scripts/` 下）
-3. 最短启动/停止/状态命令
-4. 明确声明：未修改任何项目既有配置与源文件
+先读已有的 `scripts/runtime/<os>/`。文件不存在则创建。内容与本次探测一致则保持不动。内容不同则把 `diff -u` 展示给用户，确认前不覆盖。`config/<app>.env` 始终不覆盖。

@@ -107,7 +107,7 @@
       "source": "fan-stars/fan-skills",
       "sourceType": "github",
       "skillPath": ".agents/skills/f-project-runtime-manager/SKILL.md",
-      "computedHash": "b9536711c710d162e83e0cc087b43e45921804639c8c6be891fae10f3ce8709d"
+      "computedHash": "6e34d67e9ba77529bd155f0cc980d87dbfd487297826aac30a8f4d71d5e7cba7"
     },
     "f-site-rewrite-implement": {
       "source": "fan-stars/fan-skills",
