@@ -65,13 +65,13 @@
       "source": "fan-stars/fan-skills",
       "sourceType": "github",
       "skillPath": ".agents/skills/f-base-project-initializer/SKILL.md",
-      "computedHash": "ea968da5452e95cb8fb631f9268a6c580535b834be543777ac13c87d879678bb"
+      "computedHash": "2f5210d08b29eb023d695662960a58ff487722da4a54d4658fefa6fec440df78"
     },
     "f-base-project-initializer-cn": {
       "source": "fan-stars/fan-skills",
       "sourceType": "github",
       "skillPath": ".agents/skills/f-base-project-initializer-cn/SKILL.md",
-      "computedHash": "ce71feb6babfca184dc32b72c511296ca1d1e45676b97e277aea8fe1db0f3191"
+      "computedHash": "91413e0c3b5b5ba871e43d4805611c396a32b05c80a83e7fb0a7f10dc2a4bdb2"
     },
     "f-enterprise-source-reverse-engineering": {
       "source": "fan-stars/fan-skills",

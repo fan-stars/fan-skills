@@ -135,13 +135,13 @@ fan-server/target/fan-server.jar
 
 ### 6. 生成运行脚本
 
-如果 `$project-runtime-manager` 可用，在完成目录重命名和配置迁移后调用它：
+如果 `$f-project-runtime-manager` 可用，在完成目录重命名和配置迁移后调用它：
 
 1. 从重命名后的路径重新识别后端与前端。
-2. 在工作区根目录的 `scripts/` 中生成统一运行管理文件，不得放入任一子项目。
-3. 确认生成的脚本引用 `BACKEND_DIR`、`FRONTEND_DIR` 和 `fan-server.jar`。
-4. 将本地运行覆盖配置放在根目录 `scripts/config/`。
-5. 不得覆盖两个仓库中已有的 `scripts/` 内容。
+2. 在工作区根目录的 `scripts/runtime/<os>/` 生成统一运行管理文件（默认只生成当前系统），不得放入任一子项目。
+3. 确认生成的脚本能根据探测结果定位重命名后的应用目录与可执行 jar（例如 `fan-server.jar`）。
+4. 将本地运行覆盖配置放在 `scripts/runtime/<os>/config/`（真实 `*.env` 不提交；可提交 `*.env.example`）。
+5. 不得修改 `scripts/runtime/` 以外的文件，也不得覆盖两个仓库中已有的非 runtime `scripts/` 内容。
 
 如果该 Skill 不可用，说明情况；除非用户明确要求后备实现，否则不自行生成替代脚本。
 
@@ -158,11 +158,11 @@ fan-server/target/fan-server.jar
 5. 允许项目专属的本地修改；但如果用户请求的修改属于公共模板或应在 `fan-base` 修复，停止该公共部分，向用户说明涉及的模板、文件和建议方案。由用户修改对应的 `fan-base` 项目，确认后再继续。
 6. 说明设置目标远程或执行任何远程变更都需要用户明确授权。
 7. 写入最终目录名、Maven 坐标不变量、数据库安全边界、根目录运行脚本、外置配置路径、测试命令和交付检查。
-8. 根据 `$project-runtime-manager` 加入强制性的编码期配置规则：
+8. 根据 `$f-project-runtime-manager` 加入强制性的编码期配置规则：
    - 开发功能或修复代码时，不得修改项目已有配置文件，包括 `application*.yml|yaml`、`bootstrap*.yml|yaml`、`.env*`、`package.json`、`vite.config.*`、`nuxt.config.*`、`pom.xml`、`build.gradle*` 和 `settings.gradle*`。
    - 只能只读现有项目配置，用于推断运行参数。
-   - 运行参数只能写入 `$project-runtime-manager` 定义的工作区根目录 `scripts/config/`，并由根目录启动脚本通过 CLI 参数或环境变量加载。
-   - 已有合适的 `scripts/config/` 文件时，不得另建第二套配置约定。
+   - 运行参数只能写入 `$f-project-runtime-manager` 定义的工作区根目录 `scripts/runtime/<os>/config/`，并由根目录启动脚本通过 CLI 参数或环境变量加载。
+   - 已有合适的 `scripts/runtime/<os>/config/` 文件时，不得另建第二套配置约定。
    - 如果需求确实涉及依赖、构建或共享项目配置，且无法用运行时外置配置表达，修改前先停止并向用户说明必须修改的文件及原因。
    - 明确该编码期规则不阻止本初始化 Skill 前面执行的一次性项目标识迁移。
 

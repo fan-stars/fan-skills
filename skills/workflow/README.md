@@ -70,19 +70,19 @@
 
 #### 核心能力
 
-按用户项目名规范化为 kebab-case，派生前后端目录、Maven groupId 与数据库名；克隆两仓后改远程名为 fan-base、解除 upstream；批量迁移 pom 坐标与库名配置，保留 fan-server 模块与外部依赖；可衔接生成运行脚本与 AGENTS.md，并做启动验证。
+从固定 Gitee 模板克隆后端与 Vben 前端，重命名目录与标识，迁移配置，再调用 `$f-project-runtime-manager` 在 `scripts/runtime/<os>/` 生成启停脚本，并可用 `$create-agentsmd` 写根目录 AGENTS.md。
 
 #### 适用场景
 
-基于 Fan 官方 Gitee 模板开新项目、批量改名与坐标迁移、初始化后希望一键生成启停脚本或确认前后端能启动时使用。
+用户要从 fan-base / fan-base-vben 快速搭一套可运行 Fan 全栈新项目，并顺带生成根目录启停脚本与 AGENTS.md 时使用。
 
 #### 主要覆盖内容
 
-必需输入与命名派生、克隆重命名与远程策略、Maven/数据库迁移不变量、残留模板名检查、后端 clean-build、可选运行脚本与 AGENTS.md、启动验证清单。
+模板克隆与重命名、Maven/包标识迁移、数据库与配置安全边界、`scripts/runtime/<os>/` 运行脚本与外置 config、根 AGENTS.md、启动校验与交付检查。
 
 #### 注意事项
 
-目标目录非空禁止覆盖。未提供目标远程时不得推送。英文版与中文版流程一致，按对话语言选用。本 skill 为 Fan 本地自建，无 skills.sh / 公开 GitHub。
+目标目录非空禁止覆盖。未提供目标远程时不得推送。运行覆盖只写 `scripts/runtime/<os>/config/`，不改项目既有配置文件。英文版与中文版流程一致，按对话语言选用。
 
 ### `f-base-project-initializer-cn`
 
@@ -90,19 +90,19 @@
 
 #### 核心能力
 
-确认并规范化项目名后派生目录与坐标；拉取两模板仓、重命名远程并解除上游；迁移全部受控 pom 与数据库相关配置，保留 fan-server 可执行模块；可选生成根目录运行脚本与 AGENTS.md，并启动验证可运行应用。
+以中文步骤从固定 Gitee 模板克隆并重命名 Fan 全栈项目，迁移配置后调用 `$f-project-runtime-manager` 生成 `scripts/runtime/<os>/` 启停脚本，并可生成根目录 AGENTS.md。
 
 #### 适用场景
 
-中文协作下从 Fan 模板开新仓、改前后端目录名与 Maven/库名、需要初始化后生成启停脚本或验证能否启动时使用。
+中文对话中要从 fan-base / fan-base-vben 初始化 Fan 全栈项目，并需要统一运行脚本与根目录说明文档时使用。
 
 #### 主要覆盖内容
 
-名称确认、双仓克隆与远程策略、Maven 与数据库迁移、残留模板名处理、后端构建、可选脚本与 AGENTS.md、启动验证阶段清单。
+中文流程说明、模板克隆与重命名、配置迁移、runtime 脚本与外置 config、根 AGENTS.md、启动验证与交付检查；与英文版同源。
 
 #### 注意事项
 
-与英文版 `f-base-project-initializer` 同源流程，按用户语言选用其一即可，勿同时执行两套。非空目标目录不得覆盖；无用户远程时不推送。Fan 本地自建 skill。
+与英文版 `f-base-project-initializer` 同源，按用户语言二选一，勿同时执行。非空目标目录不得覆盖；无用户远程时不推送。运行参数只写 `scripts/runtime/<os>/config/`。
 
 ### `f-enterprise-source-reverse-engineering`
 

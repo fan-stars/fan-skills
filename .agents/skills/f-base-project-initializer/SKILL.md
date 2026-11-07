@@ -135,13 +135,13 @@ fan-server/target/fan-server.jar
 
 ### 6. Generate runtime scripts
 
-If `$project-runtime-manager` is available, use it after the rename/configuration work:
+If `$f-project-runtime-manager` is available, use it after the rename/configuration work:
 
 1. Detect the backend and frontend again from their renamed paths.
-2. Generate unified runtime management files in the workspace root `scripts/`, not inside either repository.
-3. Ensure generated scripts reference `BACKEND_DIR`, `FRONTEND_DIR`, and `fan-server.jar`.
-4. Keep local runtime overrides in root `scripts/config/`.
-5. Do not overwrite either repository's existing `scripts/` content.
+2. Generate unified runtime management files under the workspace root `scripts/runtime/<os>/` (default: current OS only), not inside either repository.
+3. Ensure generated scripts resolve the renamed app directories and the executable jar (for example `fan-server.jar`) from the detection result.
+4. Keep local runtime overrides in `scripts/runtime/<os>/config/` (real `*.env` untracked; commit `*.env.example` only).
+5. Do not modify files outside `scripts/runtime/`, and do not overwrite either repository's existing non-runtime `scripts/` content.
 
 If the skill is unavailable, report that and generate nothing unless the user explicitly asks for a fallback implementation.
 
@@ -158,11 +158,11 @@ If `$create-agentsmd` is available, use it after the projects and runtime script
 5. Allow project-specific local changes, but when a requested change belongs to the shared template or should be fixed in `fan-base`, stop that common portion and tell the user the affected template, files, and recommended change. Let the user modify the corresponding `fan-base` project, then continue after confirmation.
 6. Document that any destination remote or remote mutation requires explicit user authorization.
 7. Include the final directory names, Maven coordinate invariant, database safety boundary, root runtime scripts, external configuration paths, tests, and delivery checks.
-8. Add a mandatory coding-time configuration rule based on `$project-runtime-manager`:
+8. Add a mandatory coding-time configuration rule based on `$f-project-runtime-manager`:
    - Do not modify existing project configuration files while implementing features or fixes. This includes `application*.yml|yaml`, `bootstrap*.yml|yaml`, `.env*`, `package.json`, `vite.config.*`, `nuxt.config.*`, `pom.xml`, `build.gradle*`, and `settings.gradle*`.
    - Read existing project configuration only to infer runtime values.
-   - Put runtime overrides only in the workspace-root `scripts/config/` files defined by `$project-runtime-manager`, and load them through CLI arguments or environment variables from the root startup scripts.
-   - Do not create a second configuration convention when suitable `scripts/config/` files already exist.
+   - Put runtime overrides only in the workspace-root `scripts/runtime/<os>/config/` files defined by `$f-project-runtime-manager`, and load them through CLI arguments or environment variables from the root startup scripts.
+   - Do not create a second configuration convention when suitable `scripts/runtime/<os>/config/` files already exist.
    - If the requested change genuinely requires altering dependency, build, or shared project configuration and cannot be represented as a runtime override, stop and explain the required file and reason to the user before editing it.
    - Clarify that this coding-time rule does not prevent the explicit one-time identity migration performed earlier by this initializer.
 
