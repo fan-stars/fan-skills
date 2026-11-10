@@ -1,0 +1,32 @@
+version: 1
+journal:
+  path: skills-sync-journal
+targets:
+  agents:
+    path: ~/.agents/skills
+    mode: copy
+    write: true
+  cursor:
+    path: ~/.cursor/skills
+    mode: copy
+    write: true
+  codex:
+    path: ~/.codex/skills
+    mode: copy
+    write: true
+  cursor-store:
+    path: cursor-store://detect
+    mode: copy
+    write: false
+exclude:
+  names:
+    - sync-skills-catalog
+profiles:
+  default:
+    include:
+      names:
+        - f-skills-audit
+        - f-skills-sync-out
+        - f-skills-promote
+        - f-skills-apply
+      categories: []
