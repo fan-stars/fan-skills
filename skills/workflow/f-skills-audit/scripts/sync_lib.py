@@ -233,8 +233,20 @@ def mark_applied(entry_id: str) -> None:
 
 
 def copy_skill_dir(src: Path, dest: Path) -> None:
+    """原子替换：先拷到临时目录，再替换目标，避免中途失败留下空目录。"""
     import shutil
+    import tempfile
 
-    if dest.exists():
-        shutil.rmtree(dest)
-    shutil.copytree(src, dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=str(dest.parent)) as tmp:
+        staging = Path(tmp) / "staging"
+        shutil.copytree(src, staging)
+        backup = Path(tmp) / "backup"
+        if dest.exists():
+            dest.rename(backup)
+        try:
+            staging.rename(dest)
+        except Exception:
+            if backup.exists() and not dest.exists():
+                backup.rename(dest)
+            raise

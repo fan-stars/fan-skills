@@ -58,10 +58,28 @@ def cmd_hash(args: argparse.Namespace) -> int:
 
 def cmd_audit(args: argparse.Namespace) -> int:
     library = _library(args)
-    cfg, _catalog, agents = _load(library)
+    cfg, catalog, agents = _load(library)
     lib_skills = sync_lib.list_skill_dirs(agents)
     print(f"library: {library}")
     print(f"truth skills: {len(lib_skills)}")
+
+    # SGS-C-003: 配置跳过摘要（default profile 选中 vs 全库）
+    try:
+        selected = set(sync_lib.resolve_profile(cfg, catalog, agents, "default"))
+    except Exception as e:
+        selected = set()
+        print(f"profile default resolve skipped: {e}")
+    exclude = set((cfg.get("exclude") or {}).get("names") or []) | set(sync_lib.DEFAULT_SYSTEM_EXCLUDE)
+    skipped_exclude = sorted(set(lib_skills) & exclude)
+    skipped_profile = sorted(set(lib_skills) - selected - exclude)
+    print(f"default-profile selected: {len(selected)}")
+    print(f"skipped-by-exclude: {len(skipped_exclude)}")
+    print(f"skipped-by-profile: {len(skipped_profile)}")
+    if args.verbose:
+        if skipped_exclude[:20]:
+            print("  exclude sample:", ", ".join(skipped_exclude[:20]))
+        if skipped_profile[:20]:
+            print("  profile-skip sample:", ", ".join(skipped_profile[:20]))
 
     for name, meta in (cfg.get("targets") or {}).items():
         writable = bool((meta or {}).get("write"))
@@ -133,6 +151,11 @@ def _sync_one(
 def cmd_sync_out(args: argparse.Namespace) -> int:
     library = _library(args)
     cfg, catalog, agents = _load(library)
+    for tname, meta in (cfg.get("targets") or {}).items():
+        if (meta or {}).get("mode") == "symlink" and (meta or {}).get("write"):
+            raise SystemExit(
+                f"target {tname} 配置 mode=symlink：第一期 CLI 拒绝（跨机一律 copy；请改为 copy）"
+            )
     skills = sync_lib.resolve_profile(cfg, catalog, agents, args.profile)
     if args.skill:
         skills = [s for s in skills if s == args.skill]

@@ -64,5 +64,19 @@ class ProfileResolveTest(unittest.TestCase):
             self.assertEqual(names, ["a"])
 
 
+class AtomicCopyTest(unittest.TestCase):
+    def test_copy_replaces_without_losing_on_success(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            src = root / "src"
+            dest = root / "dest"
+            src.mkdir()
+            (src / "SKILL.md").write_text("new\n", encoding="utf-8")
+            dest.mkdir()
+            (dest / "SKILL.md").write_text("old\n", encoding="utf-8")
+            sync_lib.copy_skill_dir(src, dest)
+            self.assertEqual((dest / "SKILL.md").read_text(encoding="utf-8"), "new\n")
+
+
 if __name__ == "__main__":
     unittest.main()

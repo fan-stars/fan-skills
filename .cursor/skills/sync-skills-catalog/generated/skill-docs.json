@@ -666,7 +666,7 @@
       "notes": "确认前不拷贝；禁止手改 skills/ 派生产物。与用户显式指令冲突时以用户指令为准。"
     },
     "f-skills-audit": {
-      "contentHash": "dfeb0062367c90fb8d42ad345903e0c484cdf73d4d0acd6ba740f6fdec629985",
+      "contentHash": "13cd383b9e7f06f3bdff2af19749666bef5e2c1aa7edabca45a734f21f339ed5",
       "summary": "只读对比 fan-skills 真相源与各 AI 全局 skills 目录差异。",
       "capabilities": "展开逻辑 target、输出仅库内/仅工具侧/指纹分歧与跳过摘要，并校验可移植同步配置。",
       "scenarios": "同步前盘点漂移、检查配置是否含绝对路径、或核对 Agent Store 只读差异时使用。",
