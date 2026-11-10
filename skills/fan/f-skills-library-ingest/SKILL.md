@@ -141,5 +141,6 @@ cp -a "<source>/<name>" "$LIB/.agents/skills/<name>"
 ## 相关
 
 - 库内渲染：目标库的 `sync-skills-catalog`
+- 库 → 全局外推 / 跨机回放：`f-skills-sync-out` / `f-skills-apply`
 - OpenSpec 双套投影：`f-openspec-profile-switch`
 - 详细约定与模板：[reference.md](reference.md)

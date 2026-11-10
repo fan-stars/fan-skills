@@ -598,6 +598,34 @@
         "workflow"
       ],
       "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-library-ingest/SKILL.md"
+    },
+    "f-skills-audit": {
+      "categories": [
+        "fan",
+        "workflow"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-audit/SKILL.md"
+    },
+    "f-skills-sync-out": {
+      "categories": [
+        "fan",
+        "workflow"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-sync-out/SKILL.md"
+    },
+    "f-skills-promote": {
+      "categories": [
+        "fan",
+        "workflow"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-promote/SKILL.md"
+    },
+    "f-skills-apply": {
+      "categories": [
+        "fan",
+        "workflow"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-apply/SKILL.md"
     }
   }
 }

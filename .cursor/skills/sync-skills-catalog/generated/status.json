@@ -82,7 +82,11 @@
     "f-yudao-boot-mini-graalvm": "eae3953697ec2296b938cd38f54f5b663947c552a91a6635c99d963c3ff82200",
     "graal": "1f43d1d600cf8c0219462c6bfc286913996d9086e2ed185c0f992e97b9fdd65b",
     "java-add-graalvm-native-image-support": "7579cfe6d95194fb4998eb07b5c3ba16439ce30b6b5fd19a17d81ecc072235f3",
-    "f-skills-library-ingest": "1caf4da1cdc920903512ffd3fa1ebca8a9337c9091f00661a6d575e082ec7cd3"
+    "f-skills-library-ingest": "e0aff996929f6ad15dc6a2975b42b47bb17e5e407d87178a79a8ad69d10d3e73",
+    "f-skills-audit": "dfeb0062367c90fb8d42ad345903e0c484cdf73d4d0acd6ba740f6fdec629985",
+    "f-skills-sync-out": "3b6c3aad8d664eb57ea0916727a8d2f4e9bfa50e6e39407f339b8368b5233631",
+    "f-skills-promote": "4980a9cfd81d2f668b60047f68d397835beaeafe4a25ac57ca58c60111471582",
+    "f-skills-apply": "130ac087cc21a8fb605946a2763ded36255dd776b70f71b67f13f0054ebefae3"
   },
   "reusable": [
     "agent-browser",
@@ -167,7 +171,11 @@
     "f-yudao-boot-mini-graalvm",
     "graal",
     "java-add-graalvm-native-image-support",
-    "f-skills-library-ingest"
+    "f-skills-library-ingest",
+    "f-skills-audit",
+    "f-skills-sync-out",
+    "f-skills-promote",
+    "f-skills-apply"
   ],
   "needGenerate": [],
   "invalid": [],
