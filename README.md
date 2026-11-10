@@ -10,6 +10,8 @@ Fan 项目选用的 Agent Skills **目录库**：供其他新项目按技术栈�
 | `skills/` | **只读派生产物**（按分类多副本，禁止手改） |
 | `commands/` | opsx / superpowers 配套 slash 命令（canonical 嵌套；可占位） |
 | `skills-catalog.json` | 分类映射与中文简介 |
+| `skills-sync.yaml` | 全局 skills 同步 profile / exclude / 逻辑 target |
+| `skills-sync-journal/` | 可移植同步流水账（跨机 apply） |
 | `.cursor/skills/sync-skills-catalog/` | 运维同步 skill（**不**进入分类目录） |
 
 ## 远程与推送
@@ -32,6 +34,25 @@ python3 .cursor/skills/sync-skills-catalog/scripts/sync.py
 ```
 
 或在 Cursor 中触发 skill：`sync-skills-catalog`。
+
+## 全局 skills 同步
+
+将本库真相源选择性同步到各 AI 工具全局目录（`~/.agents` / `~/.cursor` / `~/.codex` 等），配置见 [`skills-sync.yaml`](skills-sync.yaml)，契约见 [`.agents/skills/f-skills-audit/reference.md`](.agents/skills/f-skills-audit/reference.md)。
+
+| Skill | 用途 |
+| --- | --- |
+| `f-skills-audit` | 只读盘点对比 |
+| `f-skills-sync-out` | 库 → 全局 |
+| `f-skills-promote` | 全局 → 库（并写伴生 sync-out journal） |
+| `f-skills-apply` | 按 journal 在本机回放 sync-out |
+
+**Bootstrap（新机器）：** clone 后先把上述四个 skill 拷到本机全局 skills，或：
+
+```bash
+python3 .agents/skills/f-skills-audit/scripts/cli.py sync-out --library . --profile default --yes
+```
+
+文档站（`fan-skills-docs`）第一期不描述本流程。
 
 ## 给新项目拷贝
 
