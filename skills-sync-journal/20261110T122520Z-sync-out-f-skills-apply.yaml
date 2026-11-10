@@ -1,0 +1,11 @@
+id: 20261110T122520Z-sync-out-f-skills-apply
+action: sync-out
+skill: f-skills-apply
+dest_targets:
+- cursor
+library_rel: .agents/skills/f-skills-apply
+contentHash: 130ac087cc21a8fb605946a2763ded36255dd776b70f71b67f13f0054ebefae3
+at: '2026-11-10T12:25:20.506496+00:00'
+machine: StarsdeMac-mini.local
+mode: copy
+note: ''
