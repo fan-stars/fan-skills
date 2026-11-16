@@ -1,0 +1,10 @@
+id: 20261116T141840Z-promote-f-base-codegen-mcp
+action: promote
+skill: f-base-codegen-mcp
+source_target: agents
+library_rel: .agents/skills/f-base-codegen-mcp
+contentHash: a1fd65be0869db5f19eb1d7fa9da2e8995e7c7a763bc135df19d9db3242f4d65
+at: '2026-11-16T14:18:40.743821+00:00'
+machine: StarsdeMac-mini.local
+mode: copy
+note: 'refactor: fan-mcp-codegen-workflow → f-base-codegen-mcp'

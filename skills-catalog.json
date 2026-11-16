@@ -118,6 +118,22 @@
       "skillsShUrl": "https://skills.sh/arvindrk/extract-design-system/extract-design-system",
       "githubUrl": "https://github.com/arvindrk/extract-design-system/blob/main/skills/extract-design-system/SKILL.md"
     },
+    "f-antd-spacing-layout-governance": {
+      "categories": [
+        "fan",
+        "web/react"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-antd-spacing-layout-governance/SKILL.md"
+    },
+    "f-base-codegen-mcp": {
+      "categories": [
+        "fan",
+        "mcp",
+        "java"
+      ],
+      "skillsShUrl": null,
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-base-codegen-mcp/SKILL.md"
+    },
     "f-base-project-initializer": {
       "categories": [
         "fan",
@@ -143,6 +159,18 @@
       "skillsShUrl": null,
       "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-enterprise-source-reverse-engineering/SKILL.md"
     },
+    "f-git-origin-doc": {
+      "categories": [
+        "fan"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-git-origin-doc/SKILL.md"
+    },
+    "f-git-origin-pull": {
+      "categories": [
+        "fan"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-git-origin-pull/SKILL.md"
+    },
     "f-java-springboot": {
       "categories": [
         "java",
@@ -150,6 +178,12 @@
       ],
       "skillsShUrl": null,
       "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-java-springboot/SKILL.md"
+    },
+    "f-openspec-profile-switch": {
+      "categories": [
+        "fan"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-openspec-profile-switch/SKILL.md"
     },
     "f-project-runtime-manager": {
       "categories": [
@@ -159,12 +193,99 @@
       "skillsShUrl": null,
       "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-project-runtime-manager/SKILL.md"
     },
+    "f-site-rewrite-implement": {
+      "categories": [
+        "fan"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-site-rewrite-implement/SKILL.md"
+    },
+    "f-site-rewrite-init": {
+      "categories": [
+        "fan"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-site-rewrite-init/SKILL.md"
+    },
+    "f-skills-apply": {
+      "categories": [
+        "fan",
+        "workflow"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-apply/SKILL.md"
+    },
+    "f-skills-audit": {
+      "categories": [
+        "fan",
+        "workflow"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-audit/SKILL.md"
+    },
+    "f-skills-library-ingest": {
+      "categories": [
+        "fan",
+        "workflow"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-library-ingest/SKILL.md"
+    },
+    "f-skills-promote": {
+      "categories": [
+        "fan",
+        "workflow"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-promote/SKILL.md"
+    },
+    "f-skills-sync-out": {
+      "categories": [
+        "fan",
+        "workflow"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-sync-out/SKILL.md"
+    },
+    "f-springboot-native": {
+      "categories": [
+        "fan",
+        "java"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-springboot-native/SKILL.md"
+    },
+    "f-yudao-boot-mini-graalvm": {
+      "categories": [
+        "fan",
+        "java"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-yudao-boot-mini-graalvm/SKILL.md"
+    },
+    "f-zjmf-addon-plugin": {
+      "categories": [
+        "fan"
+      ],
+      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-zjmf-addon-plugin/SKILL.md"
+    },
     "find-skills": {
       "categories": [
         "workflow"
       ],
       "skillsShUrl": "https://skills.sh/vercel-labs/skills/find-skills",
       "githubUrl": "https://github.com/vercel-labs/skills/blob/main/skills/find-skills/SKILL.md"
+    },
+    "finesse-brief": {
+      "categories": [
+        "web/design"
+      ]
+    },
+    "finesse-term": {
+      "categories": [
+        "web/design"
+      ]
+    },
+    "finesse-ui": {
+      "categories": [
+        "web/design"
+      ]
+    },
+    "frame-smith": {
+      "categories": [
+        "web/design"
+      ]
     },
     "frontend-design": {
       "categories": [
@@ -173,6 +294,11 @@
       ],
       "skillsShUrl": "https://skills.sh/anthropics/skills/frontend-design",
       "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md"
+    },
+    "graal": {
+      "categories": [
+        "java"
+      ]
     },
     "grill-me": {
       "categories": [
@@ -201,6 +327,11 @@
       ],
       "skillsShUrl": "https://skills.sh/mattpocock/skills/improve-codebase-architecture",
       "githubUrl": "https://github.com/mattpocock/skills/blob/main/skills/engineering/improve-codebase-architecture/SKILL.md"
+    },
+    "java-add-graalvm-native-image-support": {
+      "categories": [
+        "java"
+      ]
     },
     "java-refactoring-extract-method": {
       "categories": [
@@ -244,111 +375,6 @@
       "skillsShUrl": "https://skills.sh/antfu/skills/nuxt",
       "githubUrl": "https://github.com/antfu/skills/blob/main/skills/nuxt/SKILL.md"
     },
-    "openspec-archiving": {
-      "categories": [
-        "openspec-legacy"
-      ],
-      "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-archiving",
-      "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-archiving/SKILL.md"
-    },
-    "openspec-context-loading": {
-      "categories": [
-        "openspec-legacy"
-      ],
-      "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-context-loading",
-      "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-context-loading/SKILL.md"
-    },
-    "openspec-implementation": {
-      "categories": [
-        "openspec-legacy"
-      ],
-      "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-implementation",
-      "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-implementation/SKILL.md"
-    },
-    "openspec-proposal-creation": {
-      "categories": [
-        "openspec-legacy"
-      ],
-      "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-proposal-creation",
-      "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-proposal-creation/SKILL.md"
-    },
-    "openspec-proposal-creation-cn": {
-      "categories": [
-        "openspec-legacy"
-      ],
-      "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-proposal-creation-cn",
-      "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-proposal-creation-cn/SKILL.md"
-    },
-    "pdf": {
-      "categories": [
-        "docs"
-      ],
-      "skillsShUrl": "https://skills.sh/anthropics/skills/pdf",
-      "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/pdf/SKILL.md"
-    },
-    "pptx": {
-      "categories": [
-        "docs"
-      ],
-      "skillsShUrl": "https://skills.sh/anthropics/skills/pptx",
-      "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/pptx/SKILL.md"
-    },
-    "request-refactor-plan": {
-      "categories": [
-        "workflow"
-      ],
-      "skillsShUrl": "https://skills.sh/mattpocock/skills/request-refactor-plan",
-      "githubUrl": "https://github.com/mattpocock/skills/blob/main/skills/deprecated/request-refactor-plan/SKILL.md"
-    },
-    "vben": {
-      "categories": [
-        "web/vue"
-      ],
-      "skillsShUrl": "https://skills.sh/vbenjs/skills/vben",
-      "githubUrl": "https://github.com/vbenjs/skills/blob/main/skills/SKILL.md"
-    },
-    "vercel-composition-patterns": {
-      "categories": [
-        "web/react"
-      ],
-      "skillsShUrl": "https://skills.sh/vercel-labs/agent-skills/vercel-composition-patterns",
-      "githubUrl": "https://github.com/vercel-labs/agent-skills/blob/main/skills/composition-patterns/SKILL.md"
-    },
-    "vercel-react-best-practices": {
-      "categories": [
-        "web/react"
-      ],
-      "skillsShUrl": "https://skills.sh/vercel-labs/agent-skills/vercel-react-best-practices",
-      "githubUrl": "https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md"
-    },
-    "vercel-react-view-transitions": {
-      "categories": [
-        "web/react"
-      ],
-      "skillsShUrl": "https://skills.sh/vercel-labs/agent-skills/vercel-react-view-transitions",
-      "githubUrl": "https://github.com/vercel-labs/agent-skills/blob/main/skills/react-view-transitions/SKILL.md"
-    },
-    "web-design-guidelines": {
-      "categories": [
-        "web/design"
-      ],
-      "skillsShUrl": "https://skills.sh/vercel-labs/agent-skills/web-design-guidelines",
-      "githubUrl": "https://github.com/vercel-labs/agent-skills/blob/main/skills/web-design-guidelines/SKILL.md"
-    },
-    "webapp-testing": {
-      "categories": [
-        "testing"
-      ],
-      "skillsShUrl": "https://skills.sh/anthropics/skills/webapp-testing",
-      "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/webapp-testing/SKILL.md"
-    },
-    "xlsx": {
-      "categories": [
-        "docs"
-      ],
-      "skillsShUrl": "https://skills.sh/anthropics/skills/xlsx",
-      "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/xlsx/SKILL.md"
-    },
     "openspec-apply-change": {
       "categories": [
         "opsx/openspec"
@@ -361,11 +387,25 @@
       ],
       "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-archive-change/SKILL.md"
     },
+    "openspec-archiving": {
+      "categories": [
+        "openspec-legacy"
+      ],
+      "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-archiving",
+      "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-archiving/SKILL.md"
+    },
     "openspec-bulk-archive-change": {
       "categories": [
         "opsx/openspec"
       ],
       "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-bulk-archive-change/SKILL.md"
+    },
+    "openspec-context-loading": {
+      "categories": [
+        "openspec-legacy"
+      ],
+      "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-context-loading",
+      "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-context-loading/SKILL.md"
     },
     "openspec-continue-change": {
       "categories": [
@@ -385,6 +425,13 @@
       ],
       "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-ff-change/SKILL.md"
     },
+    "openspec-implementation": {
+      "categories": [
+        "openspec-legacy"
+      ],
+      "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-implementation",
+      "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-implementation/SKILL.md"
+    },
     "openspec-new-change": {
       "categories": [
         "opsx/openspec"
@@ -396,6 +443,20 @@
         "opsx/openspec"
       ],
       "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-onboard/SKILL.md"
+    },
+    "openspec-proposal-creation": {
+      "categories": [
+        "openspec-legacy"
+      ],
+      "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-proposal-creation",
+      "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-proposal-creation/SKILL.md"
+    },
+    "openspec-proposal-creation-cn": {
+      "categories": [
+        "openspec-legacy"
+      ],
+      "skillsShUrl": "https://skills.sh/forztf/open-skilled-sdd/openspec-proposal-creation-cn",
+      "githubUrl": "https://github.com/forztf/open-skilled-sdd/blob/main/skills/openspec-proposal-creation-cn/SKILL.md"
     },
     "openspec-propose": {
       "categories": [
@@ -420,6 +481,27 @@
         "opsx/openspec"
       ],
       "githubUrl": "https://github.com/Fission-AI/OpenSpec/blob/main/skills/openspec-verify-change/SKILL.md"
+    },
+    "pdf": {
+      "categories": [
+        "docs"
+      ],
+      "skillsShUrl": "https://skills.sh/anthropics/skills/pdf",
+      "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/pdf/SKILL.md"
+    },
+    "pptx": {
+      "categories": [
+        "docs"
+      ],
+      "skillsShUrl": "https://skills.sh/anthropics/skills/pptx",
+      "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/pptx/SKILL.md"
+    },
+    "request-refactor-plan": {
+      "categories": [
+        "workflow"
+      ],
+      "skillsShUrl": "https://skills.sh/mattpocock/skills/request-refactor-plan",
+      "githubUrl": "https://github.com/mattpocock/skills/blob/main/skills/deprecated/request-refactor-plan/SKILL.md"
     },
     "superpowers-brainstorming": {
       "categories": [
@@ -505,127 +587,54 @@
       ],
       "githubUrl": "https://github.com/obra/superpowers/blob/main/skills/writing-skills/SKILL.md"
     },
-    "finesse-brief": {
+    "vben": {
       "categories": [
-        "web/design"
-      ]
-    },
-    "finesse-term": {
-      "categories": [
-        "web/design"
-      ]
-    },
-    "finesse-ui": {
-      "categories": [
-        "web/design"
-      ]
-    },
-    "frame-smith": {
-      "categories": [
-        "web/design"
-      ]
-    },
-    "f-git-origin-doc": {
-      "categories": [
-        "fan"
+        "web/vue"
       ],
-      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-git-origin-doc/SKILL.md"
+      "skillsShUrl": "https://skills.sh/vbenjs/skills/vben",
+      "githubUrl": "https://github.com/vbenjs/skills/blob/main/skills/SKILL.md"
     },
-    "f-git-origin-pull": {
+    "vercel-composition-patterns": {
       "categories": [
-        "fan"
-      ],
-      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-git-origin-pull/SKILL.md"
-    },
-    "f-openspec-profile-switch": {
-      "categories": [
-        "fan"
-      ],
-      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-openspec-profile-switch/SKILL.md"
-    },
-    "f-antd-spacing-layout-governance": {
-      "categories": [
-        "fan",
         "web/react"
       ],
-      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-antd-spacing-layout-governance/SKILL.md"
+      "skillsShUrl": "https://skills.sh/vercel-labs/agent-skills/vercel-composition-patterns",
+      "githubUrl": "https://github.com/vercel-labs/agent-skills/blob/main/skills/composition-patterns/SKILL.md"
     },
-    "f-zjmf-addon-plugin": {
+    "vercel-react-best-practices": {
       "categories": [
-        "fan"
+        "web/react"
       ],
-      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-zjmf-addon-plugin/SKILL.md"
+      "skillsShUrl": "https://skills.sh/vercel-labs/agent-skills/vercel-react-best-practices",
+      "githubUrl": "https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md"
     },
-    "f-site-rewrite-init": {
+    "vercel-react-view-transitions": {
       "categories": [
-        "fan"
+        "web/react"
       ],
-      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-site-rewrite-init/SKILL.md"
+      "skillsShUrl": "https://skills.sh/vercel-labs/agent-skills/vercel-react-view-transitions",
+      "githubUrl": "https://github.com/vercel-labs/agent-skills/blob/main/skills/react-view-transitions/SKILL.md"
     },
-    "f-site-rewrite-implement": {
+    "web-design-guidelines": {
       "categories": [
-        "fan"
+        "web/design"
       ],
-      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-site-rewrite-implement/SKILL.md"
+      "skillsShUrl": "https://skills.sh/vercel-labs/agent-skills/web-design-guidelines",
+      "githubUrl": "https://github.com/vercel-labs/agent-skills/blob/main/skills/web-design-guidelines/SKILL.md"
     },
-    "f-springboot-native": {
+    "webapp-testing": {
       "categories": [
-        "fan",
-        "java"
+        "testing"
       ],
-      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-springboot-native/SKILL.md"
+      "skillsShUrl": "https://skills.sh/anthropics/skills/webapp-testing",
+      "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/webapp-testing/SKILL.md"
     },
-    "f-yudao-boot-mini-graalvm": {
+    "xlsx": {
       "categories": [
-        "fan",
-        "java"
+        "docs"
       ],
-      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-yudao-boot-mini-graalvm/SKILL.md"
-    },
-    "graal": {
-      "categories": [
-        "java"
-      ]
-    },
-    "java-add-graalvm-native-image-support": {
-      "categories": [
-        "java"
-      ]
-    },
-    "f-skills-library-ingest": {
-      "categories": [
-        "fan",
-        "workflow"
-      ],
-      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-library-ingest/SKILL.md"
-    },
-    "f-skills-audit": {
-      "categories": [
-        "fan",
-        "workflow"
-      ],
-      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-audit/SKILL.md"
-    },
-    "f-skills-sync-out": {
-      "categories": [
-        "fan",
-        "workflow"
-      ],
-      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-sync-out/SKILL.md"
-    },
-    "f-skills-promote": {
-      "categories": [
-        "fan",
-        "workflow"
-      ],
-      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-promote/SKILL.md"
-    },
-    "f-skills-apply": {
-      "categories": [
-        "fan",
-        "workflow"
-      ],
-      "githubUrl": "https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-apply/SKILL.md"
+      "skillsShUrl": "https://skills.sh/anthropics/skills/xlsx",
+      "githubUrl": "https://github.com/anthropics/skills/blob/main/skills/xlsx/SKILL.md"
     }
   }
 }

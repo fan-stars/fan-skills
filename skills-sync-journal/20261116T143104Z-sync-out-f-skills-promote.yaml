@@ -1,0 +1,13 @@
+id: 20261116T143104Z-sync-out-f-skills-promote
+action: sync-out
+skill: f-skills-promote
+dest_targets:
+- agents
+- cursor
+- codex
+library_rel: .agents/skills/f-skills-promote
+contentHash: b0322a97191c80ddb6956301b0b5ecb61f5eafc228b2531f86013519044cd217
+at: '2026-11-16T14:31:04.254285+00:00'
+machine: StarsdeMac-mini.local
+mode: copy
+note: document catalog skills key sort via sync-skills-catalog

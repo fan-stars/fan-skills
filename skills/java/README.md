@@ -8,6 +8,7 @@ Spring Boot、Fan 后端与 Java 重构
 
 | Skill 名称 | 路径 | 简介 | skills.sh | GitHub |
 | --- | --- | --- | --- | --- |
+| `f-base-codegen-mcp` | `skills/java/f-base-codegen-mcp/` | 经远程 Streamable HTTP MCP 把库表生成并落盘到 Fan boot/vben 基础 CRUD。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-base-codegen-mcp/SKILL.md) |
 | `f-java-springboot` | `skills/java/f-java-springboot/` | Fan 后端 Spring Boot 硬性约定：MyBatis-Plus、Lombok 日志与仓库外本地配置。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-java-springboot/SKILL.md) |
 | `f-springboot-native` | `skills/java/f-springboot-native/` | Spring Boot 应用 GraalVM Native Image 落地指南。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-springboot-native/SKILL.md) |
 | `f-yudao-boot-mini-graalvm` | `skills/java/f-yudao-boot-mini-graalvm/` | 芋道 boot-mini 场景下的 GraalVM 原生构建经验。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-yudao-boot-mini-graalvm/SKILL.md) |
@@ -17,6 +18,26 @@ Spring Boot、Fan 后端与 Java 重构
 | `java-springboot` | `skills/java/java-springboot/` | Spring Boot 应用通用最佳实践：结构、注入、配置、数据访问与测试。 | [skills.sh](https://skills.sh/github/awesome-copilot/java-springboot) | [GitHub](https://github.com/github/awesome-copilot/blob/main/skills/java-springboot/SKILL.md) |
 
 ## 详细介绍
+
+### `f-base-codegen-mcp`
+
+**路径**：`skills/java/f-base-codegen-mcp/`
+
+#### 核心能力
+
+串行调用 14 个远程 codegen 工具完成导入、主子/树表配置、字段字典与宽度调整、bundle 下载；本地 apply_bundle 幂等落盘，并双写菜单/字典/DDL、合并错误码与枚举。
+
+#### 适用场景
+
+需要把一张或多张数据库表生成 Fan 后端与 Vben 前端基础 CRUD，或对已导入表做主子关系、字段与字典调优后重新出包落盘时使用。
+
+#### 主要覆盖内容
+
+MCP 连通与配置校验、表导入与 detail、codegen_update/alter/bundle、本地 ZIP/DDL 应用、基线与增量 SQL、菜单号段、模块骨架补齐、错误码合并与构建报告。
+
+#### 注意事项
+
+仅用 Streamable HTTP `/mcp`，禁用旧 fan-mcp 工具名与本地/SSE。不覆盖人工改动；写工具串行；不删表不写密钥；MCP 库与本地开发库相互独立。已替代旧 skill `fan-mcp-codegen-workflow`。
 
 ### `f-java-springboot`
 

@@ -97,6 +97,7 @@ cp -a "<source>/<name>" "$LIB/.agents/skills/<name>"
 - `skills` 键集合必须与 `.agents/skills` 目录集合一致
 - 条目不得含 `descriptionZh` / `detailsZh`
 - 每个 skill 至少一个合法 `categories[]`
+- 插入位置不限；后续 `sync-skills-catalog` 的 `status`/`render`/`validate` 会把 `skills` 键规范为字母序
 
 ### 6. Commands（可选）
 

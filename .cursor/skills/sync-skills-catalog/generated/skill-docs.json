@@ -73,6 +73,22 @@
       "notes": "需 Node 20+ 与 Playwright chromium。结果用于初始化，不应视为完整或权威；修改现有 app 代码/样式前必须先征得确认。与 `frontend-design`、`web-design-guidelines` 配合更佳。",
       "contentHash": "945947a3a85d4113ac35e55247fcb8f46eac44eb477a3498b5e56ffedfdb65f9"
     },
+    "f-antd-spacing-layout-governance": {
+      "contentHash": "74227e5f75446e88a35a6dedfb33b2514aeb863770a51ce553fdabc373ee34e4",
+      "summary": "Ant Design 项目间距与跨页布局契约治理。",
+      "capabilities": "提供审计规则、迁移策略、扫描脚本与容器模板，统一间距语义。并给出可执行的步骤与约束说明。",
+      "scenarios": "Ant Design 6 项目出现间距混乱、迁移或 PR 审计时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 token 规则、gap/margin、响应式与页面契约。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "先定布局契约再改组件，避免只调像素不改结构。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-base-codegen-mcp": {
+      "contentHash": "a1fd65be0869db5f19eb1d7fa9da2e8995e7c7a763bc135df19d9db3242f4d65",
+      "summary": "经远程 Streamable HTTP MCP 把库表生成并落盘到 Fan boot/vben 基础 CRUD。",
+      "capabilities": "串行调用 14 个远程 codegen 工具完成导入、主子/树表配置、字段字典与宽度调整、bundle 下载；本地 apply_bundle 幂等落盘，并双写菜单/字典/DDL、合并错误码与枚举。",
+      "scenarios": "需要把一张或多张数据库表生成 Fan 后端与 Vben 前端基础 CRUD，或对已导入表做主子关系、字段与字典调优后重新出包落盘时使用。",
+      "coverage": "MCP 连通与配置校验、表导入与 detail、codegen_update/alter/bundle、本地 ZIP/DDL 应用、基线与增量 SQL、菜单号段、模块骨架补齐、错误码合并与构建报告。",
+      "notes": "仅用 Streamable HTTP `/mcp`，禁用旧 fan-mcp 工具名与本地/SSE。不覆盖人工改动；写工具串行；不删表不写密钥；MCP 库与本地开发库相互独立。已替代旧 skill `fan-mcp-codegen-workflow`。"
+    },
     "f-base-project-initializer": {
       "summary": "从固定 fan-base / fan-base-vben 模板克隆并重命名，生成可运行的 Fan 全栈新项目。",
       "capabilities": "从固定 Gitee 模板克隆后端与 Vben 前端，重命名目录与标识，迁移配置，再调用 `$f-project-runtime-manager` 在 `scripts/runtime/<os>/` 生成启停脚本，并可用 `$create-agentsmd` 写根目录 AGENTS.md。",
@@ -89,6 +105,30 @@
       "notes": "与英文版 `f-base-project-initializer` 同源，按用户语言二选一，勿同时执行。非空目标目录不得覆盖；无用户远程时不推送。运行参数只写 `scripts/runtime/<os>/config/`。",
       "contentHash": "91413e0c3b5b5ba871e43d4805611c396a32b05c80a83e7fb0a7f10dc2a4bdb2"
     },
+    "f-enterprise-source-reverse-engineering": {
+      "summary": "面向双 PHP 遗留系统的项目强隔离、增量证据索引、可恢复运行与失败关闭质量门禁技能。",
+      "capabilities": "按 Project 绑定不同源码根并构建源码、符号和业务三层持久索引；通过完整限定参数类型、调用可达性与已知表关联生成结构事实，把 Service、Repository、Model、Request 等名称信号限制为候选；支持工作区内的外部权威 SQL 快照、带审核人和时间戳的负向证据安全写入、可信快照、失败阶段续跑、补证后独立终结，以及文件归属、方法调用者和业务规则关联接口与表查询。",
+      "scenarios": "适用于初始化或刷新两套大型 PHP 项目工作区、引用源码根外的权威数据库 dump、逐模块增量逆向、从失败阶段继续分析、为 PARTIAL 运行补齐人工证据后安全终结、查询文件归属或方法调用者、追踪规则关联接口与表、传播并复核过期证据、审计模块完成度，或依据已批准的双项目事实设计可追溯 Java 目标系统。",
+      "coverage": "覆盖 A/B 根目录和事实读取隔离、源码与解析结果增量缓存、外部 SQL 的工作区边界及真实文件哈希行号校验、解析器版本失效、多模块追加归属及显式角色替换、路由到 Controller、验证、Service、持久化、事务和副作用的接口证据链、PRESENT 与 UNRESOLVED 及经审核的 NOT_APPLICABLE、STALE 传播、门禁候选与最终提交分离、完整自动管线及门禁尝试记录、JSON Schema 和十八项门禁。",
+      "notes": "核心脚本仅依赖 Python 标准库并兼容 Windows 与 Linux，Schema 和平台格式测试需安装测试依赖。外部 SQL 必须位于分析工作区内，不能用范围标记绕过文件存在、SHA-256、扩展名和行号检查；源码可信快照也不豁免这些检查。独立门禁只产生候选结果，补证后必须使用同一运行 ID 的 --finalize 完成最终提交。PHP 解析仍是保守候选解析，动态调用、复杂语法、非 HTTP 入口及是否真正不适用仍需人工补证。",
+      "contentHash": "a1a027cd7ff754f01c030508bb849cd5bff3c6a5a94f520b01a800e92d4d6ef3"
+    },
+    "f-git-origin-doc": {
+      "summary": "盘点工作区内独立 Git 仓与软连接，覆盖生成 .git-origin/README.md。",
+      "capabilities": "扫描独立 Git 工作树与符号链接，解析祖先仓与 gitlink，按契约写出含 YAML 机器块与人读短文的 .git-origin/README.md，记录全部远程与分支边界。",
+      "scenarios": "需要生成或刷新远程来源文档、工作区仓库边界盘点、独立子仓/远程变更后同步 .git-origin 时使用；与 f-git-origin-pull 配套。",
+      "coverage": "独立仓盘点与排除依赖嵌套 .git、软连接收集、祖先与 gitlink 说明、机器块字段与人读模板、维护约定；格式以 reference.md 为准。",
+      "notes": "默认不改根 .gitignore，不记录 commit hash，不自动提交。依赖树内嵌套仓库不写入 repos。覆盖写文档前应确认工作区根正确。",
+      "contentHash": "e82da8ac1810f326f4125296466f879430e55ebacacc9f25e48cc65e6e7f07b5"
+    },
+    "f-git-origin-pull": {
+      "contentHash": "e804cba1a2eab4907cc97978a045c7ddd2a2c2cb22ffe041a7fd8a4cb3172ea2",
+      "summary": "按 .git-origin 机器块 clone/fetch 独立仓，不合并不切换分支。",
+      "capabilities": "缺失则克隆，已有则补 remote 并 fetch；远程 URL 冲突则停等确认。",
+      "scenarios": "按文档恢复工作区子仓或同步远程时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖解析 manifest、remote 冲突策略与软链跳过规则。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "禁止 merge/rebase/pull/checkout；软链需人工确保。与用户显式指令冲突时以用户指令为准。"
+    },
     "f-java-springboot": {
       "summary": "Fan 后端 Spring Boot 硬性约定：MyBatis-Plus、Lombok 日志与仓库外本地配置。",
       "capabilities": "在通用 Spring Boot 实践上强制三项：数据层用 MyBatis-Plus（LambdaQueryWrapper、单表优先、少 XML）；日志用 Lombok `@Slf4j`；开发配置写仓库外并启动加载，禁止改 Git 内配置。",
@@ -96,6 +136,14 @@
       "coverage": "按领域分包、构造器注入、Mapper/`BaseMapper`、仓库外 application-local 加载方式、Maven/Gradle 与相关 starter 选择。",
       "notes": "常规 CRUD 不要引入 JPA。勿把个人路径或密钥写进仓库内 yml。新增配置前先确认项目是否已有 `.fan-local-config` 约定。",
       "contentHash": "cedffacd0b5722b43181bcfc63d9a17f1556c31d664e974da34582b82fbde2cb"
+    },
+    "f-openspec-profile-switch": {
+      "contentHash": "bba4961d200bdb55b1b2bc6835d938ab0fd52467c64d281e47957c174c434e05",
+      "summary": "在 legacy 与 opsx 两套 OpenSpec 技能配置间切换。",
+      "capabilities": "通过中央 vault 停放/投影 skills 与 commands，并同步仓库 spec 根。",
+      "scenarios": "需要从旧 OpenSpec 技能切到 /opsx 套件或反向时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 init/switch/specs-only、ACTIVE 与投影根。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "默认 dry-run；--apply 后建议重启 Agent 会话。与用户显式指令冲突时以用户指令为准。"
     },
     "f-project-runtime-manager": {
       "summary": "按探测结果为 Java/Spring Boot 与 React/Next/Vue/Nuxt 等 Node 应用生成可移植启停脚本。",
@@ -105,6 +153,86 @@
       "notes": "不改项目既有配置与源文件；主入口不明确时只列候选并等待。禁止 killall、pkill、taskkill /IM java 和按进程名模糊匹配。已有脚本不一致时先展示 diff，真实 .env 永不覆盖。三份进程库必须原样复制。Fan 本地自建 skill。",
       "contentHash": "77080ae61585c777eacecee3ed8fdb0b7a39413e2c5b71f2f2fe8abab4b6c0bc"
     },
+    "f-site-rewrite-implement": {
+      "contentHash": "5da9bb5aa42d993237fd28af386e739d8b5915f2b461aef5b69cc741b6ccb4ec",
+      "summary": "按既有脚手架推进站点重写实现与对照。。用于目录浏览与选型。",
+      "capabilities": "用观察记录与匹配量规驱动模块级重写，保持可追溯。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "init 完成后逐模块迁移页面/数据时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 observation、match rubric 与实现节奏。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "对照未记录清楚时不要宣称模块完成。与用户显式指令冲突时以用户指令为准。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-site-rewrite-init": {
+      "contentHash": "abad0072334454d6da575e31860fe4f1dd563097a3106e3a0503351f1331deca",
+      "summary": "站点重写项目的脚手架与索引初始化。。用于目录浏览与选型。",
+      "capabilities": "生成观察/对照/配置骨架，建立可续写的重写工作区。并给出可执行的步骤与约束说明。",
+      "scenarios": "开始从旧站到新站的系统重写时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖配置模板、indexes 与 secrets 示例。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "先 init 再 implement；密钥只用本地 secrets，勿提交。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-skills-apply": {
+      "contentHash": "130ac087cc21a8fb605946a2763ded36255dd776b70f71b67f13f0054ebefae3",
+      "summary": "按库内 sync-out journal 在本机全局目录回放对齐。",
+      "capabilities": "只处理未应用的 sync-out，一律 copy，记录本机 applied 状态，跳过裸 promote 条目。",
+      "scenarios": "其他机器 promote/sync-out 后本机 git pull 需要对齐全局 skills 时使用。",
+      "coverage": "覆盖 applied.json、分歧确认与跨机禁止软链落地。细节以 SKILL.md 与 reference 为准。",
+      "notes": "不把本机绝对路径写回共享 journal；裸 promote 条目不会写入全局，需伴生 sync-out。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-skills-audit": {
+      "contentHash": "13cd383b9e7f06f3bdff2af19749666bef5e2c1aa7edabca45a734f21f339ed5",
+      "summary": "只读对比 fan-skills 真相源与各 AI 全局 skills 目录差异。",
+      "capabilities": "展开逻辑 target、输出仅库内/仅工具侧/指纹分歧与跳过摘要，并校验可移植同步配置。",
+      "scenarios": "同步前盘点漂移、检查配置是否含绝对路径、或核对 Agent Store 只读差异时使用。",
+      "coverage": "覆盖 agents/cursor/codex/cursor-store 探测、硬排除与 contentHash 对比。细节以 SKILL.md 与 reference 为准。",
+      "notes": "本流程不写盘；skills-cursor 与 .system 不可写。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-skills-library-ingest": {
+      "contentHash": "a8aaeb3ecac54b710f5b7744fe1488951aedb564f50c2c5f4062745cb46c3f20",
+      "summary": "把全局与项目散落的 Agent Skills 有选择地纳入 fan-skills 目录库。",
+      "capabilities": "盘点候选 skill、与真相源做差集、确认后拷贝并更新 catalog，再触发分类目录同步。",
+      "scenarios": "新建或扩充 skills 目录库、全局与库不一致需要入库整理时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖扫描根、黑名单、分类启发式、commands 占位与 sync-skills-catalog 衔接。细节以仓内 SKILL.md 为准。",
+      "notes": "确认前不拷贝；禁止手改 skills/ 派生产物。与用户显式指令冲突时以用户指令为准。catalog 的 skills 键由 sync-skills-catalog 规范为字母序。"
+    },
+    "f-skills-promote": {
+      "contentHash": "b0322a97191c80ddb6956301b0b5ecb61f5eafc228b2531f86013519044cd217",
+      "summary": "将单个全局 skill 回写 fan-skills 真相源并记录伴生 journal。",
+      "capabilities": "确认后拷回 .agents/skills，写 promote 与伴生 sync-out journal，并指引 sync-skills-catalog。",
+      "scenarios": "在 ~/.cursor/skills 改好单个 skill 需要入库并让其他机器可 apply 时使用。",
+      "coverage": "覆盖与 ingest 职责边界、catalog 提示与禁止手改派生产物。细节以 SKILL.md 为准。",
+      "notes": "批量入库仍用 ingest；成功后必须跑分类同步。与用户显式指令冲突时以用户指令为准。catalog 的 skills 键由 sync-skills-catalog 规范为字母序。"
+    },
+    "f-skills-sync-out": {
+      "contentHash": "3b6c3aad8d664eb57ea0916727a8d2f4e9bfa50e6e39407f339b8368b5233631",
+      "summary": "按 profile 将库内 skill 选择性复制到各 AI 工具全局目录。",
+      "capabilities": "解析 profile 与 exclude、默认 copy、指纹相同跳过、分歧确认后覆盖，并写入可移植 journal。",
+      "scenarios": "需要把 fan-skills 推到 ~/.cursor 或 ~/.codex 等全局目录时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖多 target 成功记账、系统名录排除与 skills-sync.yaml。细节以 SKILL.md 与 reference 为准。",
+      "notes": "不做全量默推；禁止写入 skills-cursor。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-springboot-native": {
+      "contentHash": "69d1dfe024473e29a2a1508f04b21706381fd23a2a5b06aecd7fb9130fbdf59a",
+      "summary": "Spring Boot 应用 GraalVM Native Image 落地指南。",
+      "capabilities": "覆盖原生配置、RuntimeHints、审计与排障，帮助可启动原生镜像。并给出可执行的步骤与约束说明。",
+      "scenarios": "要把 Boot 服务打成 native 或排查原生启动失败时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 native-config、hints 与 troubleshooting 参考。",
+      "notes": "先保证 JVM 模式测试通过，再迭代原生可达性元数据。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-yudao-boot-mini-graalvm": {
+      "contentHash": "eae3953697ec2296b938cd38f54f5b663947c552a91a6635c99d963c3ff82200",
+      "summary": "芋道 boot-mini 场景下的 GraalVM 原生构建经验。",
+      "capabilities": "针对 yudao-boot-mini 结构给出 native 构建与验证步骤。并给出可执行的步骤与约束说明。",
+      "scenarios": "在 fan 演示或 boot-mini 派生项目启用原生镜像时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖与该模板相关的构建注意点与验证。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "模板版本变化时先核对依赖与提示配置是否仍适用。与用户显式指令冲突时以用户指令为准。"
+    },
+    "f-zjmf-addon-plugin": {
+      "contentHash": "fc1b1691826283034eac1c0d589144e1ec327e955a95a1742a9edb0480778534",
+      "summary": "魔方云/ZJMF 插件后台开发约定与约束。。用于目录浏览与选型。",
+      "capabilities": "沉淀插件页面对齐、测试站操作与 Ant Design/Layui 边界等团队规则。",
+      "scenarios": "在 fan-zjmf 插件目录开发后台页或联调测试站时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖插件约束、UI 边界与常见操作注意点。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "仍用 Layui 的旧插件不要强行改成 Ant Design。与用户显式指令冲突时以用户指令为准。"
+    },
     "find-skills": {
       "summary": "从开放 skills 生态检索并安装可扩展 Agent 能力的技能包。",
       "capabilities": "在用户想找「会不会有现成 skill」时，用 `npx skills find/add/update` 与 skills.sh 排行榜发现、安装与更新技能，把需求映射到领域与任务再搜索。",
@@ -113,6 +241,38 @@
       "notes": "先理解领域与任务再搜，避免盲目安装。安装后仍需按目标项目约定放入正确 skills 目录并必要时更新 lock。",
       "contentHash": "b146008599c31057cef1c145774cea5d5afb30e8f43fa802e47a4b461419aaaf"
     },
+    "finesse-brief": {
+      "contentHash": "7a69f03e01c16e91086b10149a34cf36de130a418d874061730a5e495d6d935c",
+      "summary": "Workbench 架构师：把模糊一句话收成可构建规格。",
+      "capabilities": "在界面还不存在时澄清工作台类型、领域与交接物。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "新产品工作台、复杂后台从 0 构思时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖发现提问、语法与 handoff 产物。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "先 brief 再交给 UI 实现技能，避免边做边猜。与用户显式指令冲突时以用户指令为准。"
+    },
+    "finesse-term": {
+      "contentHash": "fe83de4021ccc2b1704563e805db53fc90d028baf975c9a5d3990aca7c344125",
+      "summary": "把口语化界面描述译成可发给代理的准确说法。。用于目录浏览与选型。",
+      "capabilities": "检索 Web/H5 术语库，补全用户叫不出名的控件与状态。并给出可执行的步骤与约束说明。",
+      "scenarios": "任何轮次用户用大白话描述界面效果或故障时可用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖术语检索、说法层输出与多端词库。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "输出应可直接粘贴给实现代理，不要只堆名词解释。与用户显式指令冲突时以用户指令为准。"
+    },
+    "finesse-ui": {
+      "contentHash": "885506ee42b0a7f90d529e23133e37eca6604f67c282cfa761060add78e1f290",
+      "summary": "高工艺 Web/H5 界面实现：品牌向与动效向。",
+      "capabilities": "强调真实视觉锚点、有克制的动效与反廉价设计检查。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "落地页、品牌站、作品集或高质量产品壳时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖设计 DNA、动效、审计与示例库。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "若已有设计系统，优先遵循现有体系而非另起炉灶。与用户显式指令冲突时以用户指令为准。"
+    },
+    "frame-smith": {
+      "contentHash": "bef372fc0672d8cf63677160b848d399b75ccec99a476e1e46a713b3e7c0633b",
+      "summary": "用 Remotion 做电影感宣传短片合成。。用于目录浏览与选型。",
+      "capabilities": "提供镜头结构、特效菜单与运行环境检查，产出可渲染成片。并给出可执行的步骤与约束说明。",
+      "scenarios": "需要产品宣传片、主题翻转或数据叙事短视频时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖节拍结构、特效目录、声音与预检脚本。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "先确认运行时依赖，再堆特效；避免无预检直接渲染失败。与用户显式指令冲突时以用户指令为准。"
+    },
     "frontend-design": {
       "summary": "做有辨识度的前端视觉设计：排版、调色与布局避免模板感默认解。",
       "capabilities": "以设计主导视角做有主见的美学选择：锚定题材与受众、英雄区命题、字体配对、氛围背景与动效层次，刻意规避常见 AI 模板审美。",
@@ -120,6 +280,14 @@
       "coverage": "题材锚定、英雄区原则、字体与色彩方向、减少卡片/杂讯、用动效建立层级等设计原则。",
       "notes": "若已有设计系统，应服从现有语言。先钉死产品题材再开做；不要堆无意义的渐变与徽章。",
       "contentHash": "665c585455decbcb02116bc928adf5148b9cd0f67b7eb4908c8c0d647c00f68a"
+    },
+    "graal": {
+      "contentHash": "1f43d1d600cf8c0219462c6bfc286913996d9086e2ed185c0f992e97b9fdd65b",
+      "summary": "GraalVM / Native Image 基础概念与构建工具说明。",
+      "capabilities": "介绍 native-image、可达性元数据与常见构建问题定位。并给出可执行的步骤与约束说明。",
+      "scenarios": "需要理解或配置 GraalVM 原生编译链路时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖 build tools、reachability metadata 与排障文档。",
+      "notes": "与具体框架技能（如 f-springboot-native）配合效果更好。与用户显式指令冲突时以用户指令为准。"
     },
     "grill-me": {
       "summary": "启动一轮严厉质询会话，压力测试计划或设计直至达成共识。",
@@ -152,6 +320,14 @@
       "coverage": "基于提交热点的范围选择、Explore 摩擦点、删除测试、HTML 报告产出与打开、选定机会后的质询流程，以及与 domain glossary/ADR 的衔接。",
       "notes": "标记 disable-model-invocation，需显式触发。报告写在系统临时目录，不入库。上游已与 codebase-design 配套；本库 path 为 engineering 下正式 skill。",
       "contentHash": "d3682058df92c259b47c36503baa02345d5811758621b5dc03081d5ba0f7b69b"
+    },
+    "java-add-graalvm-native-image-support": {
+      "contentHash": "7579cfe6d95194fb4998eb07b5c3ba16439ce30b6b5fd19a17d81ecc072235f3",
+      "summary": "为 Java 项目补齐 GraalVM Native Image 支持的操作技能。",
+      "capabilities": "指导添加插件/配置并验证原生构建是否可重复成功。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
+      "scenarios": "现有 Java 工程首次引入 native image 时使用。也可在用户明确点名该技能时启用。",
+      "coverage": "覆盖支持项添加顺序与基本验证。细节以仓库内 SKILL.md 与引用文档为准。细节以仓库内 SKILL.md 与引用文档为准。",
+      "notes": "引入后需在 CI 或本地跑通至少一次 native 构建。与用户显式指令冲突时以用户指令为准。"
     },
     "java-refactoring-extract-method": {
       "summary": "按范例在 Java 中安全实施 Extract Method，理清意图与类型边界。",
@@ -201,134 +377,6 @@
       "notes": "`~`/`@` 指向 `app/`，根目录用 `~~`/`@@`。细节以 references 为准；勿按 Nuxt 2/3 旧目录假设落文件。",
       "contentHash": "e142fa5c8c70c97cae023af58cd9156379af235ab4911e37d84c92f5cecb23ae"
     },
-    "openspec-archiving": {
-      "summary": "归档已完成变更，并将规范差异合并进长期有效的 living specs。",
-      "capabilities": "在实现与部署确认后，合并 ADDED/MODIFIED/REMOVED 到 `spec/specs`，并把 change 目录移入带时间戳的 archive，校验 living spec 结构。",
-      "scenarios": "变更已上线或可归档、需要「openspec archive / merge specs / finalize」时使用。",
-      "coverage": "完成度检查、delta 审阅、时间戳归档目录、三类合并操作、移动 change 与结构校验清单。",
-      "notes": "仍有未完成任务或尚未部署时不要归档。归档表示完成与部署语义，合并 living specs 前须先取得用户明确同意。",
-      "contentHash": "df652ac8e4d3c5b3d12658e0fa905c677b1e51031796377a7bf099983841a44a"
-    },
-    "openspec-context-loading": {
-      "summary": "发现并加载项目 specs、进行中变更与需求，回答「现在有什么」。",
-      "capabilities": "列出 living specs、active/archived changes，搜索能力与 Requirement，汇总项目规范上下文，支撑后续提案或实现。",
-      "scenarios": "用户询问现有规范、进行中或已归档变更、系统能力边界，或需要「spec 里有什么」这类项目上下文发现时使用。",
-      "coverage": "发现命令模式（find/grep/tree/ls）、搜索 Requirement 与能力目录、阅读后摘要的基本套路，避免无目标整库灌入。",
-      "notes": "先搜索再精读，避免整库灌入上下文。本仓库若忽略 `spec/`，仍按本地约定路径操作。",
-      "contentHash": "075bbc70a7e77f7f9167c2aa81ea5c685e4f56fb12324628d447d98835476207"
-    },
-    "openspec-implementation": {
-      "summary": "按已批准提案逐项实现任务，每步测试验证后再勾选完成。",
-      "capabilities": "读取 proposal/tasks/spec deltas，用 Todo 跟踪，严格顺序执行：实现→测试→验证→更新规范（如需）→标记实现完成。",
-      "scenarios": "用户要求 openspec implement、执行 tasks、按批准计划开发功能时启用。",
-      "coverage": "加载提案与任务、Todo 跟踪、按序实现与验收、必要时更新 living specs、标记实现完成等完整检查清单。",
-      "notes": "禁止跳过任务或未经验证就标完成。每一项完成后应留下可观察证据（测试、行为或产物）再进入下一项。",
-      "contentHash": "5b9487c1664f117042bc742220b09960403769128bcef552350c4896ab2ba118"
-    },
-    "openspec-proposal-creation": {
-      "summary": "用英文 OpenSpec 流程创建提案、任务清单与 EARS 风格规范差异。",
-      "capabilities": "脚手架 change 目录，产出 proposal.md、tasks.md 与 ADDED/MODIFIED/REMOVED 的 spec deltas，供审批后再实现。",
-      "scenarios": "规划新功能、破坏性变更或架构更新，触发 create proposal / spec feature 等英文流程时使用。",
-      "coverage": "审阅现有规范、生成 change-id、Why/What/Impact、任务清单、EARS 需求写法与结构校验。",
-      "notes": "中文团队日常规划优先 `openspec-proposal-creation-cn`（tasks.json 等差异）。提案需用户批准后再进入实现。",
-      "contentHash": "cec3595c036ef9a00ab01698cdd36801a1d0ef360eb78995f8f00c06c086ccea"
-    },
-    "openspec-proposal-creation-cn": {
-      "summary": "中文 OpenSpec 提案：proposal、tasks.json 与规范差异，面向规划与审批。",
-      "capabilities": "按中文工作流生成变更目录、proposal.md、tasks.json 与 spec-delta（ADDED/MODIFIED/REMOVED），并用清单校验后提交用户审批。",
-      "scenarios": "用户说「openspec提案」「规划变更」「新功能/新需求」等中文触发词，要用规范驱动方式开干前先立提案时使用。",
-      "coverage": "变更 ID 约定、目录脚手架、提案三要素、tasks.json 模板、规范差异与展示审批步骤。",
-      "notes": "与英文版提案 skill 并行存在，字段/任务格式以中文版模板为准。未审批前不要开始大规模实现。",
-      "contentHash": "22e527c99186ef43372b18937870e56624632759b6c107437481533c3a48b928"
-    },
-    "pdf": {
-      "summary": "处理 PDF：读写提取、合并拆分、表单、水印、加密与 OCR 等全套操作。",
-      "capabilities": "用 pypdf 等库与命令行完成文本/表格提取、合并拆分、旋转、水印、新建 PDF、填表、加解密、抽图与扫描件 OCR，复杂场景见 REFERENCE/FORMS。",
-      "scenarios": "用户提到 .pdf、需要从 PDF 提取内容、合并拆分页面，或生成/加密/填表/OCR 等任何 PDF 加工请求时启用。",
-      "coverage": "Quick start 与 pypdf 合并拆分、元数据与旋转；表单见 FORMS.md，进阶特性与更多示例见 REFERENCE.md 索引。",
-      "notes": "填表先读 FORMS.md。扫描件需 OCR 才能检索；大文件注意内存与逐页处理。",
-      "contentHash": "6a01b6dc757b8856d7eba5e9985d8550783f946d7afdf86402ba324b93239fc0"
-    },
-    "pptx": {
-      "summary": "创建、编辑与分析 PowerPoint：新建幻灯片、改模板、抽取与校验。",
-      "capabilities": "用 pptxgenjs 新建演示文稿；解压改 XML 编辑已有/模板；用 markitdown 与缩略图脚本阅读；提供加页、清理与校验脚本。",
-      "scenarios": "涉及 .pptx/.potx、deck/slides/presentation 的创建、修改、合并拆分或内容抽取时使用。",
-      "coverage": "创建陷阱、编辑工作流、thumbnail/add_slide/clean/validate 等脚本职责。",
-      "notes": "从模板派生的文件校验需传 `--original`。编辑后保持关系与内容类型一致，避免手工漏改 rels。",
-      "contentHash": "542c716c50714598b19d12ba977d6c878d650b5798a8588026700d11bcd854bf"
-    },
-    "request-refactor-plan": {
-      "summary": "通过访谈产出小步可验证的重构计划，并可整理为 GitHub Issue。",
-      "capabilities": "引导用户描述问题与方案，探查仓库现状与测试覆盖，界定范围内外，把改造拆成尽量小的可工作提交清单，并按模板整理问题陈述、方案、决策与测试约定。",
-      "scenarios": "要把原生 HTML/JS 迁到 React+Ant Design+Next，或任何大型重构需要先立 RFC/Issue、避免一步改崩时使用。",
-      "coverage": "访谈步骤、选项对比、范围敲定、测试策略、tiny commits 计划模板（Problem/Solution/Commits/Decision/Testing/Out of Scope）。",
-      "notes": "上游路径在 deprecated 目录，仍可用但需知可能不再积极演进。创建 GitHub Issue 需仓库权限；也可只输出计划文本。与 grilling/openspec 可组合使用。",
-      "contentHash": "8ee013f00ce0c861ac20151351ac9a37e35fe3b1bdff8dde57568a69f9363c31"
-    },
-    "vben": {
-      "summary": "Vben Admin 5.0 中后台开发：Vue3、Vite、路由权限与 Monorepo 约定。",
-      "capabilities": "指导在 Vben 5 Monorepo 中开发 Ant Design Vue / Element Plus / Naive 应用：路由菜单 meta、权限模式、请求与状态、常用 pnpm 脚本。",
-      "scenarios": "基于 Vben Admin 5 做中后台页面、权限路由、多 UI 库应用或 mock 联调时使用。",
-      "coverage": "apps/packages 结构、dev/build 命令、路由模块写法、权限与布局相关核心指南。",
-      "notes": "按实际选用的 UI 应用（antd/ele/naive）启动对应脚本。路由 meta 字段需与框架约定一致，勿混用旧版 Vben 结构。",
-      "contentHash": "9a299daa7d891f200b0098a065d27e46e13fcb7570960d56ec9703ae37ab7eb2"
-    },
-    "vercel-composition-patterns": {
-      "summary": "用组合式 React 模式消除布尔 props 膨胀，构建灵活可维护组件 API。",
-      "capabilities": "提供 compound components、状态上提、Context 接口与 React 19 相关模式，按优先级组织 architecture/state/patterns 规则，利于人与 AI 共同维护组件库。",
-      "scenarios": "重构布尔开关过多的组件、设计可复用组件库 API、审查 compound components 或 Context 组合式架构时启用。",
-      "coverage": "避免 boolean props、复合组件、Provider 解耦状态、泛型 context 接口、React 19 API 等规则条目。",
-      "notes": "优先改架构而非继续加 flag。规则按影响优先级应用；与性能向的 `vercel-react-best-practices` 互补而非替代。",
-      "contentHash": "646f870906914c3787efa7403ec4716dfddf78fc17a12ec1f0556caf2143ac66"
-    },
-    "vercel-react-best-practices": {
-      "summary": "Vercel 出品的 React/Next 性能规则集：消除瀑布、瘦包与渲染优化。",
-      "capabilities": "按影响优先级提供约 70 条规则，覆盖异步瀑布、包体积、服务端与客户端取数、重渲染、渲染与 JS 性能及高级模式，指导编写与评审。",
-      "scenarios": "写或重构 React/Next 页面与数据获取、优化包体与加载、做性能向 code review 时使用。",
-      "coverage": "八大类别前缀（async/bundle/server/client/rerender 等）及快速参考条目。",
-      "notes": "按 CRITICAL→LOW 优先改高影响项。规则多，宜针对当前改动子集应用，避免一次机械套用全部。",
-      "contentHash": "e3f2294574b469c7c198373a443a86571012769d0bbeed68854bd55642ec0d7b"
-    },
-    "vercel-react-view-transitions": {
-      "summary": "用 React View Transition API 做原生感页面与元素过渡动画。",
-      "capabilities": "指导用 `<ViewTransition>`、过渡类型与 CSS 伪元素实现共享元素、Suspense 显现、列表身份、进出场与路由级转场；不支持的浏览器优雅降级。",
-      "scenarios": "要做路由动画、共享元素、列表重排、前进后退方向动画，或在 Next 中集成 view transitions 时启用。",
-      "notes": "每个过渡都应表达空间关系或连续性；说不清语义就不要加。按优先级实现适用模式，而非只挑一个花活。",
-      "coverage": "何时动画、共享元素/Suspense/列表/进出场/路由优先级、导航方向类型、CSS 控制方式以及与 startTransition/useDeferredValue 的配合。",
-      "contentHash": "f2091cf41cb650bfaefd42dc8ad5253cb52378c35b22531dd0317b14912e1822"
-    },
-    "web-design-guidelines": {
-      "summary": "对照最新 Web Interface Guidelines 审查 UI 代码的可访问性与体验。",
-      "capabilities": "每次审查前拉取 Vercel web-interface-guidelines 最新规则，按文件检查并输出简洁的 file:line 发现项。",
-      "scenarios": "用户要求 review UI、查无障碍、审计设计/UX、对照最佳实践检查站点时使用。",
-      "coverage": "拉取最新指南、读取用户指定文件或模式、按全部规则对照检查，并按规定格式输出；未指定范围时先询问审查文件。",
-      "notes": "必须用 WebFetch 拉取新鲜远程规则，勿只靠记忆版清单。输出保持指南要求的简洁 file:line 格式，便于逐条修复。",
-      "contentHash": "f3bc47f890f42a44db1007ab390709ec368e4b8c089baee6b0007182236ac474"
-    },
-    "webapp-testing": {
-      "summary": "用 Playwright 与辅助脚本测试本地 Web 应用：交互、截图与日志。",
-      "capabilities": "编写原生 Python Playwright 脚本验证前端行为；用 with_server 管理服务生命周期；先侦察 DOM/截图再定位选择器执行操作。",
-      "scenarios": "需要验证本地前端功能、调试交互异常、捕获页面截图，或查看浏览器控制台日志以定位问题时使用。",
-      "coverage": "静态 HTML vs 动态应用决策树、服务器已启动/未启动分支、with_server 用法与脚本优先 `--help` 的约定。",
-      "notes": "先跑脚本 `--help`，勿一上来通读巨大脚本源码。选择器应来自实际渲染结果，避免臆造。",
-      "contentHash": "abfaf4cc6cf572346e22fed42dc0cfaacd2f64c5d9667f44a94b02ea0d3b1342"
-    },
-    "xlsx": {
-      "summary": "创建与编辑电子表格：公式、格式、清洗数据及 csv/tsv 与 xlsx 互转。",
-      "capabilities": "用 openpyxl 做带公式与格式的创建编辑，用 pandas 做批量读写，用 markitdown 快速预览；强调公式可重算、专业字体与零公式错误。",
-      "scenarios": "以 xlsx/xlsm/csv/tsv 为主要输入或交付物、清洗畸形表、按用户列名与公式规格出表时使用。",
-      "coverage": "工具选型表、输出质量要求、公式与值双次加载等常见陷阱；配套 recalc 等脚本。",
-      "notes": "交付物必须是表格文件。用公式而非写死结果；严格遵循用户给定的表名与列头。Word/HTML 主交付勿用本 skill。",
-      "contentHash": "f38e1245e48604aada998d989633de07e4c4fb9a8ddc0872219d2d36e6c538b6"
-    },
-    "f-enterprise-source-reverse-engineering": {
-      "summary": "面向双 PHP 遗留系统的项目强隔离、增量证据索引、可恢复运行与失败关闭质量门禁技能。",
-      "capabilities": "按 Project 绑定不同源码根并构建源码、符号和业务三层持久索引；通过完整限定参数类型、调用可达性与已知表关联生成结构事实，把 Service、Repository、Model、Request 等名称信号限制为候选；支持工作区内的外部权威 SQL 快照、带审核人和时间戳的负向证据安全写入、可信快照、失败阶段续跑、补证后独立终结，以及文件归属、方法调用者和业务规则关联接口与表查询。",
-      "scenarios": "适用于初始化或刷新两套大型 PHP 项目工作区、引用源码根外的权威数据库 dump、逐模块增量逆向、从失败阶段继续分析、为 PARTIAL 运行补齐人工证据后安全终结、查询文件归属或方法调用者、追踪规则关联接口与表、传播并复核过期证据、审计模块完成度，或依据已批准的双项目事实设计可追溯 Java 目标系统。",
-      "coverage": "覆盖 A/B 根目录和事实读取隔离、源码与解析结果增量缓存、外部 SQL 的工作区边界及真实文件哈希行号校验、解析器版本失效、多模块追加归属及显式角色替换、路由到 Controller、验证、Service、持久化、事务和副作用的接口证据链、PRESENT 与 UNRESOLVED 及经审核的 NOT_APPLICABLE、STALE 传播、门禁候选与最终提交分离、完整自动管线及门禁尝试记录、JSON Schema 和十八项门禁。",
-      "notes": "核心脚本仅依赖 Python 标准库并兼容 Windows 与 Linux，Schema 和平台格式测试需安装测试依赖。外部 SQL 必须位于分析工作区内，不能用范围标记绕过文件存在、SHA-256、扩展名和行号检查；源码可信快照也不豁免这些检查。独立门禁只产生候选结果，补证后必须使用同一运行 ID 的 --finalize 完成最终提交。PHP 解析仍是保守候选解析，动态调用、复杂语法、非 HTTP 入口及是否真正不适用仍需人工补证。",
-      "contentHash": "a1a027cd7ff754f01c030508bb849cd5bff3c6a5a94f520b01a800e92d4d6ef3"
-    },
     "openspec-apply-change": {
       "contentHash": "ca92bda61b33011cbeeb5354ad7bd1b373fd89b9d2ce7117c2b615ccac7e95c6",
       "summary": "按 OpenSpec change 的 tasks 逐步实现代码。",
@@ -345,6 +393,14 @@
       "coverage": "覆盖 archive 命令、规格同步与收尾检查。细节以仓库内 SKILL.md 与引用文档为准。",
       "notes": "未验证通过勿归档；归档后主 specs 即新基线。与用户显式指令冲突时以用户指令为准。"
     },
+    "openspec-archiving": {
+      "summary": "归档已完成变更，并将规范差异合并进长期有效的 living specs。",
+      "capabilities": "在实现与部署确认后，合并 ADDED/MODIFIED/REMOVED 到 `spec/specs`，并把 change 目录移入带时间戳的 archive，校验 living spec 结构。",
+      "scenarios": "变更已上线或可归档、需要「openspec archive / merge specs / finalize」时使用。",
+      "coverage": "完成度检查、delta 审阅、时间戳归档目录、三类合并操作、移动 change 与结构校验清单。",
+      "notes": "仍有未完成任务或尚未部署时不要归档。归档表示完成与部署语义，合并 living specs 前须先取得用户明确同意。",
+      "contentHash": "df652ac8e4d3c5b3d12658e0fa905c677b1e51031796377a7bf099983841a44a"
+    },
     "openspec-bulk-archive-change": {
       "contentHash": "38b3b56304a4353899932198361303332c8da26f8e6de41a28b230d5a248d908",
       "summary": "批量归档多个已完成的 OpenSpec change。",
@@ -352,6 +408,14 @@
       "scenarios": "有多条已完成 change 待清理时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
       "coverage": "覆盖批量选择、失败隔离与结果汇总。细节以仓库内 SKILL.md 与引用文档为准。",
       "notes": "逐条确认可归档状态，避免把未完成项卷进去。与用户显式指令冲突时以用户指令为准。与用户显式指令冲突时以用户指令为准。"
+    },
+    "openspec-context-loading": {
+      "summary": "发现并加载项目 specs、进行中变更与需求，回答「现在有什么」。",
+      "capabilities": "列出 living specs、active/archived changes，搜索能力与 Requirement，汇总项目规范上下文，支撑后续提案或实现。",
+      "scenarios": "用户询问现有规范、进行中或已归档变更、系统能力边界，或需要「spec 里有什么」这类项目上下文发现时使用。",
+      "coverage": "发现命令模式（find/grep/tree/ls）、搜索 Requirement 与能力目录、阅读后摘要的基本套路，避免无目标整库灌入。",
+      "notes": "先搜索再精读，避免整库灌入上下文。本仓库若忽略 `spec/`，仍按本地约定路径操作。",
+      "contentHash": "075bbc70a7e77f7f9167c2aa81ea5c685e4f56fb12324628d447d98835476207"
     },
     "openspec-continue-change": {
       "contentHash": "22a9f9e49dee677debb71f1c2aace952b25995398c2f59f4ce88f78fab5d4279",
@@ -377,6 +441,14 @@
       "coverage": "覆盖 ff-change 流程与工件齐套检查。细节以仓库内 SKILL.md 与引用文档为准。",
       "notes": "快进不等于跳过评审；实现前仍应核对 proposal/tasks。与用户显式指令冲突时以用户指令为准。"
     },
+    "openspec-implementation": {
+      "summary": "按已批准提案逐项实现任务，每步测试验证后再勾选完成。",
+      "capabilities": "读取 proposal/tasks/spec deltas，用 Todo 跟踪，严格顺序执行：实现→测试→验证→更新规范（如需）→标记实现完成。",
+      "scenarios": "用户要求 openspec implement、执行 tasks、按批准计划开发功能时启用。",
+      "coverage": "加载提案与任务、Todo 跟踪、按序实现与验收、必要时更新 living specs、标记实现完成等完整检查清单。",
+      "notes": "禁止跳过任务或未经验证就标完成。每一项完成后应留下可观察证据（测试、行为或产物）再进入下一项。",
+      "contentHash": "5b9487c1664f117042bc742220b09960403769128bcef552350c4896ab2ba118"
+    },
     "openspec-new-change": {
       "contentHash": "1b8869de38c9f03ab46631899a5cf74ef562a5cce87ed1ae3c364f55f1bc46e5",
       "summary": "创建新的 OpenSpec change 脚手架与元数据。",
@@ -392,6 +464,22 @@
       "scenarios": "团队首次引入 OpenSpec 或培训新成员时使用。也可在用户明确点名该技能时启用。",
       "coverage": "覆盖 onboarding 叙事、命令顺序与常见坑。细节以仓库内 SKILL.md 与引用文档为准。",
       "notes": "演示环境尽量用样例 change，避免污染真实主规格。与用户显式指令冲突时以用户指令为准。"
+    },
+    "openspec-proposal-creation": {
+      "summary": "用英文 OpenSpec 流程创建提案、任务清单与 EARS 风格规范差异。",
+      "capabilities": "脚手架 change 目录，产出 proposal.md、tasks.md 与 ADDED/MODIFIED/REMOVED 的 spec deltas，供审批后再实现。",
+      "scenarios": "规划新功能、破坏性变更或架构更新，触发 create proposal / spec feature 等英文流程时使用。",
+      "coverage": "审阅现有规范、生成 change-id、Why/What/Impact、任务清单、EARS 需求写法与结构校验。",
+      "notes": "中文团队日常规划优先 `openspec-proposal-creation-cn`（tasks.json 等差异）。提案需用户批准后再进入实现。",
+      "contentHash": "cec3595c036ef9a00ab01698cdd36801a1d0ef360eb78995f8f00c06c086ccea"
+    },
+    "openspec-proposal-creation-cn": {
+      "summary": "中文 OpenSpec 提案：proposal、tasks.json 与规范差异，面向规划与审批。",
+      "capabilities": "按中文工作流生成变更目录、proposal.md、tasks.json 与 spec-delta（ADDED/MODIFIED/REMOVED），并用清单校验后提交用户审批。",
+      "scenarios": "用户说「openspec提案」「规划变更」「新功能/新需求」等中文触发词，要用规范驱动方式开干前先立提案时使用。",
+      "coverage": "变更 ID 约定、目录脚手架、提案三要素、tasks.json 模板、规范差异与展示审批步骤。",
+      "notes": "与英文版提案 skill 并行存在，字段/任务格式以中文版模板为准。未审批前不要开始大规模实现。",
+      "contentHash": "22e527c99186ef43372b18937870e56624632759b6c107437481533c3a48b928"
     },
     "openspec-propose": {
       "contentHash": "8a14113136028be0f21a773aee067be4a73c3676700103b1f548f569c948eeda",
@@ -424,6 +512,30 @@
       "scenarios": "准备 archive 前或怀疑实现漏项时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
       "coverage": "覆盖验证清单与常见不一致类型。细节以仓库内 SKILL.md 与引用文档为准。细节以仓库内 SKILL.md 与引用文档为准。",
       "notes": "验证失败应回到 apply/update，而不是强行归档。与用户显式指令冲突时以用户指令为准。"
+    },
+    "pdf": {
+      "summary": "处理 PDF：读写提取、合并拆分、表单、水印、加密与 OCR 等全套操作。",
+      "capabilities": "用 pypdf 等库与命令行完成文本/表格提取、合并拆分、旋转、水印、新建 PDF、填表、加解密、抽图与扫描件 OCR，复杂场景见 REFERENCE/FORMS。",
+      "scenarios": "用户提到 .pdf、需要从 PDF 提取内容、合并拆分页面，或生成/加密/填表/OCR 等任何 PDF 加工请求时启用。",
+      "coverage": "Quick start 与 pypdf 合并拆分、元数据与旋转；表单见 FORMS.md，进阶特性与更多示例见 REFERENCE.md 索引。",
+      "notes": "填表先读 FORMS.md。扫描件需 OCR 才能检索；大文件注意内存与逐页处理。",
+      "contentHash": "6a01b6dc757b8856d7eba5e9985d8550783f946d7afdf86402ba324b93239fc0"
+    },
+    "pptx": {
+      "summary": "创建、编辑与分析 PowerPoint：新建幻灯片、改模板、抽取与校验。",
+      "capabilities": "用 pptxgenjs 新建演示文稿；解压改 XML 编辑已有/模板；用 markitdown 与缩略图脚本阅读；提供加页、清理与校验脚本。",
+      "scenarios": "涉及 .pptx/.potx、deck/slides/presentation 的创建、修改、合并拆分或内容抽取时使用。",
+      "coverage": "创建陷阱、编辑工作流、thumbnail/add_slide/clean/validate 等脚本职责。",
+      "notes": "从模板派生的文件校验需传 `--original`。编辑后保持关系与内容类型一致，避免手工漏改 rels。",
+      "contentHash": "542c716c50714598b19d12ba977d6c878d650b5798a8588026700d11bcd854bf"
+    },
+    "request-refactor-plan": {
+      "summary": "通过访谈产出小步可验证的重构计划，并可整理为 GitHub Issue。",
+      "capabilities": "引导用户描述问题与方案，探查仓库现状与测试覆盖，界定范围内外，把改造拆成尽量小的可工作提交清单，并按模板整理问题陈述、方案、决策与测试约定。",
+      "scenarios": "要把原生 HTML/JS 迁到 React+Ant Design+Next，或任何大型重构需要先立 RFC/Issue、避免一步改崩时使用。",
+      "coverage": "访谈步骤、选项对比、范围敲定、测试策略、tiny commits 计划模板（Problem/Solution/Commits/Decision/Testing/Out of Scope）。",
+      "notes": "上游路径在 deprecated 目录，仍可用但需知可能不再积极演进。创建 GitHub Issue 需仓库权限；也可只输出计划文本。与 grilling/openspec 可组合使用。",
+      "contentHash": "8ee013f00ce0c861ac20151351ac9a37e35fe3b1bdff8dde57568a69f9363c31"
     },
     "superpowers-brainstorming": {
       "contentHash": "3f22629ed4f1cde4cf5f263a1778fc205d88fa12a5702029df2c62440f98281d",
@@ -537,165 +649,61 @@
       "coverage": "覆盖技能写作原则、测试思路与示例。细节以仓库内 SKILL.md 与引用文档为准。",
       "notes": "技能应可执行可验证，避免只写口号式描述。与用户显式指令冲突时以用户指令为准。与用户显式指令冲突时以用户指令为准。"
     },
-    "finesse-brief": {
-      "contentHash": "7a69f03e01c16e91086b10149a34cf36de130a418d874061730a5e495d6d935c",
-      "summary": "Workbench 架构师：把模糊一句话收成可构建规格。",
-      "capabilities": "在界面还不存在时澄清工作台类型、领域与交接物。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
-      "scenarios": "新产品工作台、复杂后台从 0 构思时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖发现提问、语法与 handoff 产物。细节以仓库内 SKILL.md 与引用文档为准。",
-      "notes": "先 brief 再交给 UI 实现技能，避免边做边猜。与用户显式指令冲突时以用户指令为准。"
+    "vben": {
+      "summary": "Vben Admin 5.0 中后台开发：Vue3、Vite、路由权限与 Monorepo 约定。",
+      "capabilities": "指导在 Vben 5 Monorepo 中开发 Ant Design Vue / Element Plus / Naive 应用：路由菜单 meta、权限模式、请求与状态、常用 pnpm 脚本。",
+      "scenarios": "基于 Vben Admin 5 做中后台页面、权限路由、多 UI 库应用或 mock 联调时使用。",
+      "coverage": "apps/packages 结构、dev/build 命令、路由模块写法、权限与布局相关核心指南。",
+      "notes": "按实际选用的 UI 应用（antd/ele/naive）启动对应脚本。路由 meta 字段需与框架约定一致，勿混用旧版 Vben 结构。",
+      "contentHash": "9a299daa7d891f200b0098a065d27e46e13fcb7570960d56ec9703ae37ab7eb2"
     },
-    "finesse-term": {
-      "contentHash": "fe83de4021ccc2b1704563e805db53fc90d028baf975c9a5d3990aca7c344125",
-      "summary": "把口语化界面描述译成可发给代理的准确说法。。用于目录浏览与选型。",
-      "capabilities": "检索 Web/H5 术语库，补全用户叫不出名的控件与状态。并给出可执行的步骤与约束说明。",
-      "scenarios": "任何轮次用户用大白话描述界面效果或故障时可用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖术语检索、说法层输出与多端词库。细节以仓库内 SKILL.md 与引用文档为准。",
-      "notes": "输出应可直接粘贴给实现代理，不要只堆名词解释。与用户显式指令冲突时以用户指令为准。"
+    "vercel-composition-patterns": {
+      "summary": "用组合式 React 模式消除布尔 props 膨胀，构建灵活可维护组件 API。",
+      "capabilities": "提供 compound components、状态上提、Context 接口与 React 19 相关模式，按优先级组织 architecture/state/patterns 规则，利于人与 AI 共同维护组件库。",
+      "scenarios": "重构布尔开关过多的组件、设计可复用组件库 API、审查 compound components 或 Context 组合式架构时启用。",
+      "coverage": "避免 boolean props、复合组件、Provider 解耦状态、泛型 context 接口、React 19 API 等规则条目。",
+      "notes": "优先改架构而非继续加 flag。规则按影响优先级应用；与性能向的 `vercel-react-best-practices` 互补而非替代。",
+      "contentHash": "646f870906914c3787efa7403ec4716dfddf78fc17a12ec1f0556caf2143ac66"
     },
-    "finesse-ui": {
-      "contentHash": "885506ee42b0a7f90d529e23133e37eca6604f67c282cfa761060add78e1f290",
-      "summary": "高工艺 Web/H5 界面实现：品牌向与动效向。",
-      "capabilities": "强调真实视觉锚点、有克制的动效与反廉价设计检查。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
-      "scenarios": "落地页、品牌站、作品集或高质量产品壳时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖设计 DNA、动效、审计与示例库。细节以仓库内 SKILL.md 与引用文档为准。",
-      "notes": "若已有设计系统，优先遵循现有体系而非另起炉灶。与用户显式指令冲突时以用户指令为准。"
+    "vercel-react-best-practices": {
+      "summary": "Vercel 出品的 React/Next 性能规则集：消除瀑布、瘦包与渲染优化。",
+      "capabilities": "按影响优先级提供约 70 条规则，覆盖异步瀑布、包体积、服务端与客户端取数、重渲染、渲染与 JS 性能及高级模式，指导编写与评审。",
+      "scenarios": "写或重构 React/Next 页面与数据获取、优化包体与加载、做性能向 code review 时使用。",
+      "coverage": "八大类别前缀（async/bundle/server/client/rerender 等）及快速参考条目。",
+      "notes": "按 CRITICAL→LOW 优先改高影响项。规则多，宜针对当前改动子集应用，避免一次机械套用全部。",
+      "contentHash": "e3f2294574b469c7c198373a443a86571012769d0bbeed68854bd55642ec0d7b"
     },
-    "frame-smith": {
-      "contentHash": "bef372fc0672d8cf63677160b848d399b75ccec99a476e1e46a713b3e7c0633b",
-      "summary": "用 Remotion 做电影感宣传短片合成。。用于目录浏览与选型。",
-      "capabilities": "提供镜头结构、特效菜单与运行环境检查，产出可渲染成片。并给出可执行的步骤与约束说明。",
-      "scenarios": "需要产品宣传片、主题翻转或数据叙事短视频时使用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖节拍结构、特效目录、声音与预检脚本。细节以仓库内 SKILL.md 与引用文档为准。",
-      "notes": "先确认运行时依赖，再堆特效；避免无预检直接渲染失败。与用户显式指令冲突时以用户指令为准。"
+    "vercel-react-view-transitions": {
+      "summary": "用 React View Transition API 做原生感页面与元素过渡动画。",
+      "capabilities": "指导用 `<ViewTransition>`、过渡类型与 CSS 伪元素实现共享元素、Suspense 显现、列表身份、进出场与路由级转场；不支持的浏览器优雅降级。",
+      "scenarios": "要做路由动画、共享元素、列表重排、前进后退方向动画，或在 Next 中集成 view transitions 时启用。",
+      "notes": "每个过渡都应表达空间关系或连续性；说不清语义就不要加。按优先级实现适用模式，而非只挑一个花活。",
+      "coverage": "何时动画、共享元素/Suspense/列表/进出场/路由优先级、导航方向类型、CSS 控制方式以及与 startTransition/useDeferredValue 的配合。",
+      "contentHash": "f2091cf41cb650bfaefd42dc8ad5253cb52378c35b22531dd0317b14912e1822"
     },
-    "f-git-origin-doc": {
-      "summary": "盘点工作区内独立 Git 仓与软连接，覆盖生成 .git-origin/README.md。",
-      "capabilities": "扫描独立 Git 工作树与符号链接，解析祖先仓与 gitlink，按契约写出含 YAML 机器块与人读短文的 .git-origin/README.md，记录全部远程与分支边界。",
-      "scenarios": "需要生成或刷新远程来源文档、工作区仓库边界盘点、独立子仓/远程变更后同步 .git-origin 时使用；与 f-git-origin-pull 配套。",
-      "coverage": "独立仓盘点与排除依赖嵌套 .git、软连接收集、祖先与 gitlink 说明、机器块字段与人读模板、维护约定；格式以 reference.md 为准。",
-      "notes": "默认不改根 .gitignore，不记录 commit hash，不自动提交。依赖树内嵌套仓库不写入 repos。覆盖写文档前应确认工作区根正确。",
-      "contentHash": "e82da8ac1810f326f4125296466f879430e55ebacacc9f25e48cc65e6e7f07b5"
+    "web-design-guidelines": {
+      "summary": "对照最新 Web Interface Guidelines 审查 UI 代码的可访问性与体验。",
+      "capabilities": "每次审查前拉取 Vercel web-interface-guidelines 最新规则，按文件检查并输出简洁的 file:line 发现项。",
+      "scenarios": "用户要求 review UI、查无障碍、审计设计/UX、对照最佳实践检查站点时使用。",
+      "coverage": "拉取最新指南、读取用户指定文件或模式、按全部规则对照检查，并按规定格式输出；未指定范围时先询问审查文件。",
+      "notes": "必须用 WebFetch 拉取新鲜远程规则，勿只靠记忆版清单。输出保持指南要求的简洁 file:line 格式，便于逐条修复。",
+      "contentHash": "f3bc47f890f42a44db1007ab390709ec368e4b8c089baee6b0007182236ac474"
     },
-    "f-git-origin-pull": {
-      "contentHash": "e804cba1a2eab4907cc97978a045c7ddd2a2c2cb22ffe041a7fd8a4cb3172ea2",
-      "summary": "按 .git-origin 机器块 clone/fetch 独立仓，不合并不切换分支。",
-      "capabilities": "缺失则克隆，已有则补 remote 并 fetch；远程 URL 冲突则停等确认。",
-      "scenarios": "按文档恢复工作区子仓或同步远程时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖解析 manifest、remote 冲突策略与软链跳过规则。细节以仓库内 SKILL.md 与引用文档为准。",
-      "notes": "禁止 merge/rebase/pull/checkout；软链需人工确保。与用户显式指令冲突时以用户指令为准。"
+    "webapp-testing": {
+      "summary": "用 Playwright 与辅助脚本测试本地 Web 应用：交互、截图与日志。",
+      "capabilities": "编写原生 Python Playwright 脚本验证前端行为；用 with_server 管理服务生命周期；先侦察 DOM/截图再定位选择器执行操作。",
+      "scenarios": "需要验证本地前端功能、调试交互异常、捕获页面截图，或查看浏览器控制台日志以定位问题时使用。",
+      "coverage": "静态 HTML vs 动态应用决策树、服务器已启动/未启动分支、with_server 用法与脚本优先 `--help` 的约定。",
+      "notes": "先跑脚本 `--help`，勿一上来通读巨大脚本源码。选择器应来自实际渲染结果，避免臆造。",
+      "contentHash": "abfaf4cc6cf572346e22fed42dc0cfaacd2f64c5d9667f44a94b02ea0d3b1342"
     },
-    "f-openspec-profile-switch": {
-      "contentHash": "bba4961d200bdb55b1b2bc6835d938ab0fd52467c64d281e47957c174c434e05",
-      "summary": "在 legacy 与 opsx 两套 OpenSpec 技能配置间切换。",
-      "capabilities": "通过中央 vault 停放/投影 skills 与 commands，并同步仓库 spec 根。",
-      "scenarios": "需要从旧 OpenSpec 技能切到 /opsx 套件或反向时使用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖 init/switch/specs-only、ACTIVE 与投影根。细节以仓库内 SKILL.md 与引用文档为准。",
-      "notes": "默认 dry-run；--apply 后建议重启 Agent 会话。与用户显式指令冲突时以用户指令为准。"
-    },
-    "f-antd-spacing-layout-governance": {
-      "contentHash": "74227e5f75446e88a35a6dedfb33b2514aeb863770a51ce553fdabc373ee34e4",
-      "summary": "Ant Design 项目间距与跨页布局契约治理。",
-      "capabilities": "提供审计规则、迁移策略、扫描脚本与容器模板，统一间距语义。并给出可执行的步骤与约束说明。",
-      "scenarios": "Ant Design 6 项目出现间距混乱、迁移或 PR 审计时使用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖 token 规则、gap/margin、响应式与页面契约。细节以仓库内 SKILL.md 与引用文档为准。",
-      "notes": "先定布局契约再改组件，避免只调像素不改结构。与用户显式指令冲突时以用户指令为准。"
-    },
-    "f-zjmf-addon-plugin": {
-      "contentHash": "fc1b1691826283034eac1c0d589144e1ec327e955a95a1742a9edb0480778534",
-      "summary": "魔方云/ZJMF 插件后台开发约定与约束。。用于目录浏览与选型。",
-      "capabilities": "沉淀插件页面对齐、测试站操作与 Ant Design/Layui 边界等团队规则。",
-      "scenarios": "在 fan-zjmf 插件目录开发后台页或联调测试站时使用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖插件约束、UI 边界与常见操作注意点。细节以仓库内 SKILL.md 与引用文档为准。",
-      "notes": "仍用 Layui 的旧插件不要强行改成 Ant Design。与用户显式指令冲突时以用户指令为准。"
-    },
-    "f-site-rewrite-init": {
-      "contentHash": "abad0072334454d6da575e31860fe4f1dd563097a3106e3a0503351f1331deca",
-      "summary": "站点重写项目的脚手架与索引初始化。。用于目录浏览与选型。",
-      "capabilities": "生成观察/对照/配置骨架，建立可续写的重写工作区。并给出可执行的步骤与约束说明。",
-      "scenarios": "开始从旧站到新站的系统重写时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖配置模板、indexes 与 secrets 示例。细节以仓库内 SKILL.md 与引用文档为准。",
-      "notes": "先 init 再 implement；密钥只用本地 secrets，勿提交。与用户显式指令冲突时以用户指令为准。"
-    },
-    "f-site-rewrite-implement": {
-      "contentHash": "5da9bb5aa42d993237fd28af386e739d8b5915f2b461aef5b69cc741b6ccb4ec",
-      "summary": "按既有脚手架推进站点重写实现与对照。。用于目录浏览与选型。",
-      "capabilities": "用观察记录与匹配量规驱动模块级重写，保持可追溯。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
-      "scenarios": "init 完成后逐模块迁移页面/数据时使用。也可在用户明确点名该技能时启用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖 observation、match rubric 与实现节奏。细节以仓库内 SKILL.md 与引用文档为准。",
-      "notes": "对照未记录清楚时不要宣称模块完成。与用户显式指令冲突时以用户指令为准。与用户显式指令冲突时以用户指令为准。"
-    },
-    "f-springboot-native": {
-      "contentHash": "69d1dfe024473e29a2a1508f04b21706381fd23a2a5b06aecd7fb9130fbdf59a",
-      "summary": "Spring Boot 应用 GraalVM Native Image 落地指南。",
-      "capabilities": "覆盖原生配置、RuntimeHints、审计与排障，帮助可启动原生镜像。并给出可执行的步骤与约束说明。",
-      "scenarios": "要把 Boot 服务打成 native 或排查原生启动失败时使用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖 native-config、hints 与 troubleshooting 参考。",
-      "notes": "先保证 JVM 模式测试通过，再迭代原生可达性元数据。与用户显式指令冲突时以用户指令为准。"
-    },
-    "f-yudao-boot-mini-graalvm": {
-      "contentHash": "eae3953697ec2296b938cd38f54f5b663947c552a91a6635c99d963c3ff82200",
-      "summary": "芋道 boot-mini 场景下的 GraalVM 原生构建经验。",
-      "capabilities": "针对 yudao-boot-mini 结构给出 native 构建与验证步骤。并给出可执行的步骤与约束说明。",
-      "scenarios": "在 fan 演示或 boot-mini 派生项目启用原生镜像时使用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖与该模板相关的构建注意点与验证。细节以仓库内 SKILL.md 与引用文档为准。",
-      "notes": "模板版本变化时先核对依赖与提示配置是否仍适用。与用户显式指令冲突时以用户指令为准。"
-    },
-    "graal": {
-      "contentHash": "1f43d1d600cf8c0219462c6bfc286913996d9086e2ed185c0f992e97b9fdd65b",
-      "summary": "GraalVM / Native Image 基础概念与构建工具说明。",
-      "capabilities": "介绍 native-image、可达性元数据与常见构建问题定位。并给出可执行的步骤与约束说明。",
-      "scenarios": "需要理解或配置 GraalVM 原生编译链路时使用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖 build tools、reachability metadata 与排障文档。",
-      "notes": "与具体框架技能（如 f-springboot-native）配合效果更好。与用户显式指令冲突时以用户指令为准。"
-    },
-    "java-add-graalvm-native-image-support": {
-      "contentHash": "7579cfe6d95194fb4998eb07b5c3ba16439ce30b6b5fd19a17d81ecc072235f3",
-      "summary": "为 Java 项目补齐 GraalVM Native Image 支持的操作技能。",
-      "capabilities": "指导添加插件/配置并验证原生构建是否可重复成功。并给出可执行的步骤与约束说明。并给出可执行的步骤与约束说明。",
-      "scenarios": "现有 Java 工程首次引入 native image 时使用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖支持项添加顺序与基本验证。细节以仓库内 SKILL.md 与引用文档为准。细节以仓库内 SKILL.md 与引用文档为准。",
-      "notes": "引入后需在 CI 或本地跑通至少一次 native 构建。与用户显式指令冲突时以用户指令为准。"
-    },
-    "f-skills-library-ingest": {
-      "contentHash": "e0aff996929f6ad15dc6a2975b42b47bb17e5e407d87178a79a8ad69d10d3e73",
-      "summary": "把全局与项目散落的 Agent Skills 有选择地纳入 fan-skills 目录库。",
-      "capabilities": "盘点候选 skill、与真相源做差集、确认后拷贝并更新 catalog，再触发分类目录同步。",
-      "scenarios": "新建或扩充 skills 目录库、全局与库不一致需要入库整理时使用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖扫描根、黑名单、分类启发式、commands 占位与 sync-skills-catalog 衔接。细节以仓内 SKILL.md 为准。",
-      "notes": "确认前不拷贝；禁止手改 skills/ 派生产物。与用户显式指令冲突时以用户指令为准。"
-    },
-    "f-skills-audit": {
-      "contentHash": "13cd383b9e7f06f3bdff2af19749666bef5e2c1aa7edabca45a734f21f339ed5",
-      "summary": "只读对比 fan-skills 真相源与各 AI 全局 skills 目录差异。",
-      "capabilities": "展开逻辑 target、输出仅库内/仅工具侧/指纹分歧与跳过摘要，并校验可移植同步配置。",
-      "scenarios": "同步前盘点漂移、检查配置是否含绝对路径、或核对 Agent Store 只读差异时使用。",
-      "coverage": "覆盖 agents/cursor/codex/cursor-store 探测、硬排除与 contentHash 对比。细节以 SKILL.md 与 reference 为准。",
-      "notes": "本流程不写盘；skills-cursor 与 .system 不可写。与用户显式指令冲突时以用户指令为准。"
-    },
-    "f-skills-sync-out": {
-      "contentHash": "3b6c3aad8d664eb57ea0916727a8d2f4e9bfa50e6e39407f339b8368b5233631",
-      "summary": "按 profile 将库内 skill 选择性复制到各 AI 工具全局目录。",
-      "capabilities": "解析 profile 与 exclude、默认 copy、指纹相同跳过、分歧确认后覆盖，并写入可移植 journal。",
-      "scenarios": "需要把 fan-skills 推到 ~/.cursor 或 ~/.codex 等全局目录时使用。也可在用户明确点名该技能时启用。",
-      "coverage": "覆盖多 target 成功记账、系统名录排除与 skills-sync.yaml。细节以 SKILL.md 与 reference 为准。",
-      "notes": "不做全量默推；禁止写入 skills-cursor。与用户显式指令冲突时以用户指令为准。"
-    },
-    "f-skills-promote": {
-      "contentHash": "4980a9cfd81d2f668b60047f68d397835beaeafe4a25ac57ca58c60111471582",
-      "summary": "将单个全局 skill 回写 fan-skills 真相源并记录伴生 journal。",
-      "capabilities": "确认后拷回 .agents/skills，写 promote 与伴生 sync-out journal，并指引 sync-skills-catalog。",
-      "scenarios": "在 ~/.cursor/skills 改好单个 skill 需要入库并让其他机器可 apply 时使用。",
-      "coverage": "覆盖与 ingest 职责边界、catalog 提示与禁止手改派生产物。细节以 SKILL.md 为准。",
-      "notes": "批量入库仍用 ingest；成功后必须跑分类同步。与用户显式指令冲突时以用户指令为准。"
-    },
-    "f-skills-apply": {
-      "contentHash": "130ac087cc21a8fb605946a2763ded36255dd776b70f71b67f13f0054ebefae3",
-      "summary": "按库内 sync-out journal 在本机全局目录回放对齐。",
-      "capabilities": "只处理未应用的 sync-out，一律 copy，记录本机 applied 状态，跳过裸 promote 条目。",
-      "scenarios": "其他机器 promote/sync-out 后本机 git pull 需要对齐全局 skills 时使用。",
-      "coverage": "覆盖 applied.json、分歧确认与跨机禁止软链落地。细节以 SKILL.md 与 reference 为准。",
-      "notes": "不把本机绝对路径写回共享 journal；裸 promote 条目不会写入全局，需伴生 sync-out。与用户显式指令冲突时以用户指令为准。"
+    "xlsx": {
+      "summary": "创建与编辑电子表格：公式、格式、清洗数据及 csv/tsv 与 xlsx 互转。",
+      "capabilities": "用 openpyxl 做带公式与格式的创建编辑，用 pandas 做批量读写，用 markitdown 快速预览；强调公式可重算、专业字体与零公式错误。",
+      "scenarios": "以 xlsx/xlsm/csv/tsv 为主要输入或交付物、清洗畸形表、按用户列名与公式规格出表时使用。",
+      "coverage": "工具选型表、输出质量要求、公式与值双次加载等常见陷阱；配套 recalc 等脚本。",
+      "notes": "交付物必须是表格文件。用公式而非写死结果；严格遵循用户给定的表名与列头。Word/HTML 主交付勿用本 skill。",
+      "contentHash": "f38e1245e48604aada998d989633de07e4c4fb9a8ddc0872219d2d36e6c538b6"
     }
   }
 }

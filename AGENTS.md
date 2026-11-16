@@ -69,6 +69,7 @@ If the upstream repo has **no** `SKILL.md` (e.g. some registry-only skills), man
    - categories: always include `"fan"`; add tech categories as needed (`java`, `workflow`, …)
    - `skillsShUrl`: `null`
    - `githubUrl`: `null` (README will link to this repo’s `.agents/skills/...`)
+   - insert position does not matter; `sync.py status|render|validate` keeps `skills` keys alphabetically sorted
 3. Generate Chinese docs + `render` + `validate`.
 
 ### Change categories only

@@ -20,8 +20,9 @@ description: 将 .agents/skills 按 skills-catalog.json 全量同步到分类化
 2. **分类元数据**：`skills-catalog.json`（**不含**中文文案字段）
 3. **AI 说明缓存**：`generated/skill-docs.json`（由本流程生成/更新）
 4. **派生产物**：根目录 `skills/` —— **禁止手改**；每次 `render` 先清空再重建
-5. **本 skill** 位于 `.cursor/skills/sync-skills-catalog/`，**不得**写入 `skills-catalog.json`，**不得**复制到 `skills/`
-6. **第一期不做 presets**
+5. **本 skill** 位于 `.cursor/skills/sync-skills-catalog/`，**不得作为条目**写入 `skills-catalog.json`，**不得**复制到 `skills/`
+6. **`skills` 键字母序**：`status` / `render` / `validate` 会规范化 `skills-catalog.json` 的 `skills` 键顺序（乱序则写回）；不重排 `categories` 定义，也不重排各条目的 `categories[]`
+7. **第一期不做 presets**
 
 ## 全流程（先生成，再渲染）
 
@@ -43,6 +44,7 @@ npx skills update -y
 python3 .cursor/skills/sync-skills-catalog/scripts/sync.py status
 ```
 
+- 先规范化 `skills-catalog.json` 的 `skills` 键字母序（若有乱序会写回并打印 `normalized ...`）
 - 输出 `NEED_GENERATE` 列表与哈希报告（`generated/status.json`）
 - 源内容哈希未变且校验通过的条目可复用，不必重写
 

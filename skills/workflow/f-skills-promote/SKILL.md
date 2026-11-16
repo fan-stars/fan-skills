@@ -22,4 +22,5 @@ description: >
 python3 .agents/skills/f-skills-audit/scripts/cli.py promote --library . --skill NAME --from cursor --yes
 ```
 
-成功后必须继续：`sync-skills-catalog` 的 status → 生成说明 → render → validate。**禁止手改** `skills/` 派生产物。
+成功后必须继续：`sync-skills-catalog` 的 status → 生成说明 → render → validate。**禁止手改** `skills/` 派生产物。  
+若需补 `skills-catalog.json` 条目，可任意插入；`status`/`render`/`validate` 会把 `skills` 键规范为字母序。

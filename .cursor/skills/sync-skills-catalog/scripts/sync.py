@@ -86,6 +86,26 @@ def load_catalog() -> dict:
     return load_json(CATALOG_PATH)
 
 
+def ensure_catalog_skills_sorted() -> dict:
+    """保证 skills-catalog.json 的 skills 键按名称字母序；乱序则写回。
+
+    status / render / validate 入口都会调用，避免手改 catalog 后顺序漂移。
+    不改动 categories 定义顺序，也不重排各 skill 的 categories[]。
+    """
+    catalog = load_catalog()
+    skills = catalog.get("skills") or {}
+    if not isinstance(skills, dict):
+        raise SystemExit("skills-catalog.json: skills 必须是对象")
+    sorted_skills = dict(sorted(skills.items()))
+    if list(skills.keys()) != list(sorted_skills.keys()):
+        catalog["skills"] = sorted_skills
+        save_json(CATALOG_PATH, catalog)
+        print(f"normalized skills-catalog.json: sorted {len(sorted_skills)} skill keys")
+    else:
+        catalog["skills"] = sorted_skills
+    return catalog
+
+
 def validate_catalog(catalog: dict) -> None:
     agents = {p.name for p in AGENTS_SKILLS.iterdir() if p.is_dir()} if AGENTS_SKILLS.is_dir() else set()
     skills = catalog.get("skills", {})
@@ -145,7 +165,7 @@ def classify_docs(catalog: dict, docs: dict, hashes: dict[str, str]) -> tuple[li
 
 
 def status_cmd() -> None:
-    catalog = load_catalog()
+    catalog = ensure_catalog_skills_sorted()
     validate_catalog(catalog)
     hashes = current_hashes(catalog)
     docs = load_docs()
@@ -354,7 +374,7 @@ def write_root_readme(catalog: dict, by_cat: dict[str, list[str]]) -> None:
 def render_cmd() -> None:
     if not AGENTS_SKILLS.is_dir():
         raise SystemExit(f"缺少源目录: {AGENTS_SKILLS}")
-    catalog = load_catalog()
+    catalog = ensure_catalog_skills_sorted()
     validate_catalog(catalog)
     hashes = current_hashes(catalog)
     docs = load_docs()
@@ -372,7 +392,7 @@ def render_cmd() -> None:
 
 
 def validate_cmd() -> None:
-    catalog = load_catalog()
+    catalog = ensure_catalog_skills_sorted()
     validate_catalog(catalog)
     hashes = current_hashes(catalog)
     docs = load_docs()

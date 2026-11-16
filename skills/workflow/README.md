@@ -206,7 +206,7 @@
 
 #### 注意事项
 
-确认前不拷贝；禁止手改 skills/ 派生产物。与用户显式指令冲突时以用户指令为准。
+确认前不拷贝；禁止手改 skills/ 派生产物。与用户显式指令冲突时以用户指令为准。catalog 的 skills 键由 sync-skills-catalog 规范为字母序。
 
 ### `f-skills-promote`
 
@@ -226,7 +226,7 @@
 
 #### 注意事项
 
-批量入库仍用 ingest；成功后必须跑分类同步。与用户显式指令冲突时以用户指令为准。
+批量入库仍用 ingest；成功后必须跑分类同步。与用户显式指令冲突时以用户指令为准。catalog 的 skills 键由 sync-skills-catalog 规范为字母序。
 
 ### `f-skills-sync-out`
 

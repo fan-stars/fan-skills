@@ -1,0 +1,36 @@
+{
+  "basePackage": "com.example",
+  "basePackageKey": "info.base-package",
+  "applicationConfig": "boot/src/main/resources/application.yaml",
+  "bootRoot": "boot",
+  "vbenRoot": "vben",
+  "frontType": 40,
+  "backendPathPrefix": "module-",
+  "frontendPathPrefix": "vben/",
+  "frontendAppRoot": "apps/web-antd/src",
+  "sqlDir": "boot/sql/mysql",
+  "sqlModulePrefix": "module-",
+  "sqlPrelude": ["drop.sql", "module-system.sql", "module-infra.sql"],
+  "sqlRulesPath": "boot/sql/mysql/README.md",
+  "menuTable": "system_menu",
+  "parentMenuPath": "",
+  "moduleScaffold": {
+    "rootPom": "pom.xml",
+    "serverPom": "<server-module>/pom.xml",
+    "bomPom": "<bom-module>/pom.xml",
+    "groupId": "<groupId>",
+    "parentArtifactId": "<parent-artifactId>",
+    "openApiMethod": "<fully.qualified.OpenApi>.buildGroupedOpenApi",
+    "starters": [
+      "example-starter-mybatis",
+      "example-starter-web",
+      "example-starter-security"
+    ],
+    "tenantStarter": "example-starter-tenant",
+    "excelStarter": "example-starter-excel"
+  },
+  "build": {
+    "boot": "mvn -pl server -am -DskipTests compile",
+    "vben": "pnpm --filter @vben/web-antd build"
+  }
+}
