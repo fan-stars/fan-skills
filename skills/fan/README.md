@@ -20,11 +20,6 @@ Fan 团队自行编写、非来自公开开源项目的 skills
 | `f-project-runtime-manager` | `skills/fan/f-project-runtime-manager/` | 按探测结果为 Java/Spring Boot 与 React/Next/Vue/Nuxt 等 Node 应用生成可移植启停脚本。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-project-runtime-manager/SKILL.md) |
 | `f-site-rewrite-implement` | `skills/fan/f-site-rewrite-implement/` | 按既有脚手架推进站点重写实现与对照。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-site-rewrite-implement/SKILL.md) |
 | `f-site-rewrite-init` | `skills/fan/f-site-rewrite-init/` | 站点重写项目的脚手架与索引初始化。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-site-rewrite-init/SKILL.md) |
-| `f-skills-apply` | `skills/fan/f-skills-apply/` | 按库内 sync-out journal 在本机全局目录回放对齐。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-apply/SKILL.md) |
-| `f-skills-audit` | `skills/fan/f-skills-audit/` | 只读对比 fan-skills 真相源与各 AI 全局 skills 目录差异。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-audit/SKILL.md) |
-| `f-skills-library-ingest` | `skills/fan/f-skills-library-ingest/` | 把全局与项目散落的 Agent Skills 有选择地纳入 fan-skills 目录库。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-library-ingest/SKILL.md) |
-| `f-skills-promote` | `skills/fan/f-skills-promote/` | 将单个全局 skill 回写 fan-skills 真相源并记录伴生 journal。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-promote/SKILL.md) |
-| `f-skills-sync-out` | `skills/fan/f-skills-sync-out/` | 按 profile 将库内 skill 选择性复制到各 AI 工具全局目录。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-sync-out/SKILL.md) |
 | `f-springboot-native` | `skills/fan/f-springboot-native/` | Spring Boot 应用 GraalVM Native Image 落地指南。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-springboot-native/SKILL.md) |
 | `f-yudao-boot-mini-graalvm` | `skills/fan/f-yudao-boot-mini-graalvm/` | 芋道 boot-mini 场景下的 GraalVM 原生构建经验。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-yudao-boot-mini-graalvm/SKILL.md) |
 | `f-zjmf-addon-plugin` | `skills/fan/f-zjmf-addon-plugin/` | 魔方云/ZJMF 插件后台开发约定与约束。。用于目录浏览与选型。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-zjmf-addon-plugin/SKILL.md) |
@@ -270,106 +265,6 @@ init 完成后逐模块迁移页面/数据时使用。也可在用户明确点�
 #### 注意事项
 
 先 init 再 implement；密钥只用本地 secrets，勿提交。与用户显式指令冲突时以用户指令为准。
-
-### `f-skills-apply`
-
-**路径**：`skills/fan/f-skills-apply/`
-
-#### 核心能力
-
-只处理未应用的 sync-out，一律 copy，记录本机 applied 状态，跳过裸 promote 条目。
-
-#### 适用场景
-
-其他机器 promote/sync-out 后本机 git pull 需要对齐全局 skills 时使用。
-
-#### 主要覆盖内容
-
-覆盖 applied.json、分歧确认与跨机禁止软链落地。细节以 SKILL.md 与 reference 为准。
-
-#### 注意事项
-
-不把本机绝对路径写回共享 journal；裸 promote 条目不会写入全局，需伴生 sync-out。与用户显式指令冲突时以用户指令为准。
-
-### `f-skills-audit`
-
-**路径**：`skills/fan/f-skills-audit/`
-
-#### 核心能力
-
-展开逻辑 target、输出仅库内/仅工具侧/指纹分歧与跳过摘要，并校验可移植同步配置。
-
-#### 适用场景
-
-同步前盘点漂移、检查配置是否含绝对路径、或核对 Agent Store 只读差异时使用。
-
-#### 主要覆盖内容
-
-覆盖 agents/cursor/codex/cursor-store 探测、硬排除与 contentHash 对比。细节以 SKILL.md 与 reference 为准。
-
-#### 注意事项
-
-本流程不写盘；skills-cursor 与 .system 不可写。与用户显式指令冲突时以用户指令为准。
-
-### `f-skills-library-ingest`
-
-**路径**：`skills/fan/f-skills-library-ingest/`
-
-#### 核心能力
-
-盘点候选 skill、与真相源做差集、确认后拷贝并更新 catalog，再触发分类目录同步。
-
-#### 适用场景
-
-新建或扩充 skills 目录库、全局与库不一致需要入库整理时使用。也可在用户明确点名该技能时启用。
-
-#### 主要覆盖内容
-
-覆盖扫描根、黑名单、分类启发式、commands 占位与 sync-skills-catalog 衔接。细节以仓内 SKILL.md 为准。
-
-#### 注意事项
-
-确认前不拷贝；禁止手改 skills/ 派生产物。与用户显式指令冲突时以用户指令为准。catalog 的 skills 键由 sync-skills-catalog 规范为字母序。
-
-### `f-skills-promote`
-
-**路径**：`skills/fan/f-skills-promote/`
-
-#### 核心能力
-
-确认后拷回 .agents/skills，写 promote 与伴生 sync-out journal，并指引 sync-skills-catalog。
-
-#### 适用场景
-
-在 ~/.cursor/skills 改好单个 skill 需要入库并让其他机器可 apply 时使用。
-
-#### 主要覆盖内容
-
-覆盖与 ingest 职责边界、catalog 提示与禁止手改派生产物。细节以 SKILL.md 为准。
-
-#### 注意事项
-
-批量入库仍用 ingest；成功后必须跑分类同步。与用户显式指令冲突时以用户指令为准。catalog 的 skills 键由 sync-skills-catalog 规范为字母序。
-
-### `f-skills-sync-out`
-
-**路径**：`skills/fan/f-skills-sync-out/`
-
-#### 核心能力
-
-解析 profile 与 exclude、默认 copy、指纹相同跳过、分歧确认后覆盖，并写入可移植 journal。
-
-#### 适用场景
-
-需要把 fan-skills 推到 ~/.cursor 或 ~/.codex 等全局目录时使用。也可在用户明确点名该技能时启用。
-
-#### 主要覆盖内容
-
-覆盖多 target 成功记账、系统名录排除与 skills-sync.yaml。细节以 SKILL.md 与 reference 为准。
-
-#### 注意事项
-
-不做全量默推；禁止写入 skills-cursor。与用户显式指令冲突时以用户指令为准。
 
 ### `f-springboot-native`
 

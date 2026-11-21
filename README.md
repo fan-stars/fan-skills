@@ -9,10 +9,15 @@ Fan 项目选用的 Agent Skills **目录库**：供其他新项目按技术栈�
 | `.agents/skills/` | **真相源**（经 `skills-lock.json` 安装/更新） |
 | `skills/` | **只读派生产物**（按分类多副本，禁止手改） |
 | `commands/` | opsx / superpowers 配套 slash 命令（canonical 嵌套；可占位） |
-| `skills-catalog.json` | 分类映射与中文简介 |
-| `skills-sync.yaml` | 全局 skills 同步 profile / exclude / 逻辑 target |
-| `skills-sync-journal/` | 可移植同步流水账（跨机 apply） |
-| `.cursor/skills/sync-skills-catalog/` | 运维同步 skill（**不**进入分类目录） |
+| `skills-catalog.json` | 分类映射（无中文文案） |
+
+运维（扫描 / 对比 / 清单 / 推拉 / catalog）已迁至父工作区 **`fan-skills-dir`**：
+
+- 配置与 journal：`fan-skills-dir/.fan-skills/`
+- CLI：`python3 tools/f-skills/cli.py …`
+- Skill 入口：`f-skills-discover` / `diff` / `manifest` / `sync` / `catalog`
+
+旧 `f-skills-audit` / `sync-out` / `promote` / `apply` / `library-ingest` 与 `.cursor/skills/sync-skills-catalog` 已移除。
 
 ## 远程与推送
 
@@ -25,34 +30,19 @@ Gitee 已配置自动同步到 GitHub：推送到 `origin` 即可，无需再推
 
 ## 更新与同步
 
+在 **`fan-skills-dir`** 根目录：
+
 ```bash
-# 可选：按 lock 更新上游 skill
+# 可选：按 lock 更新上游 skill（在本库根）
 npx skills update -y
 
-# 全量重建 skills/ 与中文 README
-python3 .cursor/skills/sync-skills-catalog/scripts/sync.py
+# 分类目录 status →（补 AI 说明）→ render → validate
+python3 tools/f-skills/cli.py catalog status
+python3 tools/f-skills/cli.py catalog render
+python3 tools/f-skills/cli.py catalog validate
 ```
 
-或在 Cursor 中触发 skill：`sync-skills-catalog`。
-
-## 全局 skills 同步
-
-将本库真相源选择性同步到各 AI 工具全局目录（`~/.agents` / `~/.cursor` / `~/.codex` 等），配置见 [`skills-sync.yaml`](skills-sync.yaml)，契约见 [`.agents/skills/f-skills-audit/reference.md`](.agents/skills/f-skills-audit/reference.md)。
-
-| Skill | 用途 |
-| --- | --- |
-| `f-skills-audit` | 只读盘点对比 |
-| `f-skills-sync-out` | 库 → 全局 |
-| `f-skills-promote` | 全局 → 库（并写伴生 sync-out journal） |
-| `f-skills-apply` | 按 journal 在本机回放 sync-out |
-
-**Bootstrap（新机器）：** clone 后先把上述四个 skill 拷到本机全局 skills，或：
-
-```bash
-python3 .agents/skills/f-skills-audit/scripts/cli.py sync-out --library . --profile default --yes
-```
-
-文档站（`fan-skills-docs`）第一期不描述本流程。
+全局 skills 推拉 / journal apply 同样走工作区 CLI（`sync push|pull|apply`），见 `f-skills-sync`。
 
 ## 给新项目拷贝
 
@@ -76,4 +66,3 @@ python3 .agents/skills/f-skills-audit/scripts/cli.py sync-out --library . --prof
 - `skills/mcp` — MCP 构建  
 - `skills/testing` — Web 测试  
 - `skills/fan` — Fan 自研技能  
-

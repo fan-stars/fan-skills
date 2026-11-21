@@ -6,9 +6,9 @@
 
 - **真相源**：`.agents/skills/` + `skills-lock.json`
 - **分类元数据**：`skills-catalog.json`（不含中文文案）
-- **AI 说明缓存**：`.cursor/skills/sync-skills-catalog/generated/skill-docs.json`
+- **AI 说明缓存**：工作区 `.agents/skills/f-skills-catalog/generated/skill-docs.json`
 - **派生产物**：本目录 `skills/`（禁止手改）
-- **同步方式**：使用 `.cursor/skills/sync-skills-catalog/` 运维 skill
+- **同步方式**：在 `fan-skills-dir` 执行 `python3 tools/f-skills/cli.py catalog …`
 - **第一期**：不提供 presets 预设包
 
 ## 如何给新项目拷贝
@@ -27,10 +27,10 @@
 | `java` | Java — Spring Boot、Fan 后端与 Java 重构 | 8 | [README](java/README.md) |
 | `spec` | 规范 / Spec — 通用规格文档技能（非 OpenSpec 套件） | 2 | [README](spec/README.md) |
 | `docs` | 文档与办公 — Word、PDF、PPT、表格处理 | 4 | [README](docs/README.md) |
-| `workflow` | 工作流 — 规划质询、领域建模、架构词汇与技能发现 | 17 | [README](workflow/README.md) |
+| `workflow` | 工作流 — 规划质询、领域建模、架构词汇与技能发现 | 12 | [README](workflow/README.md) |
 | `mcp` | MCP — MCP Server 构建与评估 | 2 | [README](mcp/README.md) |
 | `testing` | 测试 — Web 应用自动化测试 | 3 | [README](testing/README.md) |
-| `fan` | Fan 自研 — Fan 团队自行编写、非来自公开开源项目的 skills | 20 | [README](fan/README.md) |
+| `fan` | Fan 自研 — Fan 团队自行编写、非来自公开开源项目的 skills | 15 | [README](fan/README.md) |
 | `openspec-legacy` | OpenSpec（旧版） — 仓内原有 OpenSpec 技能套件（proposal-creation 等），与 opsx 新套件并存但不混用 | 5 | [README](openspec-legacy/README.md) |
 | `opsx/openspec` | Opsx / OpenSpec — OpenSpec CLI 新技能套件（/opsx:*），与 commands/opsx 对应 | 12 | [README](opsx/openspec/README.md) |
 | `opsx/superpowers` | Opsx / Superpowers — Superpowers 工作流技能（/superpowers:*），与 commands/superpowers 对应 | 14 | [README](opsx/superpowers/README.md) |
@@ -39,7 +39,7 @@
 
 ```bash
 npx skills update -y   # 可选
-python3 .cursor/skills/sync-skills-catalog/scripts/sync.py status
-# 按运维 skill：为 NEED_GENERATE 列表生成/更新 skill-docs.json
-python3 .cursor/skills/sync-skills-catalog/scripts/sync.py render
+python3 tools/f-skills/cli.py catalog status
+# 按 f-skills-catalog：为 NEED_GENERATE 列表生成/更新 skill-docs.json
+python3 tools/f-skills/cli.py catalog render
 ```

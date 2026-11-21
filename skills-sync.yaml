@@ -1,32 +1,7 @@
+# DEPRECATED — 运维配置已迁至 fan-skills-dir 工作区
+# 请使用：fan-skills-dir/.fan-skills/skills-sync.yaml
+# CLI：python3 tools/f-skills/cli.py …
+# 新 skill：f-skills-discover / diff / manifest / sync / catalog
 version: 1
-journal:
-  path: skills-sync-journal
-targets:
-  agents:
-    path: ~/.agents/skills
-    mode: copy
-    write: true
-  cursor:
-    path: ~/.cursor/skills
-    mode: copy
-    write: true
-  codex:
-    path: ~/.codex/skills
-    mode: copy
-    write: true
-  cursor-store:
-    path: cursor-store://detect
-    mode: copy
-    write: false
-exclude:
-  names:
-    - sync-skills-catalog
-profiles:
-  default:
-    include:
-      names:
-        - f-skills-audit
-        - f-skills-sync-out
-        - f-skills-promote
-        - f-skills-apply
-      categories: []
+deprecated: true
+moved_to: ../.fan-skills/skills-sync.yaml
