@@ -14,11 +14,6 @@
 | `f-base-project-initializer-cn` | `skills/workflow/f-base-project-initializer-cn/` | 中文指引：从固定 fan-base / fan-base-vben 模板初始化并重命名 Fan 全栈项目。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-base-project-initializer-cn/SKILL.md) |
 | `f-enterprise-source-reverse-engineering` | `skills/workflow/f-enterprise-source-reverse-engineering/` | 面向双 PHP 遗留系统的项目强隔离、增量证据索引、可恢复运行与失败关闭质量门禁技能。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-enterprise-source-reverse-engineering/SKILL.md) |
 | `f-project-runtime-manager` | `skills/workflow/f-project-runtime-manager/` | 按探测结果为 Java/Spring Boot 与 React/Next/Vue/Nuxt 等 Node 应用生成可移植启停脚本。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-project-runtime-manager/SKILL.md) |
-| `f-skills-apply` | `skills/workflow/f-skills-apply/` | 按库内 sync-out journal 在本机全局目录回放对齐。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-apply/SKILL.md) |
-| `f-skills-audit` | `skills/workflow/f-skills-audit/` | 只读对比 fan-skills 真相源与各 AI 全局 skills 目录差异。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-audit/SKILL.md) |
-| `f-skills-library-ingest` | `skills/workflow/f-skills-library-ingest/` | 把全局与项目散落的 Agent Skills 有选择地纳入 fan-skills 目录库。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-library-ingest/SKILL.md) |
-| `f-skills-promote` | `skills/workflow/f-skills-promote/` | 将单个全局 skill 回写 fan-skills 真相源并记录伴生 journal。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-promote/SKILL.md) |
-| `f-skills-sync-out` | `skills/workflow/f-skills-sync-out/` | 按 profile 将库内 skill 选择性复制到各 AI 工具全局目录。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-skills-sync-out/SKILL.md) |
 | `find-skills` | `skills/workflow/find-skills/` | 从开放 skills 生态检索并安装可扩展 Agent 能力的技能包。 | [skills.sh](https://skills.sh/vercel-labs/skills/find-skills) | [GitHub](https://github.com/vercel-labs/skills/blob/main/skills/find-skills/SKILL.md) |
 | `grill-me` | `skills/workflow/grill-me/` | 启动一轮严厉质询会话，压力测试计划或设计直至达成共识。 | [skills.sh](https://skills.sh/mattpocock/skills/grill-me) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/productivity/grill-me/SKILL.md) |
 | `grill-with-docs` | `skills/workflow/grill-with-docs/` | 严厉质询方案的同时，用领域建模把 ADR 与词汇表边问边写下来。 | [skills.sh](https://skills.sh/mattpocock/skills/grill-with-docs) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/engineering/grill-with-docs/SKILL.md) |
@@ -147,106 +142,6 @@
 #### 注意事项
 
 不改项目既有配置与源文件；主入口不明确时只列候选并等待。禁止 killall、pkill、taskkill /IM java 和按进程名模糊匹配。已有脚本不一致时先展示 diff，真实 .env 永不覆盖。三份进程库必须原样复制。Fan 本地自建 skill。
-
-### `f-skills-apply`
-
-**路径**：`skills/workflow/f-skills-apply/`
-
-#### 核心能力
-
-只处理未应用的 sync-out，一律 copy，记录本机 applied 状态，跳过裸 promote 条目。
-
-#### 适用场景
-
-其他机器 promote/sync-out 后本机 git pull 需要对齐全局 skills 时使用。
-
-#### 主要覆盖内容
-
-覆盖 applied.json、分歧确认与跨机禁止软链落地。细节以 SKILL.md 与 reference 为准。
-
-#### 注意事项
-
-不把本机绝对路径写回共享 journal；裸 promote 条目不会写入全局，需伴生 sync-out。与用户显式指令冲突时以用户指令为准。
-
-### `f-skills-audit`
-
-**路径**：`skills/workflow/f-skills-audit/`
-
-#### 核心能力
-
-展开逻辑 target、输出仅库内/仅工具侧/指纹分歧与跳过摘要，并校验可移植同步配置。
-
-#### 适用场景
-
-同步前盘点漂移、检查配置是否含绝对路径、或核对 Agent Store 只读差异时使用。
-
-#### 主要覆盖内容
-
-覆盖 agents/cursor/codex/cursor-store 探测、硬排除与 contentHash 对比。细节以 SKILL.md 与 reference 为准。
-
-#### 注意事项
-
-本流程不写盘；skills-cursor 与 .system 不可写。与用户显式指令冲突时以用户指令为准。
-
-### `f-skills-library-ingest`
-
-**路径**：`skills/workflow/f-skills-library-ingest/`
-
-#### 核心能力
-
-盘点候选 skill、与真相源做差集、确认后拷贝并更新 catalog，再触发分类目录同步。
-
-#### 适用场景
-
-新建或扩充 skills 目录库、全局与库不一致需要入库整理时使用。也可在用户明确点名该技能时启用。
-
-#### 主要覆盖内容
-
-覆盖扫描根、黑名单、分类启发式、commands 占位与 sync-skills-catalog 衔接。细节以仓内 SKILL.md 为准。
-
-#### 注意事项
-
-确认前不拷贝；禁止手改 skills/ 派生产物。与用户显式指令冲突时以用户指令为准。catalog 的 skills 键由 sync-skills-catalog 规范为字母序。
-
-### `f-skills-promote`
-
-**路径**：`skills/workflow/f-skills-promote/`
-
-#### 核心能力
-
-确认后拷回 .agents/skills，写 promote 与伴生 sync-out journal，并指引 sync-skills-catalog。
-
-#### 适用场景
-
-在 ~/.cursor/skills 改好单个 skill 需要入库并让其他机器可 apply 时使用。
-
-#### 主要覆盖内容
-
-覆盖与 ingest 职责边界、catalog 提示与禁止手改派生产物。细节以 SKILL.md 为准。
-
-#### 注意事项
-
-批量入库仍用 ingest；成功后必须跑分类同步。与用户显式指令冲突时以用户指令为准。catalog 的 skills 键由 sync-skills-catalog 规范为字母序。
-
-### `f-skills-sync-out`
-
-**路径**：`skills/workflow/f-skills-sync-out/`
-
-#### 核心能力
-
-解析 profile 与 exclude、默认 copy、指纹相同跳过、分歧确认后覆盖，并写入可移植 journal。
-
-#### 适用场景
-
-需要把 fan-skills 推到 ~/.cursor 或 ~/.codex 等全局目录时使用。也可在用户明确点名该技能时启用。
-
-#### 主要覆盖内容
-
-覆盖多 target 成功记账、系统名录排除与 skills-sync.yaml。细节以 SKILL.md 与 reference 为准。
-
-#### 注意事项
-
-不做全量默推；禁止写入 skills-cursor。与用户显式指令冲突时以用户指令为准。
 
 ### `find-skills`
 

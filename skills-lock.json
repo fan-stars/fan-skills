@@ -121,12 +121,6 @@
       "skillPath": ".agents/skills/f-site-rewrite-init/SKILL.md",
       "computedHash": "2ddbc831382a2d2584111605b451a64b262222d2d9739c63826d417c57fdb627"
     },
-    "f-skills-library-ingest": {
-      "source": "fan-stars/fan-skills",
-      "sourceType": "github",
-      "skillPath": ".agents/skills/f-skills-library-ingest/SKILL.md",
-      "computedHash": "ac1c6c3dbfb1458b527d78a00b98950154dd536eafa762be917f841ae7e48d77"
-    },
     "f-springboot-native": {
       "source": "fan-stars/fan-skills",
       "sourceType": "github",
