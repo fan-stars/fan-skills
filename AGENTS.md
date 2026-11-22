@@ -12,22 +12,20 @@
 | `skills/` | **Derived, read-only** classified copies (wipe-and-rebuild) |
 | `spec/` | Local OpenSpec notes only — **gitignored** (`/spec`) |
 
-**Ops moved** to parent workspace `fan-skills-dir`:
+This repo keeps the **content library only** (`.agents/skills` + derived `skills/`). Ops live in parent workspace `fan-skills-dir`:
 
 | Path / command | Role |
 | --- | --- |
-| `fan-skills-dir/tools/f-skills/cli.py` | discover / diff / manifest / sync / catalog |
-| `fan-skills-dir/.fan-skills/` | sync config + portable journal |
-| `fan-skills-dir/.agents/skills/f-skills-*` | thin ops skill entrypoints |
+| `fan-skills-dir/.agents/skills/f-skills-catalog/scripts/sync.py` | catalog status / render / validate |
+| `fan-skills-dir/.agents/skills/f-skills-sync/scripts/sync.py` | global install / uninstall / pull |
+| `fan-skills-dir/.fan-skills/` | library path + roster (machine/selection local-only) |
 | `…/f-skills-catalog/generated/skill-docs.json` | AI Chinese docs cache (content-hash keyed) |
-
-Old in-repo `f-skills-audit|sync-out|promote|apply|library-ingest` and `.cursor/skills/sync-skills-catalog` are **removed**.
 
 ## Hard Rules (do not violate)
 
-1. **Never hand-edit** anything under `skills/`. Always regenerate via catalog CLI.
+1. **Never hand-edit** anything under `skills/`. Always regenerate via catalog script.
 2. **Never put Chinese blurbs** (`descriptionZh`, `detailsZh`, etc.) in `skills-catalog.json`.
-3. **Never add** workspace ops skills (`f-skills-discover` 等 / 旧 `sync-skills-catalog`) to `skills-catalog.json` or copy them into `skills/`.
+3. **Never add** workspace ops skills (`f-skills-catalog` / `f-skills-sync`) to `skills-catalog.json` or copy them into `skills/`.
 4. Catalog skill set **must equal** directory names in `.agents/skills/` (sync validates this).
 5. Fan-authored skills use the `f-` prefix and belong in category `fan` (may also keep a tech category).
 6. Phase 1: **no presets** packages.
@@ -35,18 +33,19 @@ Old in-repo `f-skills-audit|sync-out|promote|apply|library-ingest` and `.cursor/
 
 ## Setup Commands
 
-Run catalog commands from **`fan-skills-dir`** (library resolved via `.fan-skills` / `FAN_SKILLS_LIBRARY`):
+Run catalog / sync commands from **`fan-skills-dir`** (library resolved via `.fan-skills` / `FAN_SKILLS_LIBRARY`):
 
 ```bash
 # Optional: refresh locked third-party skills (from this library root)
 npx skills update -y
 
-python3 tools/f-skills/cli.py catalog status
-python3 tools/f-skills/cli.py catalog render
-python3 tools/f-skills/cli.py catalog validate
-```
+python3 .agents/skills/f-skills-catalog/scripts/sync.py status
+python3 .agents/skills/f-skills-catalog/scripts/sync.py render
+python3 .agents/skills/f-skills-catalog/scripts/sync.py validate
 
-Global push/pull/apply: `python3 tools/f-skills/cli.py sync …`（见 `f-skills-sync`）。
+python3 .agents/skills/f-skills-sync/scripts/sync.py status
+python3 .agents/skills/f-skills-sync/scripts/sync.py apply --skill NAME
+```
 
 ## Development Workflow
 
@@ -63,13 +62,13 @@ npx skills add <owner/repo>            # or owner/repo/skill-name
 
 1. Create `.agents/skills/f-<name>/` with `SKILL.md` (and optional references).
 2. In `skills-catalog.json`: include `"fan"` (+ tech categories); `skillsShUrl`/`githubUrl` as appropriate; keys will be sorted by status/render/validate.
-3. Generate Chinese docs + `catalog render` + `catalog validate`.
+3. Generate Chinese docs + catalog `render` + `validate`.
 
 ### Sync / Chinese README pipeline
 
-1. `catalog status` → `NEED_GENERATE`
-2. Update workspace `f-skills-catalog/generated/skill-docs.json` per its `docs/GENERATION_PROTOCOL.md`
-3. `catalog render` then `catalog validate` (expect `VALIDATE_OK`)
+1. catalog `status` → `NEED_GENERATE`
+2. Update workspace `f-skills-catalog/generated/skill-docs.json` per its generation protocol
+3. catalog `render` then `validate` (expect `VALIDATE_OK`)
 
 ## Categories
 
@@ -84,7 +83,7 @@ Defined in `skills-catalog.json` → `categories` (web/react, web/vue, web/desig
 ## Testing Instructions
 
 ```bash
-python3 tools/f-skills/cli.py catalog validate
+python3 .agents/skills/f-skills-catalog/scripts/sync.py validate
 ```
 
 - Multi-category skills appear in every listed category with identical content.
@@ -93,7 +92,7 @@ python3 tools/f-skills/cli.py catalog validate
 ## Pull Request / Commit Guidelines
 
 - Commit messages: concise Chinese, focus on why.
-- Before commit: `catalog validate` if catalog/skills/docs changed.
+- Before commit: catalog `validate` if catalog/skills/docs changed.
 - Include source (`.agents/skills`, catalog, lock) and derived `skills/**` when sync output changes.
 - Ask before amending or force-pushing; do not update git config.
 

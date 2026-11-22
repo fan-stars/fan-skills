@@ -11,13 +11,10 @@ Fan 项目选用的 Agent Skills **目录库**：供其他新项目按技术栈�
 | `commands/` | opsx / superpowers 配套 slash 命令（canonical 嵌套；可占位） |
 | `skills-catalog.json` | 分类映射（无中文文案） |
 
-运维（扫描 / 对比 / 清单 / 推拉 / catalog）已迁至父工作区 **`fan-skills-dir`**：
+本仓只保留内容库（`.agents/skills` 与派生 `skills/`）。运维脚本在父工作区 **`fan-skills-dir`**：
 
-- 配置与 journal：`fan-skills-dir/.fan-skills/`
-- CLI：`python3 tools/f-skills/cli.py …`
-- Skill 入口：`f-skills-discover` / `diff` / `manifest` / `sync` / `catalog`
-
-旧 `f-skills-audit` / `sync-out` / `promote` / `apply` / `library-ingest` 与 `.cursor/skills/sync-skills-catalog` 已移除。
+- 分类重建：`fan-skills-dir/.agents/skills/f-skills-catalog/scripts/sync.py`
+- 全局安装与卸载：`fan-skills-dir/.agents/skills/f-skills-sync/scripts/sync.py`
 
 ## 远程与推送
 
@@ -37,12 +34,14 @@ Gitee 已配置自动同步到 GitHub：推送到 `origin` 即可，无需再推
 npx skills update -y
 
 # 分类目录 status →（补 AI 说明）→ render → validate
-python3 tools/f-skills/cli.py catalog status
-python3 tools/f-skills/cli.py catalog render
-python3 tools/f-skills/cli.py catalog validate
-```
+python3 .agents/skills/f-skills-catalog/scripts/sync.py status
+python3 .agents/skills/f-skills-catalog/scripts/sync.py render
+python3 .agents/skills/f-skills-catalog/scripts/sync.py validate
 
-全局 skills 推拉 / journal apply 同样走工作区 CLI（`sync push|pull|apply`），见 `f-skills-sync`。
+# 全局安装 / 卸载 / 从全局拉回内容库
+python3 .agents/skills/f-skills-sync/scripts/sync.py status
+python3 .agents/skills/f-skills-sync/scripts/sync.py apply --skill NAME
+```
 
 ## 给新项目拷贝
 
