@@ -8,7 +8,7 @@
 - **分类元数据**：`skills-catalog.json`（不含中文文案）
 - **AI 说明缓存**：工作区 `.agents/skills/f-skills-catalog/generated/skill-docs.json`
 - **派生产物**：本目录 `skills/`（禁止手改）
-- **同步方式**：在 `fan-skills-dir` 执行 `python3 tools/f-skills/cli.py catalog …`
+- **同步方式**：在 `fan-skills-dir` 执行 `python3 .agents/skills/f-skills-catalog/scripts/sync.py …`
 - **第一期**：不提供 presets 预设包
 
 ## 如何给新项目拷贝
@@ -39,7 +39,7 @@
 
 ```bash
 npx skills update -y   # 可选
-python3 tools/f-skills/cli.py catalog status
+python3 .agents/skills/f-skills-catalog/scripts/sync.py status
 # 按 f-skills-catalog：为 NEED_GENERATE 列表生成/更新 skill-docs.json
-python3 tools/f-skills/cli.py catalog render
+python3 .agents/skills/f-skills-catalog/scripts/sync.py render
 ```
