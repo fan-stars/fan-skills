@@ -9,7 +9,7 @@ Fan 团队自行编写、非来自公开开源项目的 skills
 | Skill 名称 | 路径 | 简介 | skills.sh | GitHub |
 | --- | --- | --- | --- | --- |
 | `f-antd-spacing-layout-governance` | `skills/fan/f-antd-spacing-layout-governance/` | Ant Design 项目间距与跨页布局契约治理。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-antd-spacing-layout-governance/SKILL.md) |
-| `f-base-codegen-mcp` | `skills/fan/f-base-codegen-mcp/` | 经远程 Streamable HTTP MCP 把库表生成并落盘到 Fan boot/vben 基础 CRUD。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-base-codegen-mcp/SKILL.md) |
+| `f-base-codegen-mcp` | `skills/fan/f-base-codegen-mcp/` | 经远程 Streamable HTTP MCP 把库表生成并落盘到 Fan boot/vben 基础 CRUD，并按六份结论定稿字段。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-base-codegen-mcp/SKILL.md) |
 | `f-base-project-initializer` | `skills/fan/f-base-project-initializer/` | 从固定 fan-base / fan-base-vben 模板克隆并重命名，生成可运行的 Fan 全栈新项目。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-base-project-initializer/SKILL.md) |
 | `f-base-project-initializer-cn` | `skills/fan/f-base-project-initializer-cn/` | 中文指引：从固定 fan-base / fan-base-vben 模板初始化并重命名 Fan 全栈项目。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-base-project-initializer-cn/SKILL.md) |
 | `f-enterprise-source-reverse-engineering` | `skills/fan/f-enterprise-source-reverse-engineering/` | 面向双 PHP 遗留系统的项目强隔离、增量证据索引、可恢复运行与失败关闭质量门禁技能。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-enterprise-source-reverse-engineering/SKILL.md) |
@@ -52,19 +52,19 @@ Ant Design 6 项目出现间距混乱、迁移或 PR 审计时使用。也可在
 
 #### 核心能力
 
-串行调用 14 个远程 codegen 工具完成导入、主子/树表配置、字段字典与宽度调整、bundle 下载；本地 apply_bundle 幂等落盘，并双写菜单/字典/DDL、合并错误码与枚举。
+按 prompts.md 先写注释、查询、列表、新增、编辑、列宽六份结论，每份按详情列顺序一列一行，写全后才调用一次 codegen_update；templateType 默认单表，用户明确说了树表或主子表才切换；三字段按 SQL README 切段结果核对并在对话里写出；再串行调用 codegen_import/detail/alter/bundle 等远程工具，本地 apply_bundle 幂等落盘，并双写菜单、字典、DDL，合并错误码与枚举。
 
 #### 适用场景
 
-需要把一张或多张数据库表生成 Fan 后端与 Vben 前端基础 CRUD，或对已导入表做主子关系、字段与字典调优后重新出包落盘时使用。
+需要把数据库表生成 Fan 后端与 Vben 前端基础 CRUD，或在导入后定稿列注释、查询、列表、表单与列宽，或对已导入表做主子关系、字段与字典调优后重新出包落盘时使用。
 
 #### 主要覆盖内容
 
-MCP 连通与配置校验、表导入与 detail、codegen_update/alter/bundle、本地 ZIP/DDL 应用、基线与增量 SQL、菜单号段、模块骨架补齐、错误码合并与构建报告。
+六份结论与 prompts.md 列宽定稿、单表与树表/主子表判定、三字段切段核对、字段判断停止条件与常见失败对策、MCP 连通与配置校验、表导入与 detail、codegen_update/alter/bundle、本地 ZIP/DDL 应用、基线与增量 SQL、菜单号段、错误码合并与构建报告。
 
 #### 注意事项
 
-仅用 Streamable HTTP `/mcp`，禁用旧 fan-mcp 工具名与本地/SSE。不覆盖人工改动；写工具串行；不删表不写密钥；MCP 库与本地开发库相互独立。已替代旧 skill `fan-mcp-codegen-workflow`。
+仅用 Streamable HTTP `/mcp`，禁用旧 fan-mcp 工具名与本地/SSE。用户没有点名时，三字段不得偏离 SQL README；没有明确说树表或主子表时一律 templateType=1；出现「其余不要」、漏列或列宽定稿缺整数即停止，不调用 codegen_update；不展示的列传 null，工具丢弃 null 时停止。不覆盖人工改动；写工具串行；不删表不写密钥。
 
 ### `f-base-project-initializer`
 

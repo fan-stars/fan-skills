@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-22T11:57:03Z",
+  "generatedAt": "2026-11-22T17:20:23Z",
   "skills": {
     "agent-browser": {
       "contentHash": "ecc7641aea05f85ca3b11e7759d32aaf52fe05946ab4b63739c7bf78a41237a2",
@@ -43,7 +43,7 @@
       "copyCount": 2
     },
     "f-base-codegen-mcp": {
-      "contentHash": "a1fd65be0869db5f19eb1d7fa9da2e8995e7c7a763bc135df19d9db3242f4d65",
+      "contentHash": "ca46b279706c1d00559acea46c46734c7bfcaa0fe6e5d1d09b1e70ea0532a094",
       "copyCount": 3
     },
     "f-base-project-initializer": {

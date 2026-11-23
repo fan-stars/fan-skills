@@ -1,6 +1,6 @@
 ---
 name: f-base-codegen-mcp
-description: Use when a database table should become base CRUD through a remote Streamable HTTP MCP, or when a codegen ZIP must be applied to a configured boot and Vben workspace.
+description: Use when generating boot or vben base CRUD from a database table with f-base-codegen-mcp, or when imported column comments, filters, list columns, forms, or list widths would stay on generator defaults.
 disable-model-invocation: false
 ---
 
@@ -8,7 +8,7 @@ disable-model-invocation: false
 
 ## 适用范围
 
-用于把数据库表生成 boot/vben 基础 CRUD 类。只使用远程 MCP 的 **Streamable HTTP `/mcp`** 接口；不启动本地 MCP，不访问 `/sse`，不回退旧 fan-mcp 工具名。
+用于把数据库表生成 boot/vben 基础 CRUD 类，并在导入后按 [prompts.md](prompts.md) 定稿列注释、查询、列表、表单与列宽，避免沿用生成器默认值。只使用远程 MCP 的 **Streamable HTTP `/mcp`** 接口；不启动本地 MCP，不访问 `/sse`，不回退旧 fan-mcp 工具名。
 
 ## 前置检查（必须先做）
 
@@ -66,12 +66,13 @@ codegen_capabilities
 2. 未导入时用 `codegen_db_tables` 找数据源，`codegen_import` 导入。
 3. `codegen_detail` 读取表 + 字段。
 4. 建表/改表前调用 `codegen_capabilities`，确认 scopes 包含 `ddl:create_table` / `ddl:alter_table`；缺失时停止，不使用猜测。
-5. `codegen_update` 配置 moduleName、businessName、className、classComment、parentMenuId、frontType、字段查询/字典/宽度。`moduleName` 必须显式配置，不能从表名前缀推断；示例表使用 `demo_*`。
-   - 树表：`templateType=2`，设置 `treeParentColumnId`、`treeNameColumnId`，父列启用 create/update。
-   - 主子表：主表 `templateType=12`，子表 `15`，设置 `masterTableId`、`subJoinColumnId`、`subJoinMany`；关联列按需隐藏。
-6. 需要改表时使用 `codegen_alter_table(tableId, sql)`；只允许 `ADD`、`MODIFY`、`CHANGE` 和单独的表 `RENAME TO`，禁止 `DROP` 子句和多语句。表重命名只更新物理表名和 `codegen.tableName`，不改类名、业务名、菜单和路由。
-7. `codegen_bundle(tableId, basePackage)` 获取 ZIP。
-8. 本地运行：
+5. 按 [prompts.md](prompts.md) 写六份结论，顺序固定：注释、查询、列表、新增、编辑、列宽。每份按详情列顺序一列一行。缺一份、漏一列、或出现「其余不要」，不调用 `codegen_update`。
+6. 表类型默认 `templateType=1`。用户这次明确说了树表才用 `2`，明确说了主子表才用 `12`/`15`。有 `parent_id` 或 `*_id` 时仍然是单表。树表和主子表的列规则见 [reference.md](reference.md)。
+7. 名字按 `sqlRulesPath` 指向的 SQL README 切段结果核对 `moduleName`、`businessName`、`className`。人点名要改的字段才覆盖。三字段由这次更新显式写入。核对后必须在对话里写出三个字段的当前值（即使与切段结果相同、即使未覆盖）。
+8. 六份都写全之后，调用一次 `codegen_update`。载荷包含详情里的每一列，以及表类型和三个名字。`frontType` 仍用配置值。列表不展示的列把 `colWidth` 显式传 `null`。工具会丢掉 `null` 时停止。主键 `id` 的 `updateOperation` 保持 `true`。
+9. 需要改表时使用 `codegen_alter_table(tableId, sql)`；只允许 `ADD`、`MODIFY`、`CHANGE` 和单独的表 `RENAME TO`，禁止 `DROP` 子句和多语句。表重命名只更新物理表名和 `codegen.tableName`，不改类名、业务名、菜单和路由。
+10. `codegen_bundle(tableId, basePackage)` 获取 ZIP。
+11. 本地运行：
 
 ```bash
 python3 ~/.agents/skills/f-base-codegen-mcp/scripts/apply_bundle.py \
@@ -82,10 +83,10 @@ python3 ~/.agents/skills/f-base-codegen-mcp/scripts/apply_bundle.py \
 
 确认目标清单后去掉 `--dry-run` 执行。
 
-9. 读本地 SQL：父菜单、字典、DDL。
-10. 基线 SQL + `sql/mysql/upgrade/` 增量 SQL 双写；无模块 SQL 时新建。增量文件名 `{date}-{moduleName}-{businessName}`，`businessName` 中 `/` 换成 `-`；重名时依次追加 `-2`、`-3`…。`parentMenuId` 不写入 `menu.plan.json`。父菜单先在本地 SQL 中按 path/name 查找；没有则新建一级菜单，同一条父菜单 INSERT 同时写入基线与增量。菜单多条 INSERT 之间不留空行。
-11. 补常量/枚举，合并错误码；常量文件已存在就合并，包括空接口；不存在且模块已登记错误码区间就新建。没有数字时首码取 ServiceErrorCodeRange 里该模块的段首。未登记则不写入编号。同名跳过并在标准输出报告名字。手工文件名保持 ErrorCodeConstants_手动操作.java。
-12. 只执行增量 SQL；菜单编号按 `sqlRulesPath` 号段取号，需要时用 `--menu-start-id` / `menuStartId` 抬高（不得越过段上界）；本机无 mysql 时使用 `--docker-container mysql8`，密码通过 `docker exec -e MYSQL_PWD=...` 传入；构建 boot/vben 并报告结果。
+12. 读本地 SQL：父菜单、字典、DDL。
+13. 基线 SQL + `sql/mysql/upgrade/` 增量 SQL 双写；无模块 SQL 时新建。增量文件名 `{date}-{moduleName}-{businessName}`，`businessName` 中 `/` 换成 `-`；重名时依次追加 `-2`、`-3`…。`parentMenuId` 不写入 `menu.plan.json`。父菜单先在本地 SQL 中按 path/name 查找；没有则新建一级菜单，同一条父菜单 INSERT 同时写入基线与增量。菜单多条 INSERT 之间不留空行。
+14. 补常量/枚举，合并错误码；常量文件已存在就合并，包括空接口；不存在且模块已登记错误码区间就新建。没有数字时首码取 ServiceErrorCodeRange 里该模块的段首。未登记则不写入编号。同名跳过并在标准输出报告名字。手工文件名保持 ErrorCodeConstants_手动操作.java。
+15. 只执行增量 SQL；菜单编号按 `sqlRulesPath` 号段取号，需要时用 `--menu-start-id` / `menuStartId` 抬高（不得越过段上界）；本机无 mysql 时使用 `--docker-container mysql8`，密码通过 `docker exec -e MYSQL_PWD=...` 传入；构建 boot/vben 并报告结果。
 
 ## 包名与配置
 
@@ -127,6 +128,29 @@ python3 ~/.agents/skills/f-base-codegen-mcp/scripts/apply_bundle.py \
 - 不把 MCP 密钥写进仓库或配置。
 - 不查远程菜单/字典库；本地 SQL 是权威。
 - 生成代码后先改 SQL，再执行增量。
+
+## 字段判断停止
+
+出现下面任一情况，不调用 `codegen_update`：
+
+- 六份结论有一份漏列，或写了「其余不要」
+- prompt 写了关联表，正文没有那张表的 CREATE TABLE
+- 用户没有点名，三字段却偏离 SQL README 的切段结果
+- 用户没有说树表或主子表，`templateType` 却不是 `1`
+- prompts.md 没有「列宽定稿」，或定稿表有空单元格、空类别或非整数
+- 更新工具无法显式提交空的 `colWidth`
+
+## 常见失败
+
+| 借口 | 对策 |
+|---|---|
+| 有外键就该生成主子表 | 用户没说主子表或树表时 `templateType=1` |
+| 关联表可以猜 | 找不到就写「无关联表」，不编造 DDL |
+| 注释应保持 DDL 原文 | `columnComment` 最多 8 个汉字，去掉括号枚举、预留、加密、不 DROP、存储说明 |
+| 列宽让模板默认 120 | 列表列写整数 `colWidth`；不展示的列传 `null`；定稿没有整数就停止 |
+| 六步可以合成一次 | 六份按列写全之前不调用 `codegen_update` |
+| 其余字段沿用导入值 | 出现「其余不要」就重做该步 |
+| `discount_note` comment says ignore / keep column → all ops off (no DROP). | 贴上基线失败原句：列注释不得保留「不 DROP」；须先写短注释再决定开关 |
 
 ## 参考
 

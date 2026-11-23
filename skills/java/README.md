@@ -8,7 +8,7 @@ Spring Boot、Fan 后端与 Java 重构
 
 | Skill 名称 | 路径 | 简介 | skills.sh | GitHub |
 | --- | --- | --- | --- | --- |
-| `f-base-codegen-mcp` | `skills/java/f-base-codegen-mcp/` | 经远程 Streamable HTTP MCP 把库表生成并落盘到 Fan boot/vben 基础 CRUD。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-base-codegen-mcp/SKILL.md) |
+| `f-base-codegen-mcp` | `skills/java/f-base-codegen-mcp/` | 经远程 Streamable HTTP MCP 把库表生成并落盘到 Fan boot/vben 基础 CRUD，并按六份结论定稿字段。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-base-codegen-mcp/SKILL.md) |
 | `f-java-springboot` | `skills/java/f-java-springboot/` | Fan 后端 Spring Boot 硬性约定：MyBatis-Plus、Lombok 日志与仓库外本地配置。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-java-springboot/SKILL.md) |
 | `f-springboot-native` | `skills/java/f-springboot-native/` | Spring Boot 应用 GraalVM Native Image 落地指南。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-springboot-native/SKILL.md) |
 | `f-yudao-boot-mini-graalvm` | `skills/java/f-yudao-boot-mini-graalvm/` | 芋道 boot-mini 场景下的 GraalVM 原生构建经验。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-yudao-boot-mini-graalvm/SKILL.md) |
@@ -25,19 +25,19 @@ Spring Boot、Fan 后端与 Java 重构
 
 #### 核心能力
 
-串行调用 14 个远程 codegen 工具完成导入、主子/树表配置、字段字典与宽度调整、bundle 下载；本地 apply_bundle 幂等落盘，并双写菜单/字典/DDL、合并错误码与枚举。
+按 prompts.md 先写注释、查询、列表、新增、编辑、列宽六份结论，每份按详情列顺序一列一行，写全后才调用一次 codegen_update；templateType 默认单表，用户明确说了树表或主子表才切换；三字段按 SQL README 切段结果核对并在对话里写出；再串行调用 codegen_import/detail/alter/bundle 等远程工具，本地 apply_bundle 幂等落盘，并双写菜单、字典、DDL，合并错误码与枚举。
 
 #### 适用场景
 
-需要把一张或多张数据库表生成 Fan 后端与 Vben 前端基础 CRUD，或对已导入表做主子关系、字段与字典调优后重新出包落盘时使用。
+需要把数据库表生成 Fan 后端与 Vben 前端基础 CRUD，或在导入后定稿列注释、查询、列表、表单与列宽，或对已导入表做主子关系、字段与字典调优后重新出包落盘时使用。
 
 #### 主要覆盖内容
 
-MCP 连通与配置校验、表导入与 detail、codegen_update/alter/bundle、本地 ZIP/DDL 应用、基线与增量 SQL、菜单号段、模块骨架补齐、错误码合并与构建报告。
+六份结论与 prompts.md 列宽定稿、单表与树表/主子表判定、三字段切段核对、字段判断停止条件与常见失败对策、MCP 连通与配置校验、表导入与 detail、codegen_update/alter/bundle、本地 ZIP/DDL 应用、基线与增量 SQL、菜单号段、错误码合并与构建报告。
 
 #### 注意事项
 
-仅用 Streamable HTTP `/mcp`，禁用旧 fan-mcp 工具名与本地/SSE。不覆盖人工改动；写工具串行；不删表不写密钥；MCP 库与本地开发库相互独立。已替代旧 skill `fan-mcp-codegen-workflow`。
+仅用 Streamable HTTP `/mcp`，禁用旧 fan-mcp 工具名与本地/SSE。用户没有点名时，三字段不得偏离 SQL README；没有明确说树表或主子表时一律 templateType=1；出现「其余不要」、漏列或列宽定稿缺整数即停止，不调用 codegen_update；不展示的列传 null，工具丢弃 null 时停止。不覆盖人工改动；写工具串行；不删表不写密钥。
 
 ### `f-java-springboot`
 

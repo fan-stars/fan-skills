@@ -112,10 +112,13 @@ Cursor 一次只能配置一把 key。需要比较多把 key 时，用工作区 
 ### 单表
 
 - `templateType=1`
-- 常规字段配置即可。
+- 默认就是单表。存在 `parent_id`、`*_id` 或看起来像子表时仍然是单表，除非用户这次明确说了树表或主子表。
+- `columnComment` 是列表标题、搜索标签、表单标签和 Java 注释，只写短句。
+- `colWidth` 写入 schema 列表的 `minWidth`。展示列写整数。不展示的列在 `codegen_update` 里显式传 null。省略时模板使用 120。
 
 ### 树表
 
+仅当用户这次明确说了树表。
 - `templateType=2`
 - `treeParentColumnId`：`parent_id` 列 id
 - `treeNameColumnId`：名称列 id
@@ -127,6 +130,7 @@ Cursor 一次只能配置一把 key。需要比较多把 key 时，用工作区 
 
 ### 主子表
 
+仅当用户这次明确说了主子表。
 - 主表：`templateType=12`（内嵌）/ `10` / `11`
 - 子表：`templateType=15`
 - 子表：`masterTableId`、`subJoinColumnId`、`subJoinMany=true`
