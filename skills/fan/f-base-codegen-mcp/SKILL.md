@@ -66,17 +66,20 @@ codegen_capabilities
 2. 未导入时用 `codegen_db_tables` 找数据源，`codegen_import` 导入。
 3. `codegen_detail` 读取表 + 字段。
 4. 建表/改表前调用 `codegen_capabilities`，确认 scopes 包含 `ddl:create_table` / `ddl:alter_table`；缺失时停止，不使用猜测。
-5. 按 [prompts.md](prompts.md) 写六份结论，顺序固定：注释、查询、列表、新增、编辑、列宽。每份按详情列顺序一列一行。缺一份、漏一列、或出现「其余不要」，不调用 `codegen_update`。
+5. 按 [prompts.md](prompts.md) 写八份结论，顺序固定：注释、查询、列表、新增、编辑、列宽、菜单、排序。前六份和排序按详情列顺序一列一行。缺一份、漏一列、或出现「其余不要」，不调用 `codegen_update`。
 6. 表类型默认 `templateType=1`。用户这次明确说了树表才用 `2`，明确说了主子表才用 `12`/`15`。有 `parent_id` 或 `*_id` 时仍然是单表。树表和主子表的列规则见 [reference.md](reference.md)。
 7. 名字按 `sqlRulesPath` 指向的 SQL README 切段结果核对 `moduleName`、`businessName`、`className`。人点名要改的字段才覆盖。三字段由这次更新显式写入。核对后必须在对话里写出三个字段的当前值（即使与切段结果相同、即使未覆盖）。
-8. 六份都写全之后，调用一次 `codegen_update`。载荷包含详情里的每一列，以及表类型和三个名字。`frontType` 仍用配置值。列表不展示的列把 `colWidth` 显式传 `null`。工具会丢掉 `null` 时停止。主键 `id` 的 `updateOperation` 保持 `true`。
+8. 八份都写全之后，调用一次 `codegen_update`。载荷包含详情里的每一列，以及表类型和三个名字。每一列带上排序步的 `ordinalPosition`。标准状态列的 `dictType` 是 `common_status`。`frontType` 仍用配置值。列表不展示的列把 `colWidth` 显式传 `null`。工具会丢掉 `null` 时停止。主键 `id` 的 `updateOperation` 保持 `true`。菜单结论写入 `.tmp/menu-decision.json`，列宽类别写入 `.tmp/column-categories.json`（键用 Java 属性名如 `createTime`，值是「编号 / 状态 / 时间 / 短名称 / 中等文本 / 长文本」）。
 9. 需要改表时使用 `codegen_alter_table(tableId, sql)`；只允许 `ADD`、`MODIFY`、`CHANGE` 和单独的表 `RENAME TO`，禁止 `DROP` 子句和多语句。表重命名只更新物理表名和 `codegen.tableName`，不改类名、业务名、菜单和路由。
 10. `codegen_bundle(tableId, basePackage)` 获取 ZIP。
 11. 本地运行：
 
 ```bash
 python3 ~/.agents/skills/f-base-codegen-mcp/scripts/apply_bundle.py \
-  --zip .tmp/codegen.zip --ddl .tmp/schema.sql --dry-run
+  --zip .tmp/codegen.zip --ddl .tmp/schema.sql \
+  --menu-decision .tmp/menu-decision.json \
+  --column-categories .tmp/column-categories.json \
+  --dry-run
 ```
 
 主子表每个表都给一个 `--ddl`（可重复）；脚本会合并全部 DDL。首次应用后会在 `.tmp/f-base-codegen-state.json` 记录源/目标哈希；同一 ZIP 重跑自动跳过。目标文件被人工改动或来源变化时停止，确认后可加 `--force`。
@@ -133,12 +136,18 @@ python3 ~/.agents/skills/f-base-codegen-mcp/scripts/apply_bundle.py \
 
 出现下面任一情况，不调用 `codegen_update`：
 
-- 六份结论有一份漏列，或写了「其余不要」
+- 八份结论有一份漏列，或写了「其余不要」
 - prompt 写了关联表，正文没有那张表的 CREATE TABLE
 - 用户没有点名，三字段却偏离 SQL README 的切段结果
 - 用户没有说树表或主子表，`templateType` 却不是 `1`
 - prompts.md 没有「列宽定稿」，或定稿表有空单元格、空类别或非整数
 - 更新工具无法显式提交空的 `colWidth`
+- 菜单名不是 2–6 个汉字，或本页名带「管理」
+- 图标不在 prompts.md 的 `ep:` 清单里
+- 排序漏列、重复，或不是从 1 开始的连续整数
+- 列注释是 `0` 正常、`1` 停用，却没有绑定 `common_status`
+- 列表要展示的列在列宽步没有类别
+- 同一 ZIP 重跑落盘时缺少 `--menu-decision` 或 `--column-categories`（缺 categories 会用 ZIP 覆写掉已写入的 `headerAlign` / `align`）
 
 ## 常见失败
 
@@ -148,8 +157,10 @@ python3 ~/.agents/skills/f-base-codegen-mcp/scripts/apply_bundle.py \
 | 关联表可以猜 | 找不到就写「无关联表」，不编造 DDL |
 | 注释应保持 DDL 原文 | `columnComment` 最多 8 个汉字，去掉括号枚举、预留、加密、不 DROP、存储说明 |
 | 列宽让模板默认 120 | 列表列写整数 `colWidth`；不展示的列传 `null`；定稿没有整数就停止 |
-| 六步可以合成一次 | 六份按列写全之前不调用 `codegen_update` |
+| 八步可以合成一次 | 八份按列写全之前不调用 `codegen_update` |
 | 其余字段沿用导入值 | 出现「其余不要」就重做该步 |
+| 页面菜单写成「类注释 + 管理」 | 本页名由菜单 prompt 决定，不带「管理」 |
+| 重跑 ZIP 可省略两类 JSON | 每次 `apply_bundle` 都带 `--menu-decision` 与 `--column-categories` |
 | `discount_note` comment says ignore / keep column → all ops off (no DROP). | 贴上基线失败原句：列注释不得保留「不 DROP」；须先写短注释再决定开关 |
 
 ## 参考

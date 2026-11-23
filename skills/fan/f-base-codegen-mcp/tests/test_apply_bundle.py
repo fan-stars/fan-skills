@@ -24,6 +24,9 @@ from scripts.apply_bundle import (
     validate_manifest_module,
     parse_dict_values,
     upgrade_ddl,
+    rewrite_menu_plan,
+    apply_column_align,
+    find_menu_id,
 )
 from scripts.project_config import ProjectConfig
 
@@ -798,6 +801,142 @@ class TestApplyBundle(unittest.TestCase):
             self.assertEqual(web.read_text(encoding="utf-8"), "class Kept {}\n")
             self.assertEqual(server.read_text(encoding="utf-8").count("fan-module-demo"), 1)
             self.assertIn("<artifactId>fan-module-demo</artifactId>", bom.read_text(encoding="utf-8"))
+
+    def _menu_plan(self):
+        return {
+            "parent": {"name": "member", "path": "/member", "icon": "ep:menu"},
+            "menu": {
+                "name": "会员用户管理",
+                "path": "user",
+                "icon": "ep:document",
+                "component": "member/member/index",
+                "componentName": "MemberUser",
+                "permission": "",
+                "type": 2,
+                "sort": 0,
+            },
+            "buttons": [
+                {"name": "会员用户查询", "permission": "member:user:query", "type": 3, "sort": 1},
+                {"name": "会员用户创建", "permission": "member:user:create", "type": 3, "sort": 2},
+            ],
+        }
+
+    def test_rewrite_menu_plan_sets_chinese_names(self):
+        plan = self._menu_plan()
+        rewrite_menu_plan(plan, {
+            "parentExists": False,
+            "parentName": "会员",
+            "parentIcon": "ep:user",
+            "menuName": "会员用户",
+            "menuIcon": "ep:avatar",
+        })
+        self.assertEqual(plan["parent"]["name"], "会员")
+        self.assertEqual(plan["parent"]["icon"], "ep:user")
+        self.assertEqual(plan["parent"]["path"], "/member")
+        self.assertEqual(plan["menu"]["name"], "会员用户")
+        self.assertEqual(plan["menu"]["icon"], "ep:avatar")
+        self.assertEqual(plan["menu"]["component"], "member/member/index")
+        self.assertEqual(plan["menu"]["componentName"], "MemberUser")
+        self.assertEqual(plan["buttons"][0]["name"], "会员用户查询")
+        self.assertEqual(plan["buttons"][0]["permission"], "member:user:query")
+
+    def test_rewrite_menu_plan_keeps_existing_parent(self):
+        plan = self._menu_plan()
+        rewrite_menu_plan(plan, {
+            "parentExists": True,
+            "existingParentName": "系统管理",
+            "existingParentPath": "/system",
+            "existingParentIcon": "ep:tools",
+            "parentName": "会员",
+            "parentIcon": "ep:user",
+            "menuName": "会员用户",
+            "menuIcon": "ep:avatar",
+        })
+        self.assertEqual(plan["parent"]["name"], "系统管理")
+        self.assertEqual(plan["parent"]["path"], "/system")
+        self.assertEqual(plan["parent"]["icon"], "ep:tools")
+        self.assertEqual(plan["menu"]["name"], "会员用户")
+
+    def test_rewrite_menu_plan_rejects_admin_suffix_and_unknown_icon(self):
+        plan = self._menu_plan()
+        with self.assertRaises(ValueError):
+            rewrite_menu_plan(plan, {
+                "parentExists": False,
+                "parentName": "会员",
+                "parentIcon": "ep:user",
+                "menuName": "会员用户管理",
+                "menuIcon": "ep:avatar",
+            })
+        with self.assertRaises(ValueError):
+            rewrite_menu_plan(plan, {
+                "parentExists": False,
+                "parentName": "会员",
+                "parentIcon": "ep:not-real",
+                "menuName": "会员用户",
+                "menuIcon": "ep:avatar",
+            })
+
+    def test_apply_column_align_uses_width_category(self):
+        source = """
+export function useGridColumns() {
+  return [
+    {
+      field: 'id',
+      title: '编号',
+      minWidth: '80',
+    },
+    {
+      field: 'nickname',
+      title: '昵称',
+      minWidth: '120',
+    },
+    {
+      title: '操作',
+      width: 200,
+      fixed: 'right',
+      slots: { default: 'actions' },
+    },
+  ];
+}
+"""
+        updated = apply_column_align(source, {"id": "编号", "nickname": "短名称"})
+        self.assertIn("field: 'id'", updated)
+        self.assertRegex(updated, r"field: 'id',[\s\S]*headerAlign: 'center'")
+        self.assertRegex(updated, r"field: 'id',[\s\S]*align: 'center'")
+        self.assertRegex(updated, r"field: 'nickname',[\s\S]*headerAlign: 'center'")
+        self.assertRegex(updated, r"field: 'nickname',[\s\S]*align: 'left'")
+        self.assertIn("title: '操作'", updated)
+        self.assertNotRegex(updated, r"title: '操作'[\s\S]*align:")
+        self.assertNotRegex(updated, r"title: '操作'[\s\S]*headerAlign:")
+
+    def test_find_menu_id_relative_path_requires_name(self):
+        sql = (
+            "INSERT INTO `system_menu` (`id`, `name`, `permission`, `type`, `sort`, `parent_id`, "
+            "`path`, `icon`, `component`, `component_name`, `status`, `visible`, `keep_alive`, "
+            "`always_show`, `creator`, `create_time`, `updater`, `update_time`, `deleted`) VALUES "
+            "(2, '用户管理', 'system:user:list', 2, 1, 1, 'user', 'ep:avatar', "
+            "'system/user/index', 'SystemUser', 0, b'1', b'1', b'1', 'admin', "
+            "CURRENT_TIMESTAMP, '1', CURRENT_TIMESTAMP, b'0');\n"
+            "INSERT INTO `system_menu` (`id`, `name`, `permission`, `type`, `sort`, `parent_id`, "
+            "`path`, `icon`, `component`, `component_name`, `status`, `visible`, `keep_alive`, "
+            "`always_show`, `creator`, `create_time`, `updater`, `update_time`, `deleted`) VALUES "
+            "(5002, '会员用户', '', 2, 0, 5001, 'user', 'ep:avatar', "
+            "'member/member/index', 'MemberUser', 0, b'1', b'1', b'1', 'admin', "
+            "CURRENT_TIMESTAMP, '1', CURRENT_TIMESTAMP, b'0');\n"
+        )
+        self.assertIsNone(find_menu_id(sql, "user", "会员用户管理"))
+        self.assertEqual(find_menu_id(sql, "user", "会员用户"), 5002)
+        self.assertEqual(find_menu_id(sql, "user", "用户管理"), 2)
+
+    def test_find_menu_id_absolute_path_ignores_name(self):
+        sql = (
+            "INSERT INTO `system_menu` (`id`, `name`, `permission`, `type`, `sort`, `parent_id`, "
+            "`path`, `icon`, `component`, `component_name`, `status`, `visible`, `keep_alive`, "
+            "`always_show`, `creator`, `create_time`, `updater`, `update_time`, `deleted`) VALUES "
+            "(5001, '会员', '', 1, 10, 0, '/member', 'ep:user', NULL, NULL, 0, "
+            "b'1', b'1', b'1', 'admin', CURRENT_TIMESTAMP, '1', CURRENT_TIMESTAMP, b'0');\n"
+        )
+        self.assertEqual(find_menu_id(sql, "/member", "任意名"), 5001)
 
 
 if __name__ == "__main__":

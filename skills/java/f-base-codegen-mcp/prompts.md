@@ -1,6 +1,6 @@
 # 字段判断
 
-`codegen_update` 之前按本节顺序做六次判断。每一次把对应标题下的全文交给模型，不靠上一轮记忆。
+`codegen_update` 之前按本节顺序做八次判断。每一次把对应标题下的全文交给模型，不靠上一轮记忆。
 
 ## 注释
 
@@ -16,7 +16,7 @@
 
 输入与「注释」相同：本表 DDL、关联表 DDL、然后是本步问题。
 
-为每一列回答：进不进筛选（`listOperation`）、条件、`htmlType`、`dictType`。条件优先 `=`、`LIKE`、`BETWEEN`。用其他运算符时写一句理由。时间筛选同时写 `htmlType=datetime` 和 `BETWEEN`。`dictType` 只填本地 SQL 已有的字典；没有就留空，不新建字典。密码、密钥哈希、私钥、证件密文由本步逐列决定，没有硬性排除。
+为每一列回答：进不进筛选（`listOperation`）、条件、`htmlType`、`dictType`。条件优先 `=`、`LIKE`、`BETWEEN`。用其他运算符时写一句理由。时间筛选同时写 `htmlType=datetime` 和 `BETWEEN`。`dictType` 只填本地 SQL 已有的字典；没有就留空，不新建字典。列注释的取值是 `0` 正常、`1` 停用时，`dictType` 填 `common_status`，`htmlType` 填 `select`。不改 `common_status` 的标签。页面显示跟随字典当前文案（现在是 `0` 开启、`1` 关闭）。密码、密钥哈希、私钥、证件密文由本步逐列决定，没有硬性排除。
 
 一列一行，列名都要出现。
 
@@ -56,3 +56,28 @@
 | 中等文本 | 公司、短备注、等级名 | 150 |
 | 时间 | 创建时间、更新时间、登录时间等 | 180 |
 | 长文本 | 地址、长备注、邮箱、URL | 200 |
+
+## 菜单
+
+输入按这个顺序拼：
+
+1. 本表完整的 `CREATE TABLE`
+2. 关联表完整的 `CREATE TABLE`。规则与「注释」相同
+3. 本地 SQL 里已有菜单。每行：编号、中文名、路径、图标、`parent_id`
+4. 本步问题
+
+回答四项：挂到哪个已有父菜单；没有合适父级时的新父菜单中文名；本页中文名；父菜单图标和本页图标。中文名是 2–6 个汉字。本页名不带「管理」。同一父级下用页面自己的名字区分，例如「会员用户」「会员分组」。
+
+图标只能从下面的清单里选一个。清单外的名字停止，不调用 `codegen_update`。
+
+`ep:avatar` `ep:chat-dot-round` `ep:collection` `ep:connection` `ep:document` `ep:document-copy` `ep:house` `ep:link` `ep:list` `ep:menu` `ep:message` `ep:message-box` `ep:position` `ep:promotion` `ep:set-up` `ep:takeaway-box` `ep:tools` `ep:user`
+
+父菜单已经存在时仍要回答图标。落盘只复用它的编号，不改它的中文名和图标。路径、组件、权限不由本步改。
+
+## 排序
+
+输入与「注释」相同。
+
+为每一列写 `ordinalPosition`：从 1 开始的连续整数，一列一行，列名都要出现。隐藏列也要有号。创建时间、更新时间默认排在业务列后面。改掉这个默认时写一句理由。
+
+漏列、重复或断号就重做。不调用 `codegen_update`。

@@ -351,14 +351,92 @@ def copy_sources(manifest: dict, workdir: Path, config: ProjectConfig,
     return copied
 
 
+MENU_ICONS = {
+    "ep:avatar", "ep:chat-dot-round", "ep:collection", "ep:connection",
+    "ep:document", "ep:document-copy", "ep:house", "ep:link", "ep:list",
+    "ep:menu", "ep:message", "ep:message-box", "ep:position", "ep:promotion",
+    "ep:set-up", "ep:takeaway-box", "ep:tools", "ep:user",
+}
+BUTTON_LABELS = {
+    "query": "查询", "create": "创建", "update": "更新",
+    "delete": "删除", "export": "导出", "import": "导入",
+}
+ALIGN_BY_CATEGORY = {
+    "编号": "center", "状态": "center", "时间": "center",
+    "短名称": "left", "中等文本": "left", "长文本": "left",
+}
+_MENU_NAME = re.compile(r"^[\u4e00-\u9fff]{2,6}$")
+
+
+def rewrite_menu_plan(plan: dict, decision: dict) -> dict:
+    """按菜单结论改写计划。已有父菜单不改名称、路径和图标。"""
+    menu_name = decision["menuName"]
+    menu_icon = decision["menuIcon"]
+    if not _MENU_NAME.match(menu_name) or "管理" in menu_name:
+        raise ValueError(f"页面菜单名必须是 2–6 个汉字且不带「管理」: {menu_name}")
+    if menu_icon not in MENU_ICONS:
+        raise ValueError(f"图标不在清单内: {menu_icon}")
+    if decision.get("parentExists"):
+        plan["parent"]["name"] = decision["existingParentName"]
+        plan["parent"]["path"] = decision["existingParentPath"]
+        plan["parent"]["icon"] = decision["existingParentIcon"]
+    else:
+        parent_name = decision["parentName"]
+        parent_icon = decision["parentIcon"]
+        if not _MENU_NAME.match(parent_name):
+            raise ValueError(f"父菜单名必须是 2–6 个汉字: {parent_name}")
+        if parent_icon not in MENU_ICONS:
+            raise ValueError(f"图标不在清单内: {parent_icon}")
+        plan["parent"]["name"] = parent_name
+        plan["parent"]["icon"] = parent_icon
+    plan["menu"]["name"] = menu_name
+    plan["menu"]["icon"] = menu_icon
+    for button in plan.get("buttons") or []:
+        operation = str(button.get("permission") or "").rsplit(":", 1)[-1]
+        label = BUTTON_LABELS.get(operation)
+        if label:
+            button["name"] = menu_name + label
+    return plan
+
+
+def _set_ts_prop(body: str, key: str, value: str) -> str:
+    """在列对象片段里写入或替换字符串属性。"""
+    pattern = rf"{key}:\s*'[^']*'"
+    if re.search(pattern, body):
+        return re.sub(pattern, f"{key}: '{value}'", body, count=1)
+    return body.rstrip() + f"\n      {key}: '{value}',\n    "
+
+
+def apply_column_align(text: str, categories: dict) -> str:
+    """给 useGridColumns 的数据列写入对齐。表头一律居中，单元格按类别。操作列不写。"""
+
+    def replace(match: re.Match) -> str:
+        field = match.group(1)
+        body = match.group(2)
+        category = categories.get(field)
+        if category is None:
+            return match.group(0)
+        align = ALIGN_BY_CATEGORY.get(category)
+        if align is None:
+            raise ValueError(f"未知列宽类别: {field}={category}")
+        body = _set_ts_prop(body, "headerAlign", "center")
+        body = _set_ts_prop(body, "align", align)
+        return f"field: '{field}',{body}"
+
+    return re.sub(r"field: '(\w+)',([\s\S]*?)(?=\n    \},)", replace, text)
+
+
 def find_menu_id(sql: str, path: str, name: str, table: str = "system_menu") -> int | None:
-    """按 path 或 name 查找菜单编号。"""
+    """查找菜单编号。绝对 path（以 / 开头）只比 path；相对 path 必须 path 与 name 同时相同。"""
     pattern = re.compile(
         r"INSERT INTO `" + re.escape(table)
         + r"` .*?VALUES \((\d+), '([^']*)', '([^']*)', (\d+), (\d+), (\d+), '([^']*)'", re.S
     )
     for match in pattern.finditer(sql):
-        if match.group(7) == path or match.group(2) == name:
+        row_name, row_path = match.group(2), match.group(7)
+        if path.startswith("/") and row_path == path:
+            return int(match.group(1))
+        if not path.startswith("/") and row_path == path and row_name == name:
             return int(match.group(1))
     return None
 
@@ -669,7 +747,8 @@ def apply_sql(config: ProjectConfig, manifest: dict, workdir: Path,
               menu_start_id: int | None = None,
               db_host: str = "127.0.0.1", db_user: str = "root",
               db_name: str | None = None,
-              docker_container: str | None = None) -> Path | None:
+              docker_container: str | None = None,
+              menu_decision: Path | None = None) -> Path | None:
     """维护模块基线并生成增量 SQL；支持主表/子表多个 DDL。"""
     module = manifest["moduleName"]
     sql_path = module_sql_path(config, module)
@@ -696,6 +775,11 @@ def apply_sql(config: ProjectConfig, manifest: dict, workdir: Path,
             continue
     menu_file = workdir / "menu.plan.json"
     menu_plan = json.loads(menu_file.read_text(encoding="utf-8")) if menu_file.exists() else None
+    if menu_plan is not None and menu_decision is not None:
+        decision = json.loads(menu_decision.read_text(encoding="utf-8"))
+        rewrite_menu_plan(menu_plan, decision)
+        if not dry_run:
+            menu_file.write_text(json.dumps(menu_plan, ensure_ascii=False, indent=2), encoding="utf-8")
     menu_sql = []
     parent_row = None
     if menu_plan is not None:
@@ -984,11 +1068,15 @@ def next_menu_start(local_start: int, db_max: int | None, base: int, upper: int)
 def query_menu_id(host: str, user: str, database: str,
                   docker_container: str | None, path: str, name: str,
                   table: str = "system_menu") -> int | None:
+    """与 find_menu_id 相同：绝对 path 只比 path；相对 path 比 path+name。"""
     safe_path = path.replace("'", "''")
     safe_name = name.replace("'", "''")
-    value = _query(
-        f"SELECT id FROM `{table}` WHERE path = '{safe_path}' OR name = '{safe_name}' LIMIT 1",
-        host, user, database, docker_container)
+    if path.startswith("/"):
+        sql = f"SELECT id FROM `{table}` WHERE path = '{safe_path}' LIMIT 1"
+    else:
+        sql = (f"SELECT id FROM `{table}` WHERE path = '{safe_path}' "
+               f"AND name = '{safe_name}' LIMIT 1")
+    value = _query(sql, host, user, database, docker_container)
     return int(value) if value and value.isdigit() else None
 
 
@@ -1012,6 +1100,8 @@ def main() -> int:
     parser.add_argument("--docker-container")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--force", action="store_true")
+    parser.add_argument("--menu-decision", type=Path)
+    parser.add_argument("--column-categories", type=Path)
     args = parser.parse_args()
 
     try:
@@ -1030,12 +1120,20 @@ def main() -> int:
     state_path = Path.cwd() / ".tmp" / "f-base-codegen-state.json"
     state = load_state(state_path)
     copied = copy_sources(manifest, workdir, config, args.dry_run, args.force, state)
+    if args.column_categories is not None and not args.dry_run:
+        categories = json.loads(args.column_categories.read_text(encoding="utf-8"))
+        for _source, target in copied:
+            if target.name == "data.ts" and "views" in target.parts:
+                target.write_text(
+                    apply_column_align(target.read_text(encoding="utf-8"), categories),
+                    encoding="utf-8")
     if not args.dry_run:
         resolve_known_enums(config.boot_root, manifest, config)
         apply_dicts(config.boot_root, manifest, config)
     upgrade = apply_sql(config, manifest, workdir, args.ddl, args.dry_run,
                         args.menu_start_id, args.db_host, args.db_user,
-                        args.db_name, args.docker_container)
+                        args.db_name, args.docker_container,
+                        args.menu_decision)
     apply_error_codes(config.boot_root, manifest, workdir, config, args.dry_run)
     if not args.dry_run:
         save_state(state_path, copied)
