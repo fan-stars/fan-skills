@@ -8,7 +8,7 @@ disable-model-invocation: false
 
 ## 适用范围
 
-用于把数据库表生成 boot/vben 基础 CRUD 类，并在导入后按 [prompts.md](prompts.md) 定稿列注释、查询、列表、表单与列宽，避免沿用生成器默认值。只使用远程 MCP 的 **Streamable HTTP `/mcp`** 接口；不启动本地 MCP，不访问 `/sse`，不回退旧 fan-mcp 工具名。
+用于把数据库表生成 boot/vben 基础 CRUD 类，并在导入后按 [prompts.md](prompts.md) 定稿列注释、字典、查询、列表、表单与列宽，避免沿用生成器默认值。只使用远程 MCP 的 **Streamable HTTP `/mcp`** 接口；不启动本地 MCP，不访问 `/sse`，不回退旧 fan-mcp 工具名。
 
 ## 前置检查（必须先做）
 
@@ -66,10 +66,10 @@ codegen_capabilities
 2. 未导入时用 `codegen_db_tables` 找数据源，`codegen_import` 导入。
 3. `codegen_detail` 读取表 + 字段。
 4. 建表/改表前调用 `codegen_capabilities`，确认 scopes 包含 `ddl:create_table` / `ddl:alter_table`；缺失时停止，不使用猜测。
-5. 按 [prompts.md](prompts.md) 写八份结论，顺序固定：注释、查询、列表、新增、编辑、列宽、菜单、排序。前六份和排序按详情列顺序一列一行。缺一份、漏一列、或出现「其余不要」，不调用 `codegen_update`。
+5. 按 [prompts.md](prompts.md) 写十二份结论，顺序固定：注释、字典、查询、查询方式、显示类型、允许空、列表、插入、编辑、列宽、菜单、排序。除菜单外按详情列顺序一列一行。缺一份、漏一列、或出现「其余不要」，不调用 `codegen_update`。
 6. 表类型默认 `templateType=1`。用户这次明确说了树表才用 `2`，明确说了主子表才用 `12`/`15`。有 `parent_id` 或 `*_id` 时仍然是单表。树表和主子表的列规则见 [reference.md](reference.md)。
 7. 名字按 `sqlRulesPath` 指向的 SQL README 切段结果核对 `moduleName`、`businessName`、`className`。人点名要改的字段才覆盖。三字段由这次更新显式写入。核对后必须在对话里写出三个字段的当前值（即使与切段结果相同、即使未覆盖）。
-8. 八份都写全之后，调用一次 `codegen_update`。载荷包含详情里的每一列，以及表类型和三个名字。每一列带上排序步的 `ordinalPosition`。标准状态列的 `dictType` 是 `common_status`。`frontType` 仍用配置值。列表不展示的列把 `colWidth` 显式传 `null`。工具会丢掉 `null` 时停止。主键 `id` 的 `updateOperation` 保持 `true`。菜单结论写入 `.tmp/menu-decision.json`，列宽类别写入 `.tmp/column-categories.json`（键用 Java 属性名如 `createTime`，值是「编号 / 状态 / 时间 / 短名称 / 中等文本 / 长文本」）。
+8. 十二份都写全之后，调用一次 `codegen_update`。载荷包含详情里的每一列，以及表类型和三个名字。每一列带上排序步的 `ordinalPosition`。每列 `dictType` 只取自 `.tmp/dict-decision.json`（`bind`/`create` 写类型名，`none` 为空），不按列名或语义指定该绑哪个字典。`frontType` 仍用配置值。列表不展示的列把 `colWidth` 显式传 `null`。工具会丢掉 `null` 时停止。主键 `id` 的 `updateOperation` 保持 `true`。菜单结论写入 `.tmp/menu-decision.json`，列宽类别写入 `.tmp/column-categories.json`（键用 Java 属性名如 `createTime`，值是「编号 / 状态 / 时间 / 短名称 / 中等文本 / 长文本」）。字典结论写入 `.tmp/dict-decision.json`（不提交），形状见下。
 9. 需要改表时使用 `codegen_alter_table(tableId, sql)`；只允许 `ADD`、`MODIFY`、`CHANGE` 和单独的表 `RENAME TO`，禁止 `DROP` 子句和多语句。表重命名只更新物理表名和 `codegen.tableName`，不改类名、业务名、菜单和路由。
 10. `codegen_bundle(tableId, basePackage)` 获取 ZIP。
 11. 本地运行：
@@ -78,13 +78,21 @@ codegen_capabilities
 python3 ~/.agents/skills/f-base-codegen-mcp/scripts/apply_bundle.py \
   --zip .tmp/codegen.zip --ddl .tmp/schema.sql \
   --menu-decision .tmp/menu-decision.json \
+  --dict-decision .tmp/dict-decision.json \
   --column-categories .tmp/column-categories.json \
   --dry-run
 ```
 
-主子表每个表都给一个 `--ddl`（可重复）；脚本会合并全部 DDL。首次应用后会在 `.tmp/f-base-codegen-state.json` 记录源/目标哈希；同一 ZIP 重跑自动跳过。目标文件被人工改动或来源变化时停止，确认后可加 `--force`。
+主子表每个表都给一个 `--ddl`（可重复）；脚本会合并全部 DDL。首次应用后会在 `.tmp/f-base-codegen-state.json` 记录源/目标哈希；后处理（`{@link}`、DictFormat、列对齐）完成后的新结果写入 `.tmp/f-base-codegen-base/` 作基线（不提交）。再次落盘时按基线、当前文件、新结果三方合并；同一单位两边都改则跳过该文件并报告，其它文件继续。没有基线时仍更新生成结构，并保留人对齐、已填链接和多出来的方法。确认后可加 `--force` 整文件覆盖并重记基线。
 
 确认目标清单后去掉 `--dry-run` 执行。
+
+第二次生成后观察与后处理（本技能不对这些项做特殊合并；下列须在落盘核对时处理或确认）：
+
+- 字典注解上的待办注释是否仍在或被盖回
+- 列宽是否被生成器默认值冲掉
+- 菜单名和图标是否仍是结论里的值
+- **Dayjs 导入（模板侧暂不改）**：上游 `vue3_vben5_ele/schema/api/api.ts.vm`（antd 经 `#parse` 共用）总会写出 `import type { Dayjs } from 'dayjs';`。落盘后对本次写入的前端 API 文件做技能后处理——若正文里没有任何类型用到 `Dayjs`（无 `| Dayjs` / `: Dayjs`），删除该 import 行；若新增或编辑列含 `date` / `LocalDate` / `LocalDateTime` 等日期类型则保留。不在模板里写死条件，统一在技能侧收尾。
 
 12. 读本地 SQL：父菜单、字典、DDL。
 13. 基线 SQL + `sql/mysql/upgrade/` 增量 SQL 双写；无模块 SQL 时新建。增量文件名 `{date}-{moduleName}-{businessName}`，`businessName` 中 `/` 换成 `-`；重名时依次追加 `-2`、`-3`…。`parentMenuId` 不写入 `menu.plan.json`。父菜单先在本地 SQL 中按 path/name 查找；没有则新建一级菜单，同一条父菜单 INSERT 同时写入基线与增量。菜单多条 INSERT 之间不留空行。
@@ -132,11 +140,67 @@ python3 ~/.agents/skills/f-base-codegen-mcp/scripts/apply_bundle.py \
 - 不查远程菜单/字典库；本地 SQL 是权威。
 - 生成代码后先改 SQL，再执行增量。
 
+## 字典结论文件
+
+`.tmp/dict-decision.json` 不提交。形状含 `columns[].action`（`bind`|`create`|`none`）与 `creates[]`（仅 create）：
+
+```json
+{
+  "columns": [
+    {"column": "status", "action": "bind", "dictType": "common_status"},
+    {"column": "flag", "action": "create", "dictType": "demo_flag"},
+    {"column": "token", "action": "none"}
+  ],
+  "creates": [
+    {
+      "dictType": "demo_flag",
+      "values": [
+        {"value": "0", "label": "开启", "constant": "ENABLE"},
+        {"value": "1", "label": "关闭", "constant": "DISABLE"}
+      ]
+    }
+  ]
+}
+```
+
+示例里的 `common_status` / `demo_flag` 只演示 JSON 字段，不是「某列必须绑谁」的规则。只绑定已有字典时 `creates` 为空数组。落盘写字典 INSERT 时，`system_dict_type` 与 `system_dict_data` 的编号各自按模块 SQL 段内最大值加 1，不共用一个最大值。配置 `enums` 对照表把已有字典类型映射到枚举全名（例如 `common_status` → `{basePackage}.framework.common.enums.CommonStatusEnum`）；只写进 Javadoc `{@link}`，不向业务模块 import。
+
+## 枚举格式示例
+
+新建枚举按下面格式写（只说明格式，不写业务列）。取值全是数字时字段类型是 `Integer` 并实现 `ArrayValuable`；取值不全是数字时字段类型为 `String`，不实现 `ArrayValuable`。
+
+```java
+@Getter
+@AllArgsConstructor
+public enum ExampleStatusEnum implements ArrayValuable<Integer> {
+
+    ENABLE(0, "开启"),
+    DISABLE(1, "关闭");
+
+    public static final Integer[] ARRAYS = Arrays.stream(values())
+            .map(ExampleStatusEnum::getValue).toArray(Integer[]::new);
+
+    private final Integer value;
+    private final String name;
+
+    @Override
+    public Integer[] array() {
+        return ARRAYS;
+    }
+}
+```
+
 ## 字段判断停止
 
 出现下面任一情况，不调用 `codegen_update`：
 
-- 八份结论有一份漏列，或写了「其余不要」
+- 十二份缺列，或出现「其余不要」
+- 同一列字典结论又绑定又新建
+- 常量名不是大写标识符，或同一字典内重复
+- 绑定的类型不在本地已有字典里
+- 绑定的类型在配置 `enums` 对照表里没有类名
+- `select` 或 `radio` 但该列没有 `dictType`
+- 新字典类型不以模块名加下划线开头（`{moduleName}_`）
 - prompt 写了关联表，正文没有那张表的 CREATE TABLE
 - 用户没有点名，三字段却偏离 SQL README 的切段结果
 - 用户没有说树表或主子表，`templateType` 却不是 `1`
@@ -145,7 +209,6 @@ python3 ~/.agents/skills/f-base-codegen-mcp/scripts/apply_bundle.py \
 - 菜单名不是 2–6 个汉字，或本页名带「管理」
 - 图标不在 prompts.md 的 `ep:` 清单里
 - 排序漏列、重复，或不是从 1 开始的连续整数
-- 列注释是 `0` 正常、`1` 停用，却没有绑定 `common_status`
 - 列表要展示的列在列宽步没有类别
 - 同一 ZIP 重跑落盘时缺少 `--menu-decision` 或 `--column-categories`（缺 categories 会用 ZIP 覆写掉已写入的 `headerAlign` / `align`）
 
@@ -157,7 +220,7 @@ python3 ~/.agents/skills/f-base-codegen-mcp/scripts/apply_bundle.py \
 | 关联表可以猜 | 找不到就写「无关联表」，不编造 DDL |
 | 注释应保持 DDL 原文 | `columnComment` 最多 8 个汉字，去掉括号枚举、预留、加密、不 DROP、存储说明 |
 | 列宽让模板默认 120 | 列表列写整数 `colWidth`；不展示的列传 `null`；定稿没有整数就停止 |
-| 八步可以合成一次 | 八份按列写全之前不调用 `codegen_update` |
+| 十二步可以合成一次 | 十二份按列写全之前不调用 `codegen_update` |
 | 其余字段沿用导入值 | 出现「其余不要」就重做该步 |
 | 页面菜单写成「类注释 + 管理」 | 本页名由菜单 prompt 决定，不带「管理」 |
 | 重跑 ZIP 可省略两类 JSON | 每次 `apply_bundle` 都带 `--menu-decision` 与 `--column-categories` |

@@ -23,7 +23,7 @@
 | `menuTable` | 否 | `system_menu` | 菜单表名 |
 | `menuStartId` | 否 | 无 | 菜单起始编号下限；配置 `sqlRulesPath` 时不得越过模块段上界 |
 | `parentMenuPath` | 否 | 无 | 父菜单路径；缺省使用 bundle/模块路径，不写死 `/system` |
-| `enums` | 否 | `{}` | dictType → 完整枚举类名，支持 `{basePackage}` |
+| `enums` | 否 | `{}` | 已有字典类型 → 已有枚举全名对照表（不是列名规则），支持 `{basePackage}`；只写进 Javadoc `{@link}` |
 | `build.boot` | 否 | 无 | 后端构建命令 |
 | `build.vben` | 否 | 无 | 前端构建命令 |
 
@@ -156,7 +156,7 @@ Cursor 一次只能配置一把 key。需要比较多把 key 时，用工作区 
 - 未配置 `sqlRulesPath` 时：回退所有 `{sqlModulePrefix}*.sql` 全局最大编号 +1；传入 `--db-name` 时查全局 `MAX(id)`，并提示未使用号段规则。
 - `parentMenuId` 不进 `menu.plan.json`；父菜单按 path/name 先查本地 SQL，再查数据库；都没有时创建一级菜单，同一条父 INSERT 写入基线与增量；多条菜单 INSERT 之间不留空行；不写死 `/system`。
 - 菜单合并到 `{sqlModulePrefix}{module}.sql`（默认 `fan-module-`）；文件不存在时新建最小骨架。
-- 字典只用于生成枚举/常量，不写 SQL 行；菜单按 id 有序插入 `menuTable` 记录段，不追加到末尾。
+- 字典：`--dict-decision` 的 `creates` 写入 `system_dict_type` / `system_dict_data` INSERT（两表各自段内最大编号 +1）；枚举与 TODO 也以该结论文件为唯一输入。菜单按 id 有序插入 `menuTable` 记录段，不追加到末尾。
 - 多行菜单 INSERT 必须能解析；解析失败直接报错，不默认生成 1。
 - 父菜单从本地 SQL 解析；单层挂模块根，多级建目录；不唯一时询问。
 - 按菜单名称/路径/组件检查重复；重复应用输出 `already applied`。
@@ -168,13 +168,23 @@ docker exec -i -e MYSQL_PWD="$MYSQL_PWD" mysql8 \
   mysql --default-character-set=utf8mb4 -uroot fan_jdk25_mcp < upgrade.sql
 ```
 
-## 枚举
+## 前端 API 的 Dayjs 导入（技能后处理）
 
-- `enums` 命中：使用完整类名，`{basePackage}` 替换为配置包名。
-- 未命中且 SQL 有字典值：在 `{basePackage}.module.{module}.enums...` 新建。
-- 未命中且无字典值：只补常量，不建空枚举。
+- 生成模板会无条件写入 `import type { Dayjs } from 'dayjs';`（`vue3_vben5_ele/schema/api/api.ts.vm`；antd 只 `#parse`）。**不改模板**，由技能在 `apply_bundle` 落盘后收尾。
+- 处理对象：本次写入的 `apps/web-antd`（或配置的前端根）下对应业务 API `.ts`。
+- 判定：文件中若存在 `| Dayjs` 或字段类型 `: Dayjs`（含 `string | Dayjs`），保留 import；否则删除整行 `import type { Dayjs } from 'dayjs';`（含前后空行只留一处合理空白）。
+- 日期列范围与模板一致：Java 类型为 `date` / `LocalDate` / `LocalDateTime` 且出现在 create 或 update 契约中时才会用到 `Dayjs`。
+- 实现位置：后续可做成 `apply_bundle` 的确定性后处理函数；在此之前由执行技能的 Agent 按上列规则手工改落盘文件并纳入基线。
+
+## 枚举与字典结论
+
+- `dict-decision.json`（`--dict-decision`）是建枚举、消字典 TODO、补前端 `dict-enum.ts` 键的**唯一**输入；不以 ZIP `dicts` 猜常量名，也不写字符串形式的 `@DictFormat("…")`。
+- 未传 `--dict-decision` 时：跳过枚举与 TODO 处理（不猜测、不落盘常量/枚举）；技能流程在 `apply_bundle` 前必须写好 `.tmp/dict-decision.json` 并传入该参数。SQL 字典 INSERT 同样只认该文件的 `creates`。
+- `enums` 是「已有字典类型 → 已有枚举全名」对照表，不是列名规则；`{basePackage}` 替换为配置包名。绑定且对照表有类名时：`{@link TODO}` 换成该类名，`@DictFormat` 改成 `DictTypeConstants` 常量并补模块 import；对照表没有类名则停止，不编类名。
+- 配置示例把 `common_status` 接到 `CommonStatusEnum`，把 `system_user_sex` 接到 `SexEnum`；类型链接只写完整类名，不向业务模块 import 另一个业务模块的枚举。
+- `create`：按结论常量名在 `{basePackage}.module.{module}.enums.{首段}` 新建枚举（数字 → `ArrayValuable<Integer>`；非数字 → `String` 且无该接口）；常量名用结论中的大写标识符，不因值 `1` 命名为 `DISABLE`；并在前端 `packages/constants/src/dict-enum.ts` 的 `{MODULE}_DICT` 分组补同名键（已存在则跳过）。
 - Javadoc 链接写完整类名，例如 `{@link cn.fanstars.framework.common.enums.CommonStatusEnum}`。
-- 不内置项目具体枚举名；配置只是示例。
+- 字典类型与字典数据 INSERT 编号分别按各自表段内最大值加 1。
 
 ## 改表
 

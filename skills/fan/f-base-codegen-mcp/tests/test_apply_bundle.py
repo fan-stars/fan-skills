@@ -5,6 +5,7 @@ from tempfile import TemporaryDirectory
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from scripts import apply_bundle, sql_rules
 from scripts.apply_bundle import (
     FileConflict,
     apply_error_codes,
@@ -23,6 +24,9 @@ from scripts.apply_bundle import (
     ensure_module_scaffold,
     validate_manifest_module,
     parse_dict_values,
+    next_dict_ids,
+    render_dict_sql,
+    find_dict_type,
     upgrade_ddl,
     rewrite_menu_plan,
     apply_column_align,
@@ -181,12 +185,124 @@ class TestApplyBundle(unittest.TestCase):
 
     def test_create_enum_file_uses_base_package(self) -> None:
         with TemporaryDirectory() as tmp:
-            path = create_enum_file(Path(tmp), "cn.fanstars", "system", "mcp_flow_status",
-                                    [("0", "开启"), ("1", "关闭")])
+            path = create_enum_file(
+                Path(tmp), "cn.fanstars", "system", "mcp_flow_status",
+                [("0", "开启"), ("1", "关闭")], constants=["ENABLE", "DISABLE"])
             text = path.read_text(encoding="utf-8")
             self.assertIn("package cn.fanstars.module.system.enums.mcp;", text)
             self.assertIn("enum McpFlowStatusEnum", text)
             self.assertIn("ENABLE(0, \"开启\")", text)
+
+    def test_module_pom_has_model_version(self):
+        text = apply_bundle._module_pom(
+            "cn.iocoder.boot", "yudao", "yudao-module-member",
+            ["yudao-spring-boot-starter-mybatis"])
+        self.assertIn('<?xml version="1.0" encoding="UTF-8"?>', text)
+        self.assertIn("<modelVersion>4.0.0</modelVersion>", text)
+
+    def test_error_code_import_added_once(self):
+        source = ("package cn.iocoder.yudao.module.member.enums;\n\n"
+                  "public interface ErrorCodeConstants {\n}\n")
+        merged = apply_bundle.merge_error_code_entries(
+            source, [{"name": "MEMBER_NOT_EXISTS", "message": "不存在"}], 1_004_000_000)
+        merged = apply_bundle.ensure_error_code_import(merged, "cn.iocoder.yudao")
+        self.assertEqual(
+            merged.count("import cn.iocoder.yudao.framework.common.exception.ErrorCode;"), 1)
+
+    def test_constant_name_not_disable_for_one(self):
+        with TemporaryDirectory() as tmp:
+            path = apply_bundle.create_enum_file(
+                Path(tmp), "cn.iocoder.yudao", "member", "member_sex_custom",
+                [("1", "男"), ("2", "女")], constants=["MALE", "FEMALE"])
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("MALE(1, \"男\")", text)
+            self.assertNotIn("DISABLE", text)
+
+    def test_dict_ids_are_separate(self):
+        ids_type = [4001]
+        ids_data = [4001, 4002]
+        self.assertEqual(sql_rules.next_id_in_segment(ids_type, 4001, 5001), 4002)
+        self.assertEqual(sql_rules.next_id_in_segment(ids_data, 4001, 5001), 4003)
+
+    def test_next_dict_ids_and_render_dict_sql(self) -> None:
+        sql = (
+            "INSERT INTO `system_dict_type` (`id`, `name`, `type`, `status`, `remark`, "
+            "`creator`, `create_time`, `updater`, `update_time`, `deleted`, `deleted_time`) "
+            "VALUES (4001, '已有', 'member_old', 0, '', '1', CURRENT_TIMESTAMP, '1', "
+            "CURRENT_TIMESTAMP, b'0', NULL);\n"
+            "INSERT INTO `system_dict_data` (`id`, `sort`, `label`, `value`, `dict_type`, "
+            "`status`, `color_type`, `css_class`, `remark`, `creator`, `create_time`, "
+            "`updater`, `update_time`, `deleted`) VALUES (4001, 1, 'A', '0', 'member_old', "
+            "0, 'default', '', '', '1', CURRENT_TIMESTAMP, '1', CURRENT_TIMESTAMP, b'0');\n"
+            "INSERT INTO `system_dict_data` (`id`, `sort`, `label`, `value`, `dict_type`, "
+            "`status`, `color_type`, `css_class`, `remark`, `creator`, `create_time`, "
+            "`updater`, `update_time`, `deleted`) VALUES (4002, 2, 'B', '1', 'member_old', "
+            "0, 'default', '', '', '1', CURRENT_TIMESTAMP, '1', CURRENT_TIMESTAMP, b'0');\n"
+        )
+        type_id, data_id = next_dict_ids(sql, 4001, 5001)
+        self.assertEqual(type_id, 4002)
+        self.assertEqual(data_id, 4003)
+        lines = render_dict_sql([{
+            "dictType": "member_verification_status",
+            "name": "认证状态",
+            "values": [
+                {"value": "0", "label": "未认证", "constant": "UNVERIFIED"},
+                {"value": "1", "label": "已认证", "constant": "VERIFIED"},
+            ],
+        }], sql, 4001, 5001)
+        self.assertEqual(len(lines), 3)
+        self.assertIn("VALUES (4002,", lines[0])
+        self.assertIn("'member_verification_status'", lines[0])
+        self.assertIn("VALUES (4003,", lines[1])
+        self.assertIn("'未认证'", lines[1])
+        self.assertIn("VALUES (4004,", lines[2])
+        self.assertTrue(find_dict_type(sql, "member_old"))
+        self.assertFalse(find_dict_type(sql, "member_verification_status"))
+
+    def test_apply_sql_dict_decision_dual_write(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            rules = root / "README.md"
+            rules.write_text(
+                "<!-- sql-id-segments:start -->\n```json\n"
+                '{"modules":{"member":4001},"nextModuleBase":5001,'
+                '"autoIncrement":{"default":10001,"shared":{"system_menu":100001}}}\n'
+                "```\n<!-- sql-id-segments:end -->\n",
+                encoding="utf-8")
+            config = make_config()
+            config.sql_prelude = ["drop.sql", "module-system.sql"]
+            config.boot_root = root / "repo"
+            config.sql_dir = root / "sql"
+            config.sql_rules_path = rules
+            config.sql_dir.mkdir()
+            workdir = root / "bundle"
+            workdir.mkdir()
+            decision = root / "dict-decision.json"
+            decision.write_text(
+                '{"creates":[{"dictType":"member_verification_status","name":"认证状态",'
+                '"values":[{"value":"0","label":"未认证","constant":"UNVERIFIED"},'
+                '{"value":"1","label":"已认证","constant":"VERIFIED"}]}]}',
+                encoding="utf-8")
+            ddl = root / "member.sql"
+            ddl.write_text(
+                "CREATE TABLE `member_user` (`id` bigint NOT NULL AUTO_INCREMENT);",
+                encoding="utf-8")
+            upgrade = apply_sql(
+                config, {"moduleName": "member", "businessName": "user"},
+                workdir, [ddl], False, dict_decision=decision)
+            self.assertIsNotNone(upgrade)
+            upgrade_text = upgrade.read_text(encoding="utf-8")
+            base = (config.sql_dir / "fan-module-member.sql").read_text(encoding="utf-8")
+            self.assertIn("member_verification_status", upgrade_text)
+            self.assertIn("member_verification_status", base)
+            self.assertIn("INSERT INTO `system_dict_type`", upgrade_text)
+            self.assertIn("INSERT INTO `system_dict_data`", upgrade_text)
+            self.assertNotIn("DROP", upgrade_text)
+            # idempotent: second pass skips existing type
+            upgrade2 = apply_sql(
+                config, {"moduleName": "member", "businessName": "user"},
+                workdir, [ddl], False, dict_decision=decision)
+            self.assertIsNone(upgrade2)
 
     def test_insert_table_ddl_adds_semicolon(self) -> None:
         sql = "-- Table structure for system_menu\nCREATE TABLE `system_menu` (id bigint);\n"
@@ -329,22 +445,42 @@ class TestApplyBundle(unittest.TestCase):
             self.assertNotIn("DROP TABLE", text)
             self.assertEqual(text.count("CREATE TABLE IF NOT EXISTS"), 2)
 
-    def test_copy_sources_rejects_changed_target(self) -> None:
+    def test_no_baseline_keeps_align_and_adds_field(self):
+        current = "field: 'name',\n      align: 'left',\n    },\nexport function extra() { return 1 }\n"
+        new = "field: 'name',\n      align: 'center',\n    },\nfield: 'mobile',\n      align: 'left',\n    },\n"
+        merged = apply_bundle.merge_generated(None, current, new)
+        self.assertIn("align: 'left'", merged)
+        self.assertIn("field: 'mobile'", merged)
+        self.assertIn("function extra()", merged)
+
+    def test_both_sides_changed_raises(self):
+        baseline = "align: 'center'"
+        current = "align: 'left'"
+        new = "align: 'right'"
+        with self.assertRaises(apply_bundle.FileConflict):
+            apply_bundle.merge_generated(baseline, current, new)
+
+    def test_copy_sources_skips_when_both_sides_changed(self) -> None:
         with TemporaryDirectory() as tmp:
             root = Path(tmp)
             workdir = root / "bundle"
             config = make_config()
             config.boot_root = root / "repo"
-            source = workdir / "fan-module-system/src/main/java/Demo.java"
+            logical = "fan-module-system/src/main/java/Demo.java"
+            source = workdir / logical
             source.parent.mkdir(parents=True)
-            source.write_text("new", encoding="utf-8")
-            target = config.boot_root / "fan-module-system/src/main/java/Demo.java"
+            source.write_text("align: 'right'", encoding="utf-8")
+            target = config.boot_root / logical
             target.parent.mkdir(parents=True)
-            target.write_text("manual", encoding="utf-8")
-            manifest = {"frontType": 40, "files": [
-                {"kind": "backend", "path": "fan-module-system/src/main/java/Demo.java"}]}
-            with self.assertRaises(FileConflict):
-                copy_sources(manifest, workdir, config, dry_run=False)
+            target.write_text("align: 'left'", encoding="utf-8")
+            base = root / ".tmp/f-base-codegen-base" / logical
+            base.parent.mkdir(parents=True)
+            base.write_text("align: 'center'", encoding="utf-8")
+            manifest = {"frontType": 40, "files": [{"kind": "backend", "path": logical}]}
+            copied = copy_sources(
+                manifest, workdir, config, dry_run=False, workspace=root)
+            self.assertEqual(copied, [])
+            self.assertEqual(target.read_text(encoding="utf-8"), "align: 'left'")
 
     def test_apply_error_codes_reads_json_bundle(self) -> None:
         with TemporaryDirectory() as tmp:
@@ -937,6 +1073,257 @@ export function useGridColumns() {
             "b'1', b'1', b'1', 'admin', CURRENT_TIMESTAMP, '1', CURRENT_TIMESTAMP, b'0');\n"
         )
         self.assertEqual(find_menu_id(sql, "/member", "任意名"), 5001)
+
+    def test_bind_dict_replaces_todo_with_constant_and_link(self) -> None:
+        """绑定结论把 {@link TODO} 和 DictFormat 待办换成对照表类名与 DictTypeConstants。"""
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            java = (root / "fan-module-demo/src/main/java/cn/fanstars/module/demo"
+                    "/dal/dataobject/demo/DemoDO.java")
+            java.parent.mkdir(parents=True)
+            java.write_text(
+                "package cn.fanstars.module.demo.dal.dataobject.demo;\n\n"
+                "/** 枚举 {@link TODO common_status 对应的类} */\n"
+                "public class DemoDO {\n"
+                '    @DictFormat("common_status") // TODO 代码优化：建议设置到对应的 DictTypeConstants 枚举类中\n'
+                "    private Integer status;\n"
+                "}\n",
+                encoding="utf-8",
+            )
+            config = make_config()
+            config.boot_root = root
+            config.base_package = "cn.fanstars"
+            config.enums = {
+                "common_status": "{basePackage}.framework.common.enums.CommonStatusEnum",
+            }
+            decision = {
+                "columns": [{"column": "status", "action": "bind", "dictType": "common_status"}],
+                "creates": [],
+            }
+            apply_bundle.apply_dict_decision(
+                config, module="demo", decision=decision,
+                replace_root=root, manifest_files=[{
+                    "kind": "backend",
+                    "path": str(java.relative_to(root)),
+                }],
+            )
+            text = java.read_text(encoding="utf-8")
+            self.assertIn(
+                "{@link cn.fanstars.framework.common.enums.CommonStatusEnum}", text)
+            self.assertIn("@DictFormat(DictTypeConstants.COMMON_STATUS)", text)
+            self.assertNotIn("TODO 代码优化", text)
+            self.assertIn(
+                "import cn.fanstars.module.demo.enums.DictTypeConstants;", text)
+            constants = (root / "fan-module-demo/src/main/java/cn/fanstars/module/demo"
+                         "/enums/DictTypeConstants.java").read_text(encoding="utf-8")
+            self.assertIn('String COMMON_STATUS = "common_status"', constants)
+
+    def test_create_dict_writes_enum_and_frontend_key(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = make_config()
+            config.boot_root = root
+            config.vben_root = root / "fan-base-vben"
+            config.base_package = "cn.fanstars"
+            fe = config.vben_root / "packages/constants/src/dict-enum.ts"
+            fe.parent.mkdir(parents=True)
+            fe.write_text(
+                "const MEMBER_DICT = {\n"
+                "  MEMBER_POINT_BIZ_TYPE: 'member_point_biz_type',\n"
+                "} as const;\n\n"
+                "const DICT_TYPE = {\n"
+                "  ...MEMBER_DICT,\n"
+                "} as const;\n\n"
+                "export { DICT_TYPE };\n",
+                encoding="utf-8",
+            )
+            java = (root / "fan-module-demo/src/main/java/cn/fanstars/module/demo"
+                    "/controller/admin/demo/vo/DemoRespVO.java")
+            java.parent.mkdir(parents=True)
+            java.write_text(
+                "package cn.fanstars.module.demo.controller.admin.demo.vo;\n\n"
+                "/** 枚举 {@link TODO demo_flag 对应的类} */\n"
+                "public class DemoRespVO {\n"
+                '    @DictFormat("demo_flag") // TODO 代码优化：建议设置到对应的 DictTypeConstants 枚举类中\n'
+                "    private Integer flag;\n"
+                "}\n",
+                encoding="utf-8",
+            )
+            decision = {
+                "columns": [{"column": "flag", "action": "create", "dictType": "demo_flag"}],
+                "creates": [{
+                    "dictType": "demo_flag",
+                    "values": [
+                        {"value": "0", "label": "开启", "constant": "ENABLE"},
+                        {"value": "1", "label": "关闭", "constant": "DISABLE"},
+                    ],
+                }],
+            }
+            apply_bundle.apply_dict_decision(
+                config, module="demo", decision=decision,
+                replace_root=root, manifest_files=[{
+                    "kind": "backend",
+                    "path": str(java.relative_to(root)),
+                }],
+            )
+            enum = next((root / "fan-module-demo").rglob("DemoFlagEnum.java"))
+            text = enum.read_text(encoding="utf-8")
+            self.assertIn("implements ArrayValuable<Integer>", text)
+            self.assertIn('ENABLE(0, "开启")', text)
+            self.assertIn('DISABLE(1, "关闭")', text)
+            self.assertIn(
+                "import cn.fanstars.framework.common.core.ArrayValuable;", text)
+            java_text = java.read_text(encoding="utf-8")
+            self.assertIn("@DictFormat(DictTypeConstants.DEMO_FLAG)", java_text)
+            self.assertNotIn("TODO", java_text)
+            fe_text = fe.read_text(encoding="utf-8")
+            self.assertIn("DEMO_FLAG: 'demo_flag'", fe_text)
+            self.assertIn("const DEMO_DICT", fe_text)
+            self.assertIn("...DEMO_DICT,", fe_text)
+
+    def test_bind_without_enum_mapping_stops(self) -> None:
+        from scripts.project_config import ConfigError
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            java = (root / "fan-module-demo/src/main/java/cn/fanstars/module/demo"
+                    "/dal/dataobject/demo/DemoDO.java")
+            java.parent.mkdir(parents=True)
+            original = (
+                "package cn.fanstars.module.demo.dal.dataobject.demo;\n\n"
+                "/** 枚举 {@link TODO unknown_type 对应的类} */\n"
+                "public class DemoDO {}\n"
+            )
+            java.write_text(original, encoding="utf-8")
+            config = make_config()
+            config.boot_root = root
+            config.enums = {}
+            decision = {
+                "columns": [{"column": "x", "action": "bind", "dictType": "unknown_type"}],
+                "creates": [],
+            }
+            with self.assertRaises(ConfigError) as caught:
+                apply_bundle.apply_dict_decision(
+                    config, module="demo", decision=decision,
+                    replace_root=root, manifest_files=[{
+                        "kind": "backend",
+                        "path": str(java.relative_to(root)),
+                    }],
+                )
+            self.assertIn("unknown_type", str(caught.exception))
+            self.assertEqual(original, java.read_text(encoding="utf-8"))
+
+    def test_preflight_failure_writes_nothing(self) -> None:
+        """第二列缺对照表时，第一列也不落盘。"""
+        from scripts.project_config import ConfigError
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            java = (root / "fan-module-demo/src/main/java/cn/fanstars/module/demo"
+                    "/dal/dataobject/demo/DemoDO.java")
+            java.parent.mkdir(parents=True)
+            original = (
+                "package cn.fanstars.module.demo.dal.dataobject.demo;\n\n"
+                "/** 枚举 {@link TODO common_status 对应的类} */\n"
+                "/** 枚举 {@link TODO unknown_type 对应的类} */\n"
+                "public class DemoDO {\n"
+                '    @DictFormat("common_status") // TODO 代码优化：建议设置到对应的 DictTypeConstants 枚举类中\n'
+                "    private Integer status;\n"
+                "}\n"
+            )
+            java.write_text(original, encoding="utf-8")
+            config = make_config()
+            config.boot_root = root
+            config.enums = {
+                "common_status": "{basePackage}.framework.common.enums.CommonStatusEnum",
+            }
+            decision = {
+                "columns": [
+                    {"column": "status", "action": "bind", "dictType": "common_status"},
+                    {"column": "flag", "action": "bind", "dictType": "unknown_type"},
+                ],
+                "creates": [],
+            }
+            with self.assertRaises(ConfigError) as caught:
+                apply_bundle.apply_dict_decision(
+                    config, module="demo", decision=decision,
+                    replace_root=root, manifest_files=[{
+                        "kind": "backend",
+                        "path": str(java.relative_to(root)),
+                    }],
+                )
+            self.assertIn("unknown_type", str(caught.exception))
+            self.assertEqual(original, java.read_text(encoding="utf-8"))
+            constants = (root / "fan-module-demo/src/main/java/cn/fanstars/module/demo"
+                         "/enums/DictTypeConstants.java")
+            self.assertFalse(constants.exists())
+            self.assertEqual([], list((root / "fan-module-demo").rglob("*Enum.java")))
+
+    def test_create_missing_fields_raises_config_error(self) -> None:
+        from scripts.project_config import ConfigError
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = make_config()
+            config.boot_root = root
+            config.vben_root = root / "fan-base-vben"
+            decision = {
+                "columns": [{"column": "flag", "action": "create", "dictType": "demo_flag"}],
+                "creates": [{
+                    "dictType": "demo_flag",
+                    "values": [
+                        {"value": "0", "label": "开启"},
+                        {"value": "1", "label": "关闭", "constant": "DISABLE"},
+                    ],
+                }],
+            }
+            with self.assertRaises(ConfigError) as caught:
+                apply_bundle.apply_dict_decision(
+                    config, module="demo", decision=decision,
+                    replace_root=root, manifest_files=[],
+                )
+            self.assertIn("constant", str(caught.exception))
+            self.assertNotIsInstance(caught.exception, KeyError)
+            self.assertEqual([], list(root.rglob("*Enum.java")))
+            self.assertEqual([], list(root.rglob("DictTypeConstants.java")))
+
+    def test_without_dict_decision_skips_zip_guess(self) -> None:
+        """未传 --dict-decision 时不按 ZIP dicts 猜写 DictFormat / 枚举。"""
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            java_rel = ("fan-module-demo/src/main/java/cn/fanstars/module/demo"
+                        "/controller/admin/demo/vo/DemoRespVO.java")
+            java = root / java_rel
+            java.parent.mkdir(parents=True)
+            original = (
+                "package cn.fanstars.module.demo.controller.admin.demo.vo;\n\n"
+                "/** 枚举 {@link TODO demo_flag 对应的类} */\n"
+                "public class DemoRespVO {\n"
+                '    @DictFormat("demo_flag") // TODO 代码优化：建议设置到对应的 DictTypeConstants 枚举类中\n'
+                "    private Integer flag;\n"
+                "}\n"
+            )
+            java.write_text(original, encoding="utf-8")
+            config = make_config()
+            config.boot_root = root
+            config.vben_root = root / "fan-base-vben"
+            config.enums = {
+                "common_status": "{basePackage}.framework.common.enums.CommonStatusEnum",
+            }
+            manifest = {
+                "moduleName": "demo",
+                "files": [{"kind": "backend", "path": java_rel}],
+                "dicts": [{
+                    "dictType": "demo_flag",
+                    "values": [
+                        {"value": "0", "label": "开启", "constant": "ENABLE"},
+                        {"value": "1", "label": "关闭", "constant": "DISABLE"},
+                    ],
+                }],
+            }
+            apply_bundle.maybe_apply_dict_decision(
+                config, manifest, root, dict_decision=None)
+            self.assertEqual(original, java.read_text(encoding="utf-8"))
+            self.assertIn('@DictFormat("demo_flag") // TODO', java.read_text(encoding="utf-8"))
+            self.assertEqual([], list(root.rglob("*Enum.java")))
+            self.assertEqual([], list(root.rglob("DictTypeConstants.java")))
 
 
 if __name__ == "__main__":

@@ -278,6 +278,19 @@ def merge_error_code_entries(source: str, entries: list[dict], start_code: int) 
     return source[:position] + "\n" + "\n".join(lines) + "\n" + source[position:]
 
 
+def ensure_error_code_import(source: str, base_package: str) -> str:
+    """常量文件出现 ErrorCode 时补上导入，已有则不重复。"""
+    if "new ErrorCode(" not in source and not re.search(r"\bErrorCode\s+\w+\s*=", source):
+        return source
+    line = f"import {base_package}.framework.common.exception.ErrorCode;\n"
+    if line in source:
+        return source
+    match = re.search(r"package [^;]+;\n", source)
+    if not match:
+        return line + source
+    return source[:match.end()] + "\n" + line + source[match.end():]
+
+
 def merge_error_codes(source: str, manual: str, start_code: int) -> str:
     """兼容手动 Java 文件：抽成条目后合并。"""
     entries = [{"name": match.group(1), "message": match.group(2)}
@@ -301,6 +314,22 @@ class FileConflict(RuntimeError):
     pass
 
 
+BASELINE_DIR = Path(".tmp") / "f-base-codegen-base"
+
+_COLUMN_FIELD = re.compile(r"field:\s*'(\w+)',([\s\S]*?)(?=\n\s*\},)")
+_COLUMN_PROP = re.compile(r"(align|headerAlign):\s*'([^']*)'")
+_METHOD_BLOCK = re.compile(
+    r"((?:export\s+)?function\s+(\w+)\s*\([^)]*\)\s*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\})"
+)
+_SELECT_PAGE = re.compile(
+    r"(selectPage\b[\s\S]*?)(?=\n\s*(?:export\s+)?function\s+\w+|\Z)"
+)
+_JAVA_FIELD = re.compile(
+    r"((?:/\*\*[\s\S]*?\*/\s*)?(?:@[^\n]+\n\s*)*(?:private|protected|public)\s+[^\n;]+;)"
+)
+_LINK_TAG = re.compile(r"\{@link\s+([^}]+)\}")
+
+
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -317,11 +346,158 @@ def save_state(path: Path, copied: list[tuple[Path, Path]]) -> None:
     path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def baseline_path(workspace: Path, logical: str) -> Path:
+    """返回逻辑路径对应的基线文件。"""
+    return workspace / BASELINE_DIR / logical
+
+
+def _column_props(text: str) -> dict[str, dict[str, str]]:
+    """按 field 收集 align / headerAlign。"""
+    props: dict[str, dict[str, str]] = {}
+    for match in _COLUMN_FIELD.finditer(text):
+        field = match.group(1)
+        body = match.group(2)
+        field_props = {key: value for key, value in _COLUMN_PROP.findall(body)}
+        if field_props:
+            props[field] = field_props
+    return props
+
+
+def _apply_column_props(text: str, props: dict[str, dict[str, str]]) -> str:
+    """把指定列的 align / headerAlign 写回文本。"""
+
+    def replace(match: re.Match) -> str:
+        field = match.group(1)
+        body = match.group(2)
+        for key, value in props.get(field, {}).items():
+            body = _set_ts_prop(body, key, value)
+        return f"field: '{field}',{body}"
+
+    return _COLUMN_FIELD.sub(replace, text)
+
+
+def _methods(text: str) -> dict[str, str]:
+    """方法名 → 完整方法文本。"""
+    return {match.group(2): match.group(1) for match in _METHOD_BLOCK.finditer(text)}
+
+
+def _prefer_filled_links(current: str, new: str) -> str:
+    """当前已有无 TODO 的 {@link} 时，不让新结果的 TODO 链接盖掉。"""
+    current_links = [match.group(0) for match in _LINK_TAG.finditer(current)
+                     if "TODO" not in match.group(1)]
+    if not current_links:
+        return new
+
+    result = new
+    index = 0
+
+    def replace(match: re.Match) -> str:
+        nonlocal index
+        if "TODO" in match.group(1) and index < len(current_links):
+            filled = current_links[index]
+            index += 1
+            return filled
+        return match.group(0)
+
+    return _LINK_TAG.sub(replace, result)
+
+
+def _merge_without_baseline(current: str, new: str) -> str:
+    """无基线：以新结果为结构，保留人对齐、已填链接和多余方法。"""
+    result = new
+    props = _column_props(current)
+    if props:
+        result = _apply_column_props(result, props)
+    result = _prefer_filled_links(current, result)
+    new_methods = _methods(new)
+    extras = [body for name, body in _methods(current).items() if name not in new_methods]
+    if extras:
+        result = result.rstrip() + "\n" + "\n".join(extras) + "\n"
+    return result
+
+
+def _extract_units(text: str) -> dict[str, str]:
+    """拆成字段 / 列属性 / selectPage 块 / 方法；识别不到时整文件一块。"""
+    units: dict[str, str] = {}
+    for match in _COLUMN_FIELD.finditer(text):
+        field = match.group(1)
+        body = match.group(2)
+        units[f"field:{field}"] = match.group(0)
+        for key, value in _COLUMN_PROP.findall(body):
+            units[f"prop:{field}:{key}"] = value
+    for match in _SELECT_PAGE.finditer(text):
+        units["selectPage"] = match.group(1)
+    for name, body in _methods(text).items():
+        units[f"method:{name}"] = body
+    for index, match in enumerate(_JAVA_FIELD.finditer(text)):
+        units[f"java-field:{index}"] = match.group(1)
+    # 裸 align 片段（单测用）
+    if not units:
+        for key, value in _COLUMN_PROP.findall(text):
+            units[f"prop::{key}"] = value
+    if not units:
+        units["__file__"] = text
+    return units
+
+
+def _merge_three_way(baseline: str, current: str, new: str) -> str:
+    """有基线：按单位三方对比；同一单位两边都改则整文件冲突。"""
+    base_units = _extract_units(baseline)
+    current_units = _extract_units(current)
+    new_units = _extract_units(new)
+    keys = set(base_units) | set(current_units) | set(new_units)
+    for key in keys:
+        base_value = base_units.get(key)
+        current_value = current_units.get(key)
+        new_value = new_units.get(key)
+        current_changed = current_value != base_value
+        new_changed = new_value != base_value
+        if current_changed and new_changed and current_value != new_value:
+            raise FileConflict(f"both sides changed: {key}")
+    # 以新结果为底，按单位套回「仅当前改过」的块
+    result = new
+    for key, current_value in current_units.items():
+        base_value = base_units.get(key)
+        new_value = new_units.get(key)
+        if current_value == base_value:
+            continue
+        if new_value != base_value:
+            continue
+        if key.startswith("prop:"):
+            _, field, prop = key.split(":", 2)
+            if field:
+                result = _apply_column_props(result, {field: {prop: current_value}})
+            else:
+                result = re.sub(
+                    rf"{prop}:\s*'[^']*'", f"{prop}: '{current_value}'", result, count=1)
+        elif key.startswith("method:"):
+            name = key.split(":", 1)[1]
+            if name not in _methods(result):
+                result = result.rstrip() + "\n" + current_value + "\n"
+        elif key == "selectPage" and "selectPage" in result:
+            result = _SELECT_PAGE.sub(current_value, result, count=1)
+        elif key.startswith("field:") or key.startswith("java-field:"):
+            if key in new_units and new_units[key] == base_value:
+                result = result.replace(new_units[key], current_value, 1)
+        elif key == "__file__":
+            return current
+    return result
+
+
+def merge_generated(baseline: str | None, current: str, new: str) -> str:
+    """三方合并生成物。baseline 为 None 表示无基线。"""
+    if baseline is None:
+        return _merge_without_baseline(current, new)
+    return _merge_three_way(baseline, current, new)
+
+
 def copy_sources(manifest: dict, workdir: Path, config: ProjectConfig,
-                 dry_run: bool, force: bool = False, state: dict | None = None) -> list[tuple[Path, Path]]:
-    """复制源码；相同内容幂等，人工改动默认冲突。"""
+                 dry_run: bool, force: bool = False, state: dict | None = None,
+                 workspace: Path | None = None) -> list[tuple[Path, Path]]:
+    """复制源码；有目标时按基线三方合并，冲突则跳过该文件。"""
     copied = []
     state = state or {}
+    workspace = workspace or Path.cwd()
     for item in manifest["files"]:
         logical = item["path"]
         kind = item["kind"]
@@ -332,21 +508,29 @@ def copy_sources(manifest: dict, workdir: Path, config: ProjectConfig,
         else:
             continue
         source_path = workdir / logical
-        content = source_path.read_text(encoding="utf-8")
-        if target.exists():
-            target_text = target.read_text(encoding="utf-8")
-            entry = state.get(str(target)) or {}
-            same_source = entry.get("source") == _sha256(source_path)
-            same_target = entry.get("target") == _sha256(target)
-            if target_text != content and not (same_source and same_target) and not force:
-                raise FileConflict(
-                    f"target changed: {target} (use --force to overwrite)")
+        new_content = source_path.read_text(encoding="utf-8")
+        content = new_content
+        if target.exists() and not force:
+            current = target.read_text(encoding="utf-8")
+            base_file = baseline_path(workspace, logical)
+            baseline = base_file.read_text(encoding="utf-8") if base_file.exists() else None
+            if current == new_content:
+                content = new_content
+            else:
+                try:
+                    content = merge_generated(baseline, current, new_content)
+                except FileConflict as error:
+                    print(f"conflict skip {target}: {error}")
+                    continue
         if dry_run:
             print(f"{logical} -> {target}")
             copied.append((source_path, target))
             continue
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content, encoding="utf-8")
+        base_file = baseline_path(workspace, logical)
+        base_file.parent.mkdir(parents=True, exist_ok=True)
+        base_file.write_text(new_content, encoding="utf-8")
         copied.append((source_path, target))
     return copied
 
@@ -524,52 +708,152 @@ def _pascal(value: str) -> str:
     return "".join(part[:1].upper() + part[1:] for part in value.split("_") if part)
 
 
-def _constant_name(value: str) -> str:
-    if value == "0":
-        return "ENABLE"
-    if value == "1":
-        return "DISABLE"
-    return "VALUE_" + re.sub(r"\W+", "_", value).upper()
+_ENUM_CONSTANT = re.compile(r"^[A-Z][A-Z0-9_]*$")
 
 
 def create_enum_file(boot: Path, base_package: str, module: str, dict_type: str,
-                     values: list[tuple[str, str]], module_dir: str | None = None) -> Path:
-    """按字典值创建枚举类。"""
+                     values: list[tuple[str, str]], module_dir: str | None = None,
+                     *, constants: list[str]) -> Path:
+    """按字典值与结论中的常量名创建枚举类。"""
+    if len(constants) != len(values):
+        raise ValueError("constants 必须与 values 等长")
+    if len(set(constants)) != len(constants):
+        raise ValueError("constants 不可重复")
+    for name in constants:
+        if not _ENUM_CONSTANT.fullmatch(name):
+            raise ValueError(f"非法枚举常量名: {name}")
     enum_name = _pascal(dict_type) + "Enum"
     domain = dict_type.split("_")[0]
     java_type = "Integer" if all(value.isdigit() for value, _ in values) else "String"
     lines = [
         f"package {base_package}.module.{module}.enums.{domain};",
         "",
-        "import lombok.AllArgsConstructor;",
-        "import lombok.Getter;",
-        "",
+    ]
+    if java_type == "Integer":
+        lines.extend([
+            f"import {base_package}.framework.common.core.ArrayValuable;",
+            "import lombok.AllArgsConstructor;",
+            "import lombok.Getter;",
+            "",
+            "import java.util.Arrays;",
+            "",
+        ])
+    else:
+        lines.extend([
+            "import lombok.AllArgsConstructor;",
+            "import lombok.Getter;",
+            "",
+        ])
+    lines.extend([
         "/**",
         f" * {dict_type} 枚举。",
         " */",
         "@Getter",
         "@AllArgsConstructor",
-        f"public enum {enum_name} {{",
-        "",
-    ]
-    body = []
-    for value, label in values:
-        literal = value if java_type == "Integer" else f'"{value}"'
-        body.append(f'    {_constant_name(value)}({literal}, "{label}")')
-    lines.append(",\n".join(body) + ";")
-    lines.extend([
-        "",
-        f"    private final {java_type} value;",
-        "    private final String name;",
-        "}",
-        "",
     ])
+    if java_type == "Integer":
+        lines.append(f"public enum {enum_name} implements ArrayValuable<Integer> {{")
+    else:
+        lines.append(f"public enum {enum_name} {{")
+    lines.append("")
+    body = []
+    for (value, label), name in zip(values, constants):
+        literal = value if java_type == "Integer" else f'"{value}"'
+        body.append(f'    {name}({literal}, "{label}")')
+    lines.append(",\n".join(body) + ";")
+    if java_type == "Integer":
+        lines.extend([
+            "",
+            f"    public static final Integer[] ARRAYS = Arrays.stream(values())",
+            f"            .map({enum_name}::getValue).toArray(Integer[]::new);",
+            "",
+            "    private final Integer value;",
+            "    private final String name;",
+            "",
+            "    @Override",
+            "    public Integer[] array() {",
+            "        return ARRAYS;",
+            "    }",
+            "}",
+            "",
+        ])
+    else:
+        lines.extend([
+            "",
+            f"    private final {java_type} value;",
+            "    private final String name;",
+            "}",
+            "",
+        ])
     path = (boot / (module_dir or module) / "src/main/java"
             / Path(base_package.replace(".", "/")) / "module" / module / "enums" / domain
             / f"{enum_name}.java")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines), encoding="utf-8")
     return path
+
+
+def collect_insert_ids(sql: str, table: str) -> list[int]:
+    """从 INSERT 语句收集某表的编号。"""
+    return [int(match.group(1)) for match in re.finditer(
+        rf"INSERT INTO `{re.escape(table)}` .*?VALUES \((\d+),", sql, re.S)]
+
+
+def next_dict_ids(sql: str, base: int, upper: int) -> tuple[int, int]:
+    """分别按 system_dict_type / system_dict_data 段内最大编号加 1。"""
+    type_id = next_id_in_segment(collect_insert_ids(sql, "system_dict_type"), base, upper)
+    data_id = next_id_in_segment(collect_insert_ids(sql, "system_dict_data"), base, upper)
+    return type_id, data_id
+
+
+def render_dict_sql(creates: list[dict], sql: str, base: int, upper: int) -> list[str]:
+    """按字典结论写出类型与数据 INSERT；两表分开取号。"""
+    type_id, data_id = next_dict_ids(sql, base, upper)
+    lines: list[str] = []
+    for item in creates:
+        dict_type = item["dictType"]
+        name = item.get("name") or dict_type
+        lines.append(
+            f"INSERT INTO `system_dict_type` (`id`, `name`, `type`, `status`, `remark`, "
+            f"`creator`, `create_time`, `updater`, `update_time`, `deleted`, `deleted_time`) "
+            f"VALUES ({type_id}, '{_quote(name)}', '{_quote(dict_type)}', 0, '', '1', "
+            f"CURRENT_TIMESTAMP, '1', CURRENT_TIMESTAMP, b'0', NULL);")
+        type_id += 1
+        if type_id >= upper:
+            raise ValueError(f"字典类型号段不足: 段上界 {upper}")
+        for index, entry in enumerate(item["values"], start=1):
+            label = entry["label"]
+            value = entry["value"]
+            lines.append(
+                f"INSERT INTO `system_dict_data` (`id`, `sort`, `label`, `value`, `dict_type`, "
+                f"`status`, `color_type`, `css_class`, `remark`, `creator`, `create_time`, "
+                f"`updater`, `update_time`, `deleted`) VALUES ({data_id}, {index}, "
+                f"'{_quote(label)}', '{_quote(value)}', '{_quote(dict_type)}', 0, 'default', "
+                f"'', '', '1', CURRENT_TIMESTAMP, '1', CURRENT_TIMESTAMP, b'0');")
+            data_id += 1
+            if data_id >= upper:
+                raise ValueError(f"字典数据号段不足: 段上界 {upper}")
+    return lines
+
+
+def find_dict_type(sql: str, dict_type: str) -> bool:
+    """判断 system_dict_type 是否已有该 type。"""
+    pattern = re.compile(
+        r"INSERT INTO `system_dict_type` .*?VALUES \(\d+,\s*'[^']*',\s*'"
+        + re.escape(dict_type) + r"'",
+        re.S)
+    return pattern.search(sql) is not None
+
+
+def insert_dict_rows(sql: str, statements: list[str]) -> str:
+    """把字典 INSERT 按表分别插入到对应记录段；不写 DROP。"""
+    type_rows = [row for row in statements if "`system_dict_type`" in row]
+    data_rows = [row for row in statements if "`system_dict_data`" in row]
+    if type_rows:
+        sql = insert_menu_rows(sql, type_rows, "system_dict_type")
+    if data_rows:
+        sql = insert_menu_rows(sql, data_rows, "system_dict_data")
+    return sql
 
 
 MODULE_NAME_PATTERN = re.compile(r"^[a-z][a-z0-9]{0,29}$")
@@ -626,14 +910,20 @@ def _module_pom(group_id: str, parent_artifact_id: str, artifact_id: str,
         for starter in starters
     )
     return (
-        "<project>\n"
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<project xmlns="http://maven.apache.org/POM/4.0.0"\n'
+        '         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n'
+        '         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 '
+        'http://maven.apache.org/xsd/maven-4.0.0.xsd">\n'
         "    <parent>\n"
         f"        <groupId>{group_id}</groupId>\n"
         f"        <artifactId>{parent_artifact_id}</artifactId>\n"
         "        <version>${revision}</version>\n"
         "    </parent>\n"
+        "    <modelVersion>4.0.0</modelVersion>\n"
         f"    <artifactId>{artifact_id}</artifactId>\n"
         "    <packaging>jar</packaging>\n"
+        "\n"
         "    <dependencies>\n"
         f"{dependencies}\n"
         "    </dependencies>\n"
@@ -748,7 +1038,8 @@ def apply_sql(config: ProjectConfig, manifest: dict, workdir: Path,
               db_host: str = "127.0.0.1", db_user: str = "root",
               db_name: str | None = None,
               docker_container: str | None = None,
-              menu_decision: Path | None = None) -> Path | None:
+              menu_decision: Path | None = None,
+              dict_decision: Path | None = None) -> Path | None:
     """维护模块基线并生成增量 SQL；支持主表/子表多个 DDL。"""
     module = manifest["moduleName"]
     sql_path = module_sql_path(config, module)
@@ -838,11 +1129,32 @@ def apply_sql(config: ProjectConfig, manifest: dict, workdir: Path,
         if find_menu_id(all_sql, menu_plan["menu"]["path"], menu_plan["menu"]["name"],
                         config.menu_table) is not None:
             menu_sql = []
-    if not (new_ddl or menu_sql):
+    dict_sql: list[str] = []
+    if dict_decision is not None:
+        dict_plan = json.loads(dict_decision.read_text(encoding="utf-8"))
+        creates = list(dict_plan.get("creates") or [])
+        if creates:
+            if not config.sql_rules_path:
+                raise ConfigError("dict creates 需要 sqlRulesPath")
+            rules = load_rules(config.sql_rules_path)
+            base, upper = segment_bounds(rules, module)
+            search = all_module_sql(config) + "\n" + sql
+            fresh = []
+            for item in creates:
+                dict_type = item["dictType"]
+                if find_dict_type(search, dict_type):
+                    print(f"skip dict type {dict_type}")
+                else:
+                    fresh.append(item)
+            if fresh:
+                dict_sql = render_dict_sql(fresh, sql, base, upper)
+    if not (new_ddl or menu_sql or dict_sql):
         print("already applied")
         return None
     if menu_sql:
         sql = insert_menu_rows(sql, menu_sql, config.menu_table)
+    if dict_sql:
+        sql = insert_dict_rows(sql, dict_sql)
     if dry_run:
         print(f"update {sql_path}")
         return None
@@ -862,6 +1174,8 @@ def apply_sql(config: ProjectConfig, manifest: dict, workdir: Path,
     parts = [upgrade_ddl(block) for block in ddl_blocks] if new_ddl else []
     if menu_statements:
         parts.append("\n".join(menu_statements))
+    if dict_sql:
+        parts.append("\n".join(dict_sql))
     upgrade.write_text("\n\n".join(parts).strip(), encoding="utf-8")
     return upgrade
 
@@ -892,58 +1206,208 @@ def ensure_dict_constant(config: ProjectConfig, module: str, dict_type: str) -> 
     )
 
 
-def resolve_known_enums(boot: Path, manifest: dict, config: ProjectConfig) -> None:
-    """把配置中已知字典的 TODO 换成完整枚举类名。"""
-    for item in manifest["files"]:
-        if item["kind"] != "backend" or not item["path"].endswith(".java"):
-            continue
-        target = boot / item["path"]
-        if not target.exists():
-            continue
-        text = target.read_text(encoding="utf-8")
-        for dict_type in config.enums:
-            reference = enum_reference(config, dict_type)
-            if not reference:
-                continue
-            text = text.replace(f"TODO {dict_type} 对应的类", reference)
-            text = text.replace(
-                f'@DictFormat("{dict_type}") // TODO 代码优化：建议设置到对应的 DictTypeConstants 枚举类中',
-                f'@DictFormat("{dict_type}")',
-            )
-        target.write_text(text, encoding="utf-8")
+def _dict_constant_name(dict_type: str) -> str:
+    return re.sub(r"\W+", "_", dict_type).upper()
 
 
-def apply_dicts(boot: Path, manifest: dict, config: ProjectConfig) -> None:
-    """按生成包用到的字典补常量/枚举，并替换 TODO。"""
-    module = manifest["moduleName"]
-    sql_text = "\n".join(path.read_text(encoding="utf-8")
-                         for path in config.sql_dir.glob(f"{config.sql_module_prefix}*.sql"))
-    for item in manifest.get("dicts", []):
-        dict_type = item["dictType"]
-        if enum_reference(config, dict_type):
+def ensure_dict_type_constants_import(source: str, base_package: str, module: str) -> str:
+    """Java 文件使用 DictTypeConstants 时补上导入，已有则不重复。"""
+    line = f"import {base_package}.module.{module}.enums.DictTypeConstants;\n"
+    if line.strip() in source:
+        return source
+    match = re.search(r"package [^;]+;\n", source)
+    if not match:
+        return line + source
+    return source[:match.end()] + "\n" + line + source[match.end():]
+
+
+def _replace_dict_todos(text: str, dict_type: str, enum_ref: str, constant: str) -> str:
+    """把字典 TODO 换成枚举全名与 DictTypeConstants 常量。"""
+    text = text.replace(f"TODO {dict_type} 对应的类", enum_ref)
+    text = text.replace(
+        f'@DictFormat("{dict_type}") // TODO 代码优化：建议设置到对应的 DictTypeConstants 枚举类中',
+        f"@DictFormat(DictTypeConstants.{constant})",
+    )
+    return text
+
+
+def ensure_frontend_dict_key(vben_root: Path, module: str, dict_type: str) -> None:
+    """在 packages/constants/src/dict-enum.ts 的模块分组中补同名键；已存在则跳过。"""
+    path = vben_root / "packages/constants/src/dict-enum.ts"
+    if not path.exists():
+        raise ConfigError(f"找不到前端字典常量文件: {path}")
+    text = path.read_text(encoding="utf-8")
+    constant = _dict_constant_name(dict_type)
+    if re.search(rf"\b{re.escape(constant)}\s*:", text):
+        return
+    group_name = f"{module.upper()}_DICT"
+    entry = f"  {constant}: '{dict_type}',"
+    group_pattern = re.compile(
+        rf"(const {re.escape(group_name)} = \{{)(.*?)(\n\}} as const;)",
+        re.S,
+    )
+    match = group_pattern.search(text)
+    if match:
+        body = match.group(2)
+        insertion = body if body.endswith("\n") else body + "\n"
+        insertion += entry + "\n"
+        text = text[:match.start(2)] + insertion + text[match.end(2):]
+    else:
+        block = (
+            f"\n/** ========== {module.upper()} ========== */\n"
+            f"const {group_name} = {{\n"
+            f"{entry}\n"
+            f"}} as const;\n"
+        )
+        dict_type_match = re.search(r"\nconst DICT_TYPE = \{", text)
+        if dict_type_match:
+            text = text[:dict_type_match.start()] + block + text[dict_type_match.start():]
+        else:
+            text = text.rstrip() + "\n" + block
+        spread = f"  ...{group_name},"
+        if spread not in text:
+            spread_anchor = re.search(r"(const DICT_TYPE = \{\n)", text)
+            if spread_anchor:
+                text = (text[:spread_anchor.end()] + f"{spread}\n"
+                        + text[spread_anchor.end():])
+            else:
+                raise ConfigError("dict-enum.ts 缺少 DICT_TYPE 展开")
+    path.write_text(text, encoding="utf-8")
+
+
+def _validate_dict_decision(config: ProjectConfig, decision: dict) -> tuple[
+        list[dict], dict[str, dict]]:
+    """校验 dict-decision 全文；全部通过后才允许落盘。返回 (columns, creates_by_type)。"""
+    columns = list(decision.get("columns") or [])
+    creates = list(decision.get("creates") or [])
+    actions_by_col: dict[str, set[str]] = {}
+    for item in columns:
+        col = item.get("column")
+        action = item.get("action")
+        if not col or not action:
+            raise ConfigError("dict-decision columns 需要 column 与 action")
+        if action not in ("bind", "create", "none"):
+            raise ConfigError(f"未知 dict action: {action}")
+        actions_by_col.setdefault(col, set()).add(action)
+    for col, actions in actions_by_col.items():
+        if "bind" in actions and "create" in actions:
+            raise ConfigError(f"同一列不能同时 bind 与 create: {col}")
+
+    creates_by_type: dict[str, dict] = {}
+    for item in creates:
+        dict_type = item.get("dictType")
+        if not dict_type:
+            raise ConfigError("dict-decision creates 需要 dictType")
+        if dict_type in creates_by_type:
+            raise ConfigError(f"creates 重复 dictType: {dict_type}")
+        values = item.get("values")
+        if not isinstance(values, list) or not values:
+            raise ConfigError(f"creates 缺少 values: {dict_type}")
+        constants: list[str] = []
+        for index, entry in enumerate(values):
+            if not isinstance(entry, dict):
+                raise ConfigError(f"creates[{dict_type}] values[{index}] 必须是对象")
+            missing = [key for key in ("value", "label", "constant") if not entry.get(key)]
+            if missing:
+                raise ConfigError(
+                    f"creates[{dict_type}] values[{index}] 缺少字段: {', '.join(missing)}")
+            name = entry["constant"]
+            if not _ENUM_CONSTANT.fullmatch(name):
+                raise ConfigError(f"非法枚举常量名: {name}")
+            constants.append(name)
+        if len(set(constants)) != len(constants):
+            raise ConfigError(f"字典常量名重复: {dict_type}")
+        creates_by_type[dict_type] = item
+
+    for item in columns:
+        action = item["action"]
+        if action == "none":
             continue
-        values = parse_dict_values(sql_text, dict_type)
-        if not values:
-            ensure_dict_constant(config, module, dict_type)
-            continue
-        enum_path = create_enum_file(boot, config.base_package, module, dict_type, values,
-                                     config.backend_path_prefix + module)
-        enum_ref = (f"{config.base_package}.module.{module}.enums."
-                    f"{dict_type.split('_')[0]}.{enum_path.stem}")
-        ensure_dict_constant(config, module, dict_type)
-        for file in manifest["files"]:
-            if file["kind"] != "backend" or not file["path"].endswith(".java"):
+        dict_type = item.get("dictType")
+        if not dict_type:
+            raise ConfigError(f"dict-decision {action} 缺少 dictType: {item.get('column')}")
+        if action == "bind":
+            if not enum_reference(config, dict_type):
+                raise ConfigError(f"enums 对照表缺少字典类型类名: {dict_type}")
+        elif action == "create":
+            if dict_type not in creates_by_type:
+                raise ConfigError(f"create 缺少 creates 条目: {dict_type}")
+    return columns, creates_by_type
+
+
+def apply_dict_decision(config: ProjectConfig, module: str, decision: dict,
+                        replace_root: Path, manifest_files: list[dict]) -> None:
+    """以 dict-decision.json 为唯一输入：建枚举、消 TODO、补前端键。"""
+    columns, creates_by_type = _validate_dict_decision(config, decision)
+    module_dir = config.backend_path_prefix + module
+
+    def rewrite_java(dict_type: str, enum_ref: str) -> None:
+        constant = _dict_constant_name(dict_type)
+        for file in manifest_files:
+            if file.get("kind") != "backend" or not str(file.get("path", "")).endswith(".java"):
                 continue
-            target = boot / file["path"]
+            target = replace_root / file["path"]
             if not target.exists():
                 continue
             text = target.read_text(encoding="utf-8")
-            text = text.replace(f"TODO {dict_type} 对应的类", enum_ref)
-            text = text.replace(
-                f'@DictFormat("{dict_type}") // TODO 代码优化：建议设置到对应的 DictTypeConstants 枚举类中',
-                f'@DictFormat("{dict_type}")',
-            )
-            target.write_text(text, encoding="utf-8")
+            updated = _replace_dict_todos(text, dict_type, enum_ref, constant)
+            if updated == text:
+                continue
+            if f"DictTypeConstants.{constant}" in updated:
+                updated = ensure_dict_type_constants_import(
+                    updated, config.base_package, module)
+            target.write_text(updated, encoding="utf-8")
+
+    for item in columns:
+        action = item["action"]
+        if action == "none":
+            continue
+        dict_type = item["dictType"]
+        if action == "bind":
+            reference = enum_reference(config, dict_type) or ""
+            ensure_dict_constant(config, module, dict_type)
+            rewrite_java(dict_type, reference)
+        else:
+            create_item = creates_by_type[dict_type]
+            values = [(entry["value"], entry["label"]) for entry in create_item["values"]]
+            constants = [entry["constant"] for entry in create_item["values"]]
+            enum_path = create_enum_file(
+                config.boot_root, config.base_package, module, dict_type, values,
+                module_dir, constants=constants)
+            enum_ref = (f"{config.base_package}.module.{module}.enums."
+                        f"{dict_type.split('_')[0]}.{enum_path.stem}")
+            ensure_dict_constant(config, module, dict_type)
+            rewrite_java(dict_type, enum_ref)
+            ensure_frontend_dict_key(config.vben_root, module, dict_type)
+
+
+def maybe_apply_dict_decision(config: ProjectConfig, manifest: dict,
+                              replace_root: Path,
+                              dict_decision: Path | None) -> None:
+    """枚举与 TODO 只走 dict-decision；缺省跳过，不按 ZIP dicts 猜测。"""
+    if dict_decision is None:
+        return
+    decision = json.loads(dict_decision.read_text(encoding="utf-8"))
+    apply_dict_decision(
+        config, manifest["moduleName"], decision,
+        replace_root=replace_root, manifest_files=manifest.get("files") or [])
+
+
+def apply_column_align_sources(root: Path, manifest: dict, categories: dict) -> None:
+    """给包内 views/*/data.ts 写入对齐（合并前处理新结果）。"""
+    for item in manifest["files"]:
+        if item["kind"] != "frontend":
+            continue
+        logical = item["path"]
+        path = Path(logical)
+        if path.name != "data.ts" or "views" not in path.parts:
+            continue
+        target = root / logical
+        if not target.exists():
+            continue
+        target.write_text(
+            apply_column_align(target.read_text(encoding="utf-8"), categories),
+            encoding="utf-8")
 
 
 _RANGE_LINE = re.compile(r"模块\s+(\w+)\s+错误码区间\s+\[(\d+(?:-\d+)+)\s*~")
@@ -1003,6 +1467,7 @@ def apply_error_codes(boot: Path, manifest: dict, workdir: Path, config: Project
     start_bound = error_code_segment_start(boot, module)
     start = max(used) + 1 if used else start_bound
     merged = merge_error_code_entries(source, fresh, start)
+    merged = ensure_error_code_import(merged, config.base_package)
     if dry_run:
         print(f"merge error codes -> {target}")
         return
@@ -1101,6 +1566,7 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--menu-decision", type=Path)
+    parser.add_argument("--dict-decision", type=Path)
     parser.add_argument("--column-categories", type=Path)
     args = parser.parse_args()
 
@@ -1117,23 +1583,22 @@ def main() -> int:
         config, manifest["moduleName"], args.dry_run,
         tenant=bool(manifest.get("tenantEnabled")),
         export=bool(manifest.get("exportEnable", True)))
-    state_path = Path.cwd() / ".tmp" / "f-base-codegen-state.json"
+    workspace = Path.cwd()
+    state_path = workspace / ".tmp" / "f-base-codegen-state.json"
     state = load_state(state_path)
-    copied = copy_sources(manifest, workdir, config, args.dry_run, args.force, state)
-    if args.column_categories is not None and not args.dry_run:
+    # 后处理先落在解压出的新结果上，再参与合并与基线保存
+    if args.column_categories is not None:
         categories = json.loads(args.column_categories.read_text(encoding="utf-8"))
-        for _source, target in copied:
-            if target.name == "data.ts" and "views" in target.parts:
-                target.write_text(
-                    apply_column_align(target.read_text(encoding="utf-8"), categories),
-                    encoding="utf-8")
+        apply_column_align_sources(workdir, manifest, categories)
     if not args.dry_run:
-        resolve_known_enums(config.boot_root, manifest, config)
-        apply_dicts(config.boot_root, manifest, config)
+        # 枚举/TODO 只认 --dict-decision；缺省跳过，不按 ZIP dicts 猜测
+        maybe_apply_dict_decision(config, manifest, workdir, args.dict_decision)
+    copied = copy_sources(
+        manifest, workdir, config, args.dry_run, args.force, state, workspace=workspace)
     upgrade = apply_sql(config, manifest, workdir, args.ddl, args.dry_run,
                         args.menu_start_id, args.db_host, args.db_user,
                         args.db_name, args.docker_container,
-                        args.menu_decision)
+                        args.menu_decision, args.dict_decision)
     apply_error_codes(config.boot_root, manifest, workdir, config, args.dry_run)
     if not args.dry_run:
         save_state(state_path, copied)

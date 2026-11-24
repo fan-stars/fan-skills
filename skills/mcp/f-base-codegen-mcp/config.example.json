@@ -29,6 +29,10 @@
     "tenantStarter": "example-starter-tenant",
     "excelStarter": "example-starter-excel"
   },
+  "enums": {
+    "common_status": "{basePackage}.framework.common.enums.CommonStatusEnum",
+    "system_user_sex": "{basePackage}.module.system.enums.common.SexEnum"
+  },
   "build": {
     "boot": "mvn -pl server -am -DskipTests compile",
     "vben": "pnpm --filter @vben/web-antd build"

@@ -1,6 +1,6 @@
 # 字段判断
 
-`codegen_update` 之前按本节顺序做八次判断。每一次把对应标题下的全文交给模型，不靠上一轮记忆。
+`codegen_update` 之前按本节顺序做十二次判断。每一次把对应标题下的全文交给模型，不靠上一轮记忆。
 
 ## 注释
 
@@ -12,31 +12,80 @@
 
 按 `codegen_detail` 的列顺序一列一行，列名都要出现。漏列或「其余不要」就重做。`columnComment` 同时是列表标题、搜索标签、表单标签和 Java 注释。
 
+## 字典
+
+输入与「注释」相同，再附本地已有 `system_dict_type` / `system_dict_data`（类型、值、文案），以及技能说明里的枚举格式示例。
+
+每一列只能是 **绑定** / **新建** / **不绑定**。绑定：取值和文案与某个已有字典全部一致。新建：注释已有值与中文文案、且没有完全相同的已有字典；类型名模块名加下划线；每个取值给 `value` / 中文 `label` / 大写 `constant`。不绑定：其余情况 `dictType` 为空。没有成对中文文案则不新建。
+
+不要按列名指定该绑哪个字典。一列一行，列名都要出现。
+
+结论写入 `.tmp/dict-decision.json`（不提交），形状含 `columns[].action`（`bind`|`create`|`none`）与 `creates[]`（仅 create）：
+
+```text
+{
+  "columns": [
+    {"column": "status", "action": "bind", "dictType": "common_status"},
+    {"column": "flag", "action": "create", "dictType": "demo_flag"},
+    {"column": "token", "action": "none"}
+  ],
+  "creates": [
+    {
+      "dictType": "demo_flag",
+      "values": [
+        {"value": "0", "label": "开启", "constant": "ENABLE"},
+        {"value": "1", "label": "关闭", "constant": "DISABLE"}
+      ]
+    }
+  ]
+}
+```
+
+示例里的 `common_status` / `demo_flag` 只演示 JSON 字段，不是「某列必须绑谁」的规则。
+
+漏列、「其余不要」、同一列又绑定又新建、常量名不是 `^[A-Z][A-Z0-9_]*$`，都重做。
+
 ## 查询
 
-输入与「注释」相同：本表 DDL、关联表 DDL、然后是本步问题。
+输入与「注释」相同。
 
-为每一列回答：进不进筛选（`listOperation`）、条件、`htmlType`、`dictType`。条件优先 `=`、`LIKE`、`BETWEEN`。用其他运算符时写一句理由。时间筛选同时写 `htmlType=datetime` 和 `BETWEEN`。`dictType` 只填本地 SQL 已有的字典；没有就留空，不新建字典。列注释的取值是 `0` 正常、`1` 停用时，`dictType` 填 `common_status`，`htmlType` 填 `select`。不改 `common_status` 的标签。页面显示跟随字典当前文案（现在是 `0` 开启、`1` 关闭）。密码、密钥哈希、私钥、证件密文由本步逐列决定，没有硬性排除。
+为每一列回答 `listOperation`：进不进筛选。一列一行，列名都要出现。密码类列（列名或注释命中密码、操作密码、密钥哈希、私钥）固定为否。
 
-一列一行，列名都要出现。
+## 查询方式
+
+输入与「注释」相同。
+
+为每一列回答 `listOperationCondition`。只用 `=`、`!=`、`>`、`>=`、`<`、`<=`、`LIKE`、`BETWEEN`。进筛选的列优先 `=`、`LIKE`、`BETWEEN`；用其他运算符时写一句理由。时间筛选用 `BETWEEN`。不进筛选的列仍写一行，条件可写 `-`。一列一行，列名都要出现。
+
+## 显示类型
+
+输入与「注释」相同。
+
+为每一列回答 `htmlType`。只用 `input`、`textarea`、`select`、`radio`、`checkbox`、`datetime`、`imageUpload`、`fileUpload`、`editor`。时间筛选同时写 `htmlType=datetime`。有非空 `dictType` 的列用 `select`（或 `radio`）。`select` 或 `radio` 只在该列字典结论有非空 `dictType` 时使用。没有字典却选了这两类，停止，不调用 `codegen_update`。一列一行，列名都要出现。
+
+## 允许空
+
+输入与「注释」相同。
+
+为每一列回答 `nullable`：真或假。只写入代码生成元数据，驱动校验和表单必填。本步不发 `ALTER`，不改物理列的 `NULL` / `NOT NULL`。一列一行，列名都要出现。
 
 ## 列表
 
 输入与「注释」相同。
 
-为每一列回答 `listOperationResult`：展示或不展示。一列一行，列名都要出现。
+为每一列回答 `listOperationResult`：展示或不展示。一列一行，列名都要出现。密码类列（列名或注释命中密码、操作密码、密钥哈希、私钥）固定为否。
 
-## 新增
+## 插入
 
 输入与「注释」相同。
 
-为每一列回答 `createOperation`：要或不要。一列一行。页面模板会把新增或编辑任一为 true 的列放进同一张表单，本步仍只回答新增。
+为每一列回答 `createOperation`：要或不要。一列一行。页面模板会把新增或编辑任一为 true 的列放进同一张表单，本步仍只回答插入。密码类列（列名或注释命中密码、操作密码、密钥哈希、私钥）固定为否。
 
 ## 编辑
 
 输入与「注释」相同。
 
-为每一列回答 `updateOperation`：要或不要。可以与新增不同。一列一行。主键 `id` 这一格固定写 true。模板因主键排除它，编辑页不展示 `id`。
+为每一列回答 `updateOperation`：要或不要。可以与插入不同。一列一行。主键 `id` 这一格固定写 true。模板因主键排除它，编辑页不展示 `id`。密码类列（列名或注释命中密码、操作密码、密钥哈希、私钥）固定为否。
 
 ## 列宽
 
