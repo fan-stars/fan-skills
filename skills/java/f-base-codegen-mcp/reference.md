@@ -27,7 +27,7 @@
 | `build.boot` | 否 | 无 | 后端构建命令 |
 | `build.vben` | 否 | 无 | 前端构建命令 |
 
-配置 `sqlRulesPath` 时，模块必须已登记在 `modules`；JSON 缺失/非法、模块未登记或号段用尽时停止写入。
+配置 `sqlRulesPath` 时，模块必须已登记在 `modules`；JSON 缺失/非法、模块未登记或号段用尽时停止写入。未登记时运行 `scripts/register_module.py --module <名> --readme <sqlRulesPath> --java <ServiceErrorCodeRange>`（先看 diff，再加 `--apply`）。号段写在当前工作区文件里，不检查分支名。
 
 配置文件不能保存 MCP 密钥。
 
@@ -154,7 +154,7 @@ Cursor 一次只能配置一把 key。需要比较多把 key 时，用工作区 
 - 菜单/按钮：显式 ID、全列、`b'1'`、`CURRENT_TIMESTAMP`。
 - 配置 `sqlRulesPath` 时：取该模块号段 `[base, upper)` 内 `fan*.sql` 已用最大编号 +1；传入 `--db-name` 时并入目标库同段最大值；`--menu-start-id` / `menuStartId` 只作下限，不得 ≥ 段上界。模块未登记、规则缺失或号段用尽时停止写入。
 - 未配置 `sqlRulesPath` 时：回退所有 `{sqlModulePrefix}*.sql` 全局最大编号 +1；传入 `--db-name` 时查全局 `MAX(id)`，并提示未使用号段规则。
-- `parentMenuId` 不进 `menu.plan.json`；父菜单按 path/name 先查本地 SQL，再查数据库；都没有时创建一级菜单，同一条父 INSERT 写入基线与增量；多条菜单 INSERT 之间不留空行；不写死 `/system`。
+- `table.parentMenuId` 固定为 `0`，只用来通过远端校验。`menu.plan.json` 不写这个字段。父菜单按 path/name 先查本地 SQL，再查数据库；都没有时创建一级菜单，同一条父 INSERT 写入基线与增量；多条菜单 INSERT 之间不留空行；不写死 `/system`。
 - 菜单合并到 `{sqlModulePrefix}{module}.sql`（默认 `fan-module-`）；文件不存在时新建最小骨架。
 - 字典：`--dict-decision` 的 `creates` 写入 `system_dict_type` / `system_dict_data` INSERT（两表各自段内最大编号 +1）；枚举与 TODO 也以该结论文件为唯一输入。菜单按 id 有序插入 `menuTable` 记录段，不追加到末尾。
 - 多行菜单 INSERT 必须能解析；解析失败直接报错，不默认生成 1。
@@ -180,7 +180,7 @@ docker exec -i -e MYSQL_PWD="$MYSQL_PWD" mysql8 \
 
 - `dict-decision.json`（`--dict-decision`）是建枚举、消字典 TODO、补前端 `dict-enum.ts` 键的**唯一**输入；不以 ZIP `dicts` 猜常量名，也不写字符串形式的 `@DictFormat("…")`。
 - 未传 `--dict-decision` 时：跳过枚举与 TODO 处理（不猜测、不落盘常量/枚举）；技能流程在 `apply_bundle` 前必须写好 `.tmp/dict-decision.json` 并传入该参数。SQL 字典 INSERT 同样只认该文件的 `creates`。
-- `enums` 是「已有字典类型 → 已有枚举全名」对照表，不是列名规则；`{basePackage}` 替换为配置包名。绑定且对照表有类名时：`{@link TODO}` 换成该类名，`@DictFormat` 改成 `DictTypeConstants` 常量并补模块 import；对照表没有类名则停止，不编类名。
+- `enums` 是「已有字典类型 → 已有枚举全名」对照表，不是列名规则；`{basePackage}` 替换为配置包名。绑定且对照表有类名时：`{@link TODO}` 换成该类名，`@DictFormat` 改成 `DictTypeConstants` 常量并补模块 import；对照表没有类名则停止，不编类名。绑定还要求类型名以 `common_` 或当前模块名加下划线开头；`{@link}` 不写另一个业务模块的枚举类。
 - 配置示例把 `common_status` 接到 `CommonStatusEnum`，把 `system_user_sex` 接到 `SexEnum`；类型链接只写完整类名，不向业务模块 import 另一个业务模块的枚举。
 - `create`：按结论常量名在 `{basePackage}.module.{module}.enums.{首段}` 新建枚举（数字 → `ArrayValuable<Integer>`；非数字 → `String` 且无该接口）；常量名用结论中的大写标识符，不因值 `1` 命名为 `DISABLE`；并在前端 `packages/constants/src/dict-enum.ts` 的 `{MODULE}_DICT` 分组补同名键（已存在则跳过）。
 - Javadoc 链接写完整类名，例如 `{@link cn.fanstars.framework.common.enums.CommonStatusEnum}`。

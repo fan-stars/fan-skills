@@ -267,7 +267,8 @@ class TestApplyBundle(unittest.TestCase):
                 "<!-- sql-id-segments:start -->\n```json\n"
                 '{"modules":{"member":4001},"nextModuleBase":5001,'
                 '"autoIncrement":{"default":10001,"shared":{"system_menu":100001}}}\n'
-                "```\n<!-- sql-id-segments:end -->\n",
+                "```\n<!-- sql-id-segments:end -->\n"
+                "| member | [4001, 5001) | 4001 | 4001 | 4001 | 4001 |\n",
                 encoding="utf-8")
             config = make_config()
             config.sql_prelude = ["drop.sql", "module-system.sql"]
@@ -650,6 +651,28 @@ class TestApplyBundle(unittest.TestCase):
                 self.assertGreater(child_id, parent_id)
                 self.assertNotEqual(child_id, 1)
 
+    def test_insert_before_closing_line_uses_parent_indent(self) -> None:
+        root = "    <modules>\n        <module>yudao-module-mcp</module>\n    </modules>\n"
+        server = "    <dependencies>\n        <dependency>\n            <groupId>g</groupId>\n            <artifactId>yudao-module-mcp</artifactId>\n        </dependency>\n    </dependencies>\n"
+        bom = "    <dependencyManagement>\n        <dependencies>\n            <dependency>\n                <groupId>g</groupId>\n                <artifactId>yudao-module-mcp</artifactId>\n                <version>${revision}</version>\n            </dependency>\n        </dependencies>\n    </dependencyManagement>\n"
+        module_line = "<module>yudao-module-shop</module>"
+        dep = apply_bundle._dependency_xml("g", "yudao-module-shop")
+        dep_ver = apply_bundle._dependency_xml("g", "yudao-module-shop", "${revision}")
+        root_out = apply_bundle.insert_before_closing_line(root, "</modules>", module_line)
+        server_out = apply_bundle.insert_before_closing_line(server, "</dependencies>", dep)
+        bom_out = apply_bundle.insert_before_closing_line(
+            bom, "</dependencies>", dep_ver, before_marker="</dependencyManagement>")
+        self.assertIn("\n        <module>yudao-module-shop</module>\n", root_out)
+        self.assertIn("\n        <dependency>\n            <groupId>g</groupId>\n", server_out)
+        self.assertIn("\n            <dependency>\n                <groupId>g</groupId>\n", bom_out)
+        self.assertIn("                <version>${revision}</version>\n", bom_out)
+        again = apply_bundle.insert_before_closing_line(root_out, "</modules>", module_line)
+        self.assertEqual(root_out, again)
+        import xml.etree.ElementTree as ET
+        ET.fromstring(root_out)
+        ET.fromstring(server_out)
+        ET.fromstring(bom_out)
+
     def scaffold_config(self) -> dict:
         return {
             "rootPom": "pom.xml",
@@ -670,15 +693,18 @@ class TestApplyBundle(unittest.TestCase):
             config.boot_root = root
             config.base_package = "com.example"
             config.module_scaffold = self.scaffold_config()
-            (root / "pom.xml").write_text("<project><modules>\n</modules></project>", encoding="utf-8")
+            (root / "pom.xml").write_text(
+                "<project>\n    <modules>\n    </modules>\n</project>\n", encoding="utf-8")
             server = root / "server/pom.xml"
             server.parent.mkdir(parents=True)
-            server.write_text("<project><dependencies>\n</dependencies></project>", encoding="utf-8")
+            server.write_text(
+                "<project>\n    <dependencies>\n    </dependencies>\n</project>\n", encoding="utf-8")
             bom = root / "bom/pom.xml"
             bom.parent.mkdir(parents=True)
             bom.write_text(
-                "<project><dependencyManagement><dependencies>\n"
-                "</dependencies></dependencyManagement></project>", encoding="utf-8")
+                "<project>\n    <dependencyManagement>\n        <dependencies>\n"
+                "        </dependencies>\n    </dependencyManagement>\n</project>\n",
+                encoding="utf-8")
             ensure_module_scaffold(config, "demo", False, tenant=True, export=False)
             module_pom = (root / "fan-module-demo/pom.xml").read_text(encoding="utf-8")
             self.assertIn("example-starter-mybatis", module_pom)
@@ -848,15 +874,18 @@ class TestApplyBundle(unittest.TestCase):
             module = root / "fan-module-demo"
             module.mkdir()
             (module / ".flattened-pom.xml").write_text("<flat/>", encoding="utf-8")
-            (root / "pom.xml").write_text("<project><modules>\n</modules></project>", encoding="utf-8")
+            (root / "pom.xml").write_text(
+                "<project>\n    <modules>\n    </modules>\n</project>\n", encoding="utf-8")
             server = root / "server/pom.xml"
             server.parent.mkdir(parents=True)
-            server.write_text("<project><dependencies>\n</dependencies></project>", encoding="utf-8")
+            server.write_text(
+                "<project>\n    <dependencies>\n    </dependencies>\n</project>\n", encoding="utf-8")
             bom = root / "bom/pom.xml"
             bom.parent.mkdir(parents=True)
             bom.write_text(
-                "<project><dependencyManagement><dependencies>\n"
-                "</dependencies></dependencyManagement></project>", encoding="utf-8")
+                "<project>\n    <dependencyManagement>\n        <dependencies>\n"
+                "        </dependencies>\n    </dependencyManagement>\n</project>\n",
+                encoding="utf-8")
             created = ensure_module_scaffold(config, "demo", False, tenant=False, export=False)
             self.assertTrue(created)
             self.assertTrue((module / "pom.xml").is_file())
@@ -874,7 +903,8 @@ class TestApplyBundle(unittest.TestCase):
             module = root / "fan-module-demo"
             module.mkdir()
             (module / "pom.xml").write_text("<kept/>", encoding="utf-8")
-            (root / "pom.xml").write_text("<project><modules>\n</modules></project>", encoding="utf-8")
+            (root / "pom.xml").write_text(
+                "<project>\n    <modules>\n    </modules>\n</project>\n", encoding="utf-8")
             second = ensure_module_scaffold(config, "demo", False, tenant=False, export=True)
             self.assertFalse(second)
             self.assertEqual((module / "pom.xml").read_text(encoding="utf-8"), "<kept/>")
@@ -889,15 +919,18 @@ class TestApplyBundle(unittest.TestCase):
             scaffold = self.scaffold_config()
             del scaffold["excelStarter"]
             config.module_scaffold = scaffold
-            (root / "pom.xml").write_text("<project><modules>\n</modules></project>", encoding="utf-8")
+            (root / "pom.xml").write_text(
+                "<project>\n    <modules>\n    </modules>\n</project>\n", encoding="utf-8")
             server = root / "server/pom.xml"
             server.parent.mkdir(parents=True)
-            server.write_text("<project><dependencies>\n</dependencies></project>", encoding="utf-8")
+            server.write_text(
+                "<project>\n    <dependencies>\n    </dependencies>\n</project>\n", encoding="utf-8")
             bom = root / "bom/pom.xml"
             bom.parent.mkdir(parents=True)
             bom.write_text(
-                "<project><dependencyManagement><dependencies>\n"
-                "</dependencies></dependencyManagement></project>", encoding="utf-8")
+                "<project>\n    <dependencyManagement>\n        <dependencies>\n"
+                "        </dependencies>\n    </dependencyManagement>\n</project>\n",
+                encoding="utf-8")
             with self.assertRaises(ConfigError) as caught:
                 ensure_module_scaffold(config, "demo", False, tenant=False, export=True)
             self.assertIn("excelStarter", str(caught.exception))
@@ -919,17 +952,25 @@ class TestApplyBundle(unittest.TestCase):
                    / "DemoWebConfiguration.java")
             web.parent.mkdir(parents=True)
             web.write_text("class Kept {}\n", encoding="utf-8")
-            (root / "pom.xml").write_text("<project><modules>\n</modules></project>", encoding="utf-8")
+            (root / "pom.xml").write_text(
+                "<project>\n    <modules>\n        <module>fan-module-demo</module>\n"
+                "    </modules>\n</project>\n", encoding="utf-8")
             server = root / "server/pom.xml"
             server.parent.mkdir(parents=True)
             server.write_text(
-                "<project><dependencies>\n        <artifactId>fan-module-demo</artifactId>\n"
-                "</dependencies></project>", encoding="utf-8")
+                "<project>\n    <dependencies>\n        <dependency>\n"
+                "            <groupId>com.example</groupId>\n"
+                "            <artifactId>fan-module-demo</artifactId>\n"
+                "        </dependency>\n    </dependencies>\n</project>\n", encoding="utf-8")
             bom = root / "bom/pom.xml"
             bom.parent.mkdir(parents=True)
             bom.write_text(
-                "<project><dependencyManagement><dependencies>\n"
-                "</dependencies></dependencyManagement></project>", encoding="utf-8")
+                "<project>\n    <dependencyManagement>\n        <dependencies>\n"
+                "            <dependency>\n                <groupId>com.example</groupId>\n"
+                "                <artifactId>fan-module-demo</artifactId>\n"
+                "                <version>${revision}</version>\n"
+                "            </dependency>\n        </dependencies>\n"
+                "    </dependencyManagement>\n</project>\n", encoding="utf-8")
             created = ensure_module_scaffold(config, "demo", False, tenant=False, export=False)
             self.assertTrue(created)
             self.assertEqual(constants.read_text(encoding="utf-8"),
@@ -937,6 +978,7 @@ class TestApplyBundle(unittest.TestCase):
             self.assertEqual(web.read_text(encoding="utf-8"), "class Kept {}\n")
             self.assertEqual(server.read_text(encoding="utf-8").count("fan-module-demo"), 1)
             self.assertIn("<artifactId>fan-module-demo</artifactId>", bom.read_text(encoding="utf-8"))
+            self.assertEqual(bom.read_text(encoding="utf-8").count("fan-module-demo"), 1)
 
     def _menu_plan(self):
         return {
@@ -1181,6 +1223,46 @@ export function useGridColumns() {
             self.assertIn("const DEMO_DICT", fe_text)
             self.assertIn("...DEMO_DICT,", fe_text)
 
+    def test_dict_prefix_rejects_other_modules(self) -> None:
+        from scripts.project_config import ConfigError
+        config = make_config()
+        config.enums = {
+            "common_status": "{basePackage}.framework.common.enums.CommonStatusEnum",
+            "infra_boolean_string": "",
+            "system_user_sex": "{basePackage}.module.system.enums.common.SexEnum",
+        }
+        with self.assertRaises(ConfigError) as infra_caught:
+            apply_bundle._validate_dict_decision(config, {
+                "columns": [{"column": "open", "action": "bind", "dictType": "infra_boolean_string"}],
+                "creates": [],
+            }, module="demo")
+        self.assertIn("infra_boolean_string", str(infra_caught.exception))
+        with self.assertRaises(ConfigError):
+            apply_bundle._validate_dict_decision(config, {
+                "columns": [{"column": "sex", "action": "bind", "dictType": "system_user_sex"}],
+                "creates": [],
+            }, module="demo")
+        with self.assertRaises(ConfigError):
+            apply_bundle._validate_dict_decision(config, {
+                "columns": [{"column": "flag", "action": "create", "dictType": "common_flag"}],
+                "creates": [{
+                    "dictType": "common_flag",
+                    "values": [{"value": "0", "label": "开", "constant": "ON"}],
+                }],
+            }, module="demo")
+        columns, creates = apply_bundle._validate_dict_decision(config, {
+            "columns": [
+                {"column": "status", "action": "bind", "dictType": "common_status"},
+                {"column": "flag", "action": "create", "dictType": "demo_flag"},
+            ],
+            "creates": [{
+                "dictType": "demo_flag",
+                "values": [{"value": "0", "label": "开", "constant": "ON"}],
+            }],
+        }, module="demo")
+        self.assertEqual("common_status", columns[0]["dictType"])
+        self.assertIn("demo_flag", creates)
+
     def test_bind_without_enum_mapping_stops(self) -> None:
         from scripts.project_config import ConfigError
         with TemporaryDirectory() as tmp:
@@ -1324,6 +1406,100 @@ export function useGridColumns() {
             self.assertIn('@DictFormat("demo_flag") // TODO', java.read_text(encoding="utf-8"))
             self.assertEqual([], list(root.rglob("*Enum.java")))
             self.assertEqual([], list(root.rglob("DictTypeConstants.java")))
+
+    def test_refresh_readme_cursors_uses_segment_max(self) -> None:
+        readme = "| shop | [4001, 5001) | 4001 | 4001 | 4001 | 4001 |\n"
+        sql = (
+            "INSERT INTO `system_menu` (`id`, `name`) VALUES (4003, 'a');\n"
+            "INSERT INTO `system_dict_type` (`id`, `name`, `type`) VALUES (4001, 'n', 'shop_flag');\n"
+            "INSERT INTO `system_dict_data` (`id`, `sort`, `label`, `value`, `dict_type`) "
+            "VALUES (4002, 1, '开', '0', 'shop_flag');\n"
+            "INSERT INTO `infra_job` (`id`, `name`) VALUES (4001, 'job');\n"
+        )
+        updated = apply_bundle.refresh_readme_cursors(readme, sql, "shop")
+        self.assertIn("| shop | [4001, 5001) | 4004 | 4002 | 4003 | 4002 |", updated)
+
+    def test_refresh_readme_cursors_reads_job_from_sibling_sql(self) -> None:
+        """infra_job 在别的模块 SQL 里时，job「下一个」不得回退成段起点。"""
+        readme = "| shop | [4001, 5001) | 4004 | 4002 | 4003 | 4002 |\n"
+        module_sql = (
+            "INSERT INTO `system_menu` (`id`, `name`) VALUES (4003, 'a');\n"
+            "INSERT INTO `system_dict_type` (`id`, `name`, `type`) VALUES (4001, 'n', 'shop_flag');\n"
+            "INSERT INTO `system_dict_data` (`id`, `sort`, `label`, `value`, `dict_type`) "
+            "VALUES (4002, 1, '开', '0', 'shop_flag');\n"
+        )
+        sibling = "INSERT INTO `infra_job` (`id`, `name`) VALUES (4001, 'job');\n"
+        updated = apply_bundle.refresh_readme_cursors(
+            readme, sibling + "\n" + module_sql, "shop")
+        self.assertIn("| shop | [4001, 5001) | 4004 | 4002 | 4003 | 4002 |", updated)
+        only_module = apply_bundle.refresh_readme_cursors(readme, module_sql, "shop")
+        self.assertIn("| shop | [4001, 5001) | 4004 | 4002 | 4003 | 4001 |", only_module)
+
+    def test_preflight_stops_before_copy_when_module_missing(self) -> None:
+        from scripts.project_config import ConfigError
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = make_config()
+            config.boot_root = root / "boot"
+            config.sql_dir = root / "sql"
+            config.sql_rules_path = root / "README.md"
+            config.sql_rules_path.write_text(
+                "<!-- sql-id-segments:start -->\n" + ("`" * 3) + "json\n"
+                + '{"nextModuleBase": 4001, "modules": {"mcp": 3001}, '
+                + '"autoIncrement": {"default": 10001, "shared": {}}}\n'
+                + ("`" * 3) + "\n"
+                + "<!-- sql-id-segments:end -->\n",
+                encoding="utf-8")
+            java = root / "ServiceErrorCodeRange.java"
+            java.write_text("// 模块 mcp 错误码区间 [1-003-000-000 ~ 1-004-000-000)\n", encoding="utf-8")
+            target = config.boot_root / "yudao-module-shop" / "pom.xml"
+            with self.assertRaises(ConfigError) as caught:
+                apply_bundle.preflight(config, {"moduleName": "shop"}, java)
+            self.assertIn("register_module.py", str(caught.exception))
+            self.assertFalse(target.exists())
+
+    def _registered_preflight_setup(self, root: Path):
+        boot = root / "boot"
+        boot.mkdir()
+        config = make_config()
+        config.boot_root = boot
+        config.sql_dir = root / "sql"
+        config.sql_dir.mkdir()
+        config.sql_rules_path = root / "README.md"
+        config.sql_rules_path.write_text(
+            "<!-- sql-id-segments:start -->\n```json\n"
+            '{"nextModuleBase": 5001, "modules": {"shop": 4001}, '
+            '"autoIncrement": {"default": 10001, "shared": {}}}\n'
+            "```\n<!-- sql-id-segments:end -->\n"
+            "| shop | [4001, 5001) | 4001 | 4001 | 4001 | 4001 |\n",
+            encoding="utf-8")
+        java = boot / "ServiceErrorCodeRange.java"
+        java.write_text(
+            "// 模块 shop 错误码区间 [1-004-000-000 ~ 1-005-000-000)\n",
+            encoding="utf-8")
+        module_pom = boot / "fan-module-shop" / "pom.xml"
+        module_pom.parent.mkdir(parents=True)
+        module_pom.write_text("<project/>\n", encoding="utf-8")
+        return config, java
+
+    def test_preflight_rejects_unwritable_sql_dir(self) -> None:
+        import os
+        from scripts.project_config import ConfigError
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config, java = self._registered_preflight_setup(root)
+            sql_dir = config.sql_dir
+            os.chmod(sql_dir, 0o555)
+            try:
+                with self.assertRaises(ConfigError) as caught:
+                    apply_bundle.preflight(config, {"moduleName": "shop"}, java)
+                message = str(caught.exception)
+                self.assertTrue(
+                    "不可写" in message or "sql" in message.lower(),
+                    msg=message,
+                )
+            finally:
+                os.chmod(sql_dir, 0o755)
 
 
 if __name__ == "__main__":

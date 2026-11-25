@@ -69,7 +69,7 @@ codegen_capabilities
 5. 按 [prompts.md](prompts.md) 写十二份结论，顺序固定：注释、字典、查询、查询方式、显示类型、允许空、列表、插入、编辑、列宽、菜单、排序。除菜单外按详情列顺序一列一行。缺一份、漏一列、或出现「其余不要」，不调用 `codegen_update`。
 6. 表类型默认 `templateType=1`。用户这次明确说了树表才用 `2`，明确说了主子表才用 `12`/`15`。有 `parent_id` 或 `*_id` 时仍然是单表。树表和主子表的列规则见 [reference.md](reference.md)。
 7. 名字按 `sqlRulesPath` 指向的 SQL README 切段结果核对 `moduleName`、`businessName`、`className`。人点名要改的字段才覆盖。三字段由这次更新显式写入。核对后必须在对话里写出三个字段的当前值（即使与切段结果相同、即使未覆盖）。
-8. 十二份都写全之后，调用一次 `codegen_update`。载荷包含详情里的每一列，以及表类型和三个名字。每一列带上排序步的 `ordinalPosition`。每列 `dictType` 只取自 `.tmp/dict-decision.json`（`bind`/`create` 写类型名，`none` 为空），不按列名或语义指定该绑哪个字典。`frontType` 仍用配置值。列表不展示的列把 `colWidth` 显式传 `null`。工具会丢掉 `null` 时停止。主键 `id` 的 `updateOperation` 保持 `true`。菜单结论写入 `.tmp/menu-decision.json`，列宽类别写入 `.tmp/column-categories.json`（键用 Java 属性名如 `createTime`，值是「编号 / 状态 / 时间 / 短名称 / 中等文本 / 长文本」）。字典结论写入 `.tmp/dict-decision.json`（不提交），形状见下。
+8. 十二份都写全之后，调用一次 `codegen_update`。载荷包含详情里的每一列，以及表类型和三个名字。每一列带上排序步的 `ordinalPosition`。每列 `dictType` 只取自 `.tmp/dict-decision.json`（`bind`/`create` 写类型名，`none` 为空），不按列名或语义指定该绑哪个字典。`frontType` 仍用配置值。列表不展示的列把 `colWidth` 显式传 `null`。工具会丢掉 `null` 时停止。主键 `id` 的 `updateOperation` 保持 `true`。菜单结论写入 `.tmp/menu-decision.json`，列宽类别写入 `.tmp/column-categories.json`（键用 Java 属性名如 `createTime`，值是「编号 / 状态 / 时间 / 短名称 / 中等文本 / 长文本」）。字典结论写入 `.tmp/dict-decision.json`（不提交），形状见下。`table.parentMenuId` 固定传 `0`。它只用来通过远端 `CodegenTableSaveReqVO` 的非空校验。`menu.plan.json` 和 bundle 都不读它。不把本地菜单 id 写进这次 update。`codegen_preview` 里的 `parent_id=0` 是模板自己的根菜单，不作为落盘依据。
 9. 需要改表时使用 `codegen_alter_table(tableId, sql)`；只允许 `ADD`、`MODIFY`、`CHANGE` 和单独的表 `RENAME TO`，禁止 `DROP` 子句和多语句。表重命名只更新物理表名和 `codegen.tableName`，不改类名、业务名、菜单和路由。
 10. `codegen_bundle(tableId, basePackage)` 获取 ZIP。
 11. 本地运行：
@@ -110,7 +110,7 @@ python3 ~/.agents/skills/f-base-codegen-mcp/scripts/apply_bundle.py \
 - MCP 数据源由客户端 `X-Mcp-DataSource` 请求头决定；项目配置不保存数据源编号。
 - 无请求头时由 MCP 使用默认数据源；密钥未分配默认数据源时工具调用会失败。
 - MCP 库和本地开发库是两套环境：MCP 后续独立部署，不要求库名/实例一致；本地 SQL 只执行到项目开发库。
-- 配置 `sqlRulesPath` 时，模块必须已登记在 `modules`；JSON 缺失/非法、模块未登记或号段用尽时停止写入。未配置时回退全局最大编号 +1 并提示。
+- 配置 `sqlRulesPath` 时，模块必须已登记在 `modules`；JSON 缺失/非法、模块未登记或号段用尽时停止写入。未配置时回退全局最大编号 +1 并提示。新模块先用 `scripts/register_module.py` 在本工作区登记号段与错误码区间；默认 dry-run，确认后再 `--apply`。号段由各线自行维护，脚本不绑定分支名。
 - 密钥表里的“无数据源”实际是“仅默认数据源 0”，不是 `[]`。
 - 显式传 `dataSourceConfigId` 时必须等于当前 `X-Mcp-DataSource` 上下文，否则拒绝。
 - 表重命名只影响物理表名和 `codegen.tableName`；独立本地库需要单独执行本地 `RENAME TO` 并更新 SQL。
@@ -200,7 +200,7 @@ public enum ExampleStatusEnum implements ArrayValuable<Integer> {
 - 绑定的类型不在本地已有字典里
 - 绑定的类型在配置 `enums` 对照表里没有类名
 - `select` 或 `radio` 但该列没有 `dictType`
-- 新字典类型不以模块名加下划线开头（`{moduleName}_`）
+- 新建的 `dictType` 不以 `{moduleName}_` 开头，或绑定的 `dictType` 既不以 `common_` 开头也不以 `{moduleName}_` 开头
 - prompt 写了关联表，正文没有那张表的 CREATE TABLE
 - 用户没有点名，三字段却偏离 SQL README 的切段结果
 - 用户没有说树表或主子表，`templateType` 却不是 `1`

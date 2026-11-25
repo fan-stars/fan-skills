@@ -16,7 +16,7 @@
 
 输入与「注释」相同，再附本地已有 `system_dict_type` / `system_dict_data`（类型、值、文案），以及技能说明里的枚举格式示例。
 
-每一列只能是 **绑定** / **新建** / **不绑定**。绑定：取值和文案与某个已有字典全部一致。新建：注释已有值与中文文案、且没有完全相同的已有字典；类型名模块名加下划线；每个取值给 `value` / 中文 `label` / 大写 `constant`。不绑定：其余情况 `dictType` 为空。没有成对中文文案则不新建。
+每一列只能是 **绑定** / **新建** / **不绑定**。绑定：取值和文案与某个已有字典全部一致。还能绑定的已有字典，类型名只允许 `common_` 或当前模块名加下划线。语义是「是否」的列绑定 `common_status`（`0` 开启，`1` 关闭），`codegen_update` 把该列 `javaType` 写成 `Integer`。不绑定其他模块前缀的字典。新建的类型名以 `{moduleName}_` 开头，不新建 `common_`。新建：注释已有值与中文文案、且没有完全相同的已有字典；类型名模块名加下划线；每个取值给 `value` / 中文 `label` / 大写 `constant`。不绑定：其余情况 `dictType` 为空。没有成对中文文案则不新建。
 
 不要按列名指定该绑哪个字典。一列一行，列名都要出现。
 
@@ -61,7 +61,7 @@
 
 输入与「注释」相同。
 
-为每一列回答 `htmlType`。只用 `input`、`textarea`、`select`、`radio`、`checkbox`、`datetime`、`imageUpload`、`fileUpload`、`editor`。时间筛选同时写 `htmlType=datetime`。有非空 `dictType` 的列用 `select`（或 `radio`）。`select` 或 `radio` 只在该列字典结论有非空 `dictType` 时使用。没有字典却选了这两类，停止，不调用 `codegen_update`。一列一行，列名都要出现。
+为每一列回答 `htmlType`。只用 `input`、`textarea`、`select`、`radio`、`checkbox`、`datetime`、`imageUpload`、`fileUpload`、`editor`。时间筛选同时写 `htmlType=datetime`。有非空 `dictType` 的列用 `select`（或 `radio`）。语义是「是否」且已绑定 `common_status` 的列用 `radio`。`select` 或 `radio` 只在该列字典结论有非空 `dictType` 时使用。没有字典却选了这两类，停止，不调用 `codegen_update`。一列一行，列名都要出现。
 
 ## 允许空
 

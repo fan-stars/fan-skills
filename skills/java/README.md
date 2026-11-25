@@ -8,7 +8,7 @@ Spring Boot、Fan 后端与 Java 重构
 
 | Skill 名称 | 路径 | 简介 | skills.sh | GitHub |
 | --- | --- | --- | --- | --- |
-| `f-base-codegen-mcp` | `skills/java/f-base-codegen-mcp/` | 经远程 Streamable HTTP MCP 把库表生成并落盘到 Fan boot/vben 基础 CRUD，并按十二份结论定稿字段、字典与菜单。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-base-codegen-mcp/SKILL.md) |
+| `f-base-codegen-mcp` | `skills/java/f-base-codegen-mcp/` | 经远程 Streamable HTTP MCP 把库表生成并落盘到 Fan boot/vben 基础 CRUD，定稿字段、字典与菜单后写模块号段。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-base-codegen-mcp/SKILL.md) |
 | `f-java-springboot` | `skills/java/f-java-springboot/` | Fan 后端 Spring Boot 硬性约定：MyBatis-Plus、Lombok 日志与仓库外本地配置。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-java-springboot/SKILL.md) |
 | `f-springboot-native` | `skills/java/f-springboot-native/` | Spring Boot 应用 GraalVM Native Image 落地指南。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-springboot-native/SKILL.md) |
 | `f-yudao-boot-mini-graalvm` | `skills/java/f-yudao-boot-mini-graalvm/` | 芋道 boot-mini 场景下的 GraalVM 原生构建经验。 | 暂无 | [GitHub](https://github.com/fan-stars/fan-skills/blob/master/.agents/skills/f-yudao-boot-mini-graalvm/SKILL.md) |
@@ -25,19 +25,19 @@ Spring Boot、Fan 后端与 Java 重构
 
 #### 核心能力
 
-先按 prompts.md 写注释、字典、查询、查询方式、显示类型、允许空、列表、插入、编辑、列宽、菜单、排序十二份结论，把菜单、字典与列宽类别写入 .tmp 结论文件后只调用一次 codegen_update；串行使用 codegen_list/detail/import/update/sync/preview/create_table/bundle 等 14 个工具；本地 apply_bundle 按基线、当前文件、新结果三方合并，写字典与枚举、菜单名与按钮名，并做 {@link}、DictFormat 与列对齐后处理。
+先按 prompts.md 写注释、字典、查询、查询方式、显示类型、允许空、列表、插入、编辑、列宽、菜单、排序十二份结论，把菜单、字典与列宽类别写入 .tmp 结论文件后只调用一次 codegen_update；串行使用 codegen_list/detail/import/update/sync/preview/create_table/bundle 等 14 个工具；本地 apply_bundle 按基线、当前文件、新结果三方合并，写字典与枚举、菜单名与按钮名，并做 {@link}、DictFormat 与列对齐后处理；新模块用 register_module.py 把号段登记进 SQL README 与 ServiceErrorCodeRange。
 
 #### 适用场景
 
-需要把数据库表生成 Fan 后端与 Vben 前端基础 CRUD，或在导入后定稿列注释、字典、查询、列表、表单、列宽与菜单时使用；也用于二次生成后核对字典注解、列宽、菜单名有没有被生成器默认值冲掉。
+需要把数据库表生成 Fan 后端与 Vben 前端基础 CRUD，或在导入后定稿列注释、字典、查询、列表、表单、列宽与菜单时使用；也用于为新业务模块登记号段与错误码区间，或二次生成后核对字典注解、列宽、菜单名有没有被生成器默认值冲掉。
 
 #### 主要覆盖内容
 
-十二份结论与 prompts.md 列宽定稿、字典 bind/create/none 决策与 .tmp 结论文件、单表与树表/主子表判定、三字段切段核对、字段判断停止与常见失败、14 个远程工具、apply_bundle 三方合并与基线状态、字典与枚举 SQL 及 enums 映射、菜单图标与按钮名、错误码合并与构建报告。
+十二份结论与 prompts.md 列宽定稿、字典 bind/create/none 决策与 .tmp 结论文件、单表与树表/主子表判定、三字段切段核对、register_module 的号段与错误码登记（默认 dry-run、输出 diff）、字段判断停止与常见失败、14 个远程工具、apply_bundle 三方合并与基线状态、字典与枚举 SQL 及 enums 映射、菜单图标与按钮名、错误码合并与构建报告。
 
 #### 注意事项
 
-每列都要给出字典结论：绑定已有字典、新建字典或不绑；不按列名语义猜绑定关系。仅用 Streamable HTTP `/mcp`，禁用旧工具名与本地/SSE。用户没有点名时三字段不得偏离 SQL README；没说树表或主子表时 templateType=1；缺一份、漏一列或出现「其余不要」即停止。不展示的列传 null；.tmp 结论与基线不提交；不删表不写密钥。
+每列都要给出字典结论：绑定已有字典、新建字典或不绑；不按列名语义猜绑定关系。仅用 Streamable HTTP `/mcp`，禁用旧工具名与本地/SSE。配置 sqlRulesPath 时模块必须已登记，未登记先用 register_module 登记，脚本不绑定分支名；用户没有点名时三字段不得偏离 SQL README；没说树表或主子表时 templateType=1；缺一份、漏一列或出现「其余不要」即停止；不展示的列传 null；.tmp 结论与基线不提交；不删表不写密钥。
 
 ### `f-java-springboot`
 

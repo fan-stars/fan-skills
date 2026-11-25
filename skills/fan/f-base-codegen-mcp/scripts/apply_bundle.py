@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import difflib
 import hashlib
 import json
 import os
@@ -866,38 +867,54 @@ def validate_manifest_module(manifest: dict) -> None:
         raise ConfigError(f"非法 moduleName: {module}")
 
 
-def _insert_before(text: str, marker: str, block: str) -> str:
-    position = text.find(marker)
-    if position < 0:
-        raise ConfigError(f"找不到插入位置: {marker}")
-    return text[:position] + block + text[position:]
-
-
 def _require_scaffold(scaffold: dict, key: str) -> None:
     if not scaffold.get(key):
         raise ConfigError(f"missing config field: {key}")
 
 
+def _require_writable_dir(path: Path, label: str) -> None:
+    """落盘前确认目录可写；不存在或不可写则 ConfigError。不创建目录。"""
+    directory = path if path.is_dir() else path.parent
+    if not directory.exists() or not os.access(directory, os.W_OK):
+        raise ConfigError(f"不可写: {label} ({directory})")
+
+
 def _dependency_xml(group_id: str, artifact_id: str, version: str | None = None) -> str:
     lines = [
-        "        <dependency>",
-        f"            <groupId>{group_id}</groupId>",
-        f"            <artifactId>{artifact_id}</artifactId>",
+        "<dependency>",
+        f"    <groupId>{group_id}</groupId>",
+        f"    <artifactId>{artifact_id}</artifactId>",
     ]
     if version:
-        lines.append(f"            <version>{version}</version>")
-    lines.append("        </dependency>")
-    return "\n".join(lines) + "\n    "
+        lines.append(f"    <version>{version}</version>")
+    lines.append("</dependency>")
+    return "\n".join(lines)
 
 
-def _insert_before_managed_dependencies(text: str, block: str) -> str:
-    end = text.find("</dependencyManagement>")
-    if end < 0:
-        raise ConfigError("找不到插入位置: </dependencyManagement>")
-    position = text.rfind("</dependencies>", 0, end)
-    if position < 0:
-        raise ConfigError("找不到插入位置: </dependencies>")
-    return text[:position] + block + text[position:]
+def insert_before_closing_line(text: str, closing_tag: str, relative_block: str,
+                               *, before_marker: str | None = None) -> str:
+    """插在闭合标签那一行前面。子块最外层缩进是该行行首空白 + 4。块已存在则不改。"""
+    probe = "\n".join(line.lstrip(" ") for line in relative_block.strip("\n").split("\n"))
+    if probe in "\n".join(line.lstrip(" ") for line in text.split("\n")):
+        return text
+    lines = text.splitlines(keepends=True)
+    limit = len(lines)
+    if before_marker:
+        found = [index for index, line in enumerate(lines) if before_marker in line]
+        if not found:
+            raise ConfigError(f"找不到插入位置: {before_marker}")
+        limit = found[-1]
+    matches = [index for index in range(limit) if lines[index].strip() == closing_tag]
+    if not matches:
+        raise ConfigError(f"找不到插入位置: {closing_tag}")
+    index = matches[-1]
+    base = len(lines[index]) - len(lines[index].lstrip(" "))
+    indented = []
+    for line in relative_block.strip("\n").split("\n"):
+        relative = len(line) - len(line.lstrip(" "))
+        indented.append(" " * (base + 4 + relative) + line.lstrip(" "))
+    lines.insert(index, "\n".join(indented) + "\n")
+    return "".join(lines)
 
 
 def _module_pom(group_id: str, parent_artifact_id: str, artifact_id: str,
@@ -1009,25 +1026,22 @@ def ensure_module_scaffold(config: ProjectConfig, module: str, dry_run: bool,
             encoding="utf-8")
     root_pom = config.boot_root / scaffold["rootPom"]
     root_text = root_pom.read_text(encoding="utf-8")
-    module_line = f"<module>{artifact}</module>"
-    if module_line not in root_text:
-        root_pom.write_text(
-            _insert_before(root_text, "</modules>", f"        {module_line}\n    "),
-            encoding="utf-8")
+    root_pom.write_text(
+        insert_before_closing_line(root_text, "</modules>", f"<module>{artifact}</module>"),
+        encoding="utf-8")
     server_pom = config.boot_root / scaffold["serverPom"]
     server_text = server_pom.read_text(encoding="utf-8")
-    artifact_tag = f"<artifactId>{artifact}</artifactId>"
-    if artifact_tag not in server_text:
-        server_pom.write_text(
-            _insert_before(server_text, "</dependencies>", _dependency_xml(group_id, artifact)),
-            encoding="utf-8")
+    server_pom.write_text(
+        insert_before_closing_line(server_text, "</dependencies>", _dependency_xml(group_id, artifact)),
+        encoding="utf-8")
     bom_pom = config.boot_root / scaffold["bomPom"]
     bom_text = bom_pom.read_text(encoding="utf-8")
-    if artifact_tag not in bom_text:
-        bom_pom.write_text(
-            _insert_before_managed_dependencies(
-                bom_text, _dependency_xml(group_id, artifact, "${revision}")),
-            encoding="utf-8")
+    bom_pom.write_text(
+        insert_before_closing_line(
+            bom_text, "</dependencies>",
+            _dependency_xml(group_id, artifact, "${revision}"),
+            before_marker="</dependencyManagement>"),
+        encoding="utf-8")
     print(f"created module scaffold: {module_dir}")
     return True
 
@@ -1155,9 +1169,35 @@ def apply_sql(config: ProjectConfig, manifest: dict, workdir: Path,
         sql = insert_menu_rows(sql, menu_sql, config.menu_table)
     if dict_sql:
         sql = insert_dict_rows(sql, dict_sql)
+    readme_old = None
+    readme_new = None
+    if (menu_sql or dict_sql) and config.sql_rules_path:
+        readme_old = config.sql_rules_path.read_text(encoding="utf-8")
+        # job 等共享表种子可能在其他模块 SQL；用全量 + 本次内存 SQL 取段内最大号
+        readme_new = refresh_readme_cursors(
+            readme_old, all_module_sql(config) + "\n" + sql, module)
     if dry_run:
+        if readme_new is not None and readme_old is not None:
+            row = next(
+                (match for match in _README_MODULE_ROW.finditer(readme_new)
+                 if match.group(1) == module),
+                None,
+            )
+            if row:
+                print(
+                    f"readme nexts: menu={row.group(4)} dict_type={row.group(5)} "
+                    f"dict_data={row.group(6)} job={row.group(7)}"
+                )
+            print("".join(difflib.unified_diff(
+                readme_old.splitlines(keepends=True),
+                readme_new.splitlines(keepends=True),
+                fromfile=str(config.sql_rules_path),
+                tofile=str(config.sql_rules_path),
+            )), end="")
         print(f"update {sql_path}")
         return None
+    if readme_new is not None:
+        config.sql_rules_path.write_text(readme_new, encoding="utf-8")
     sql_path.parent.mkdir(parents=True, exist_ok=True)
     sql_path.write_text(sql, encoding="utf-8")
     if new_tables:
@@ -1275,8 +1315,17 @@ def ensure_frontend_dict_key(vben_root: Path, module: str, dict_type: str) -> No
     path.write_text(text, encoding="utf-8")
 
 
-def _validate_dict_decision(config: ProjectConfig, decision: dict) -> tuple[
-        list[dict], dict[str, dict]]:
+def _dict_prefix_ok(module: str, dict_type: str, action: str) -> bool:
+    own = dict_type.startswith(module + "_")
+    if action == "create":
+        return own
+    if action == "bind":
+        return own or dict_type.startswith("common_")
+    return False
+
+
+def _validate_dict_decision(config: ProjectConfig, decision: dict,
+                            module: str) -> tuple[list[dict], dict[str, dict]]:
     """校验 dict-decision 全文；全部通过后才允许落盘。返回 (columns, creates_by_type)。"""
     columns = list(decision.get("columns") or [])
     creates = list(decision.get("creates") or [])
@@ -1298,6 +1347,8 @@ def _validate_dict_decision(config: ProjectConfig, decision: dict) -> tuple[
         dict_type = item.get("dictType")
         if not dict_type:
             raise ConfigError("dict-decision creates 需要 dictType")
+        if not _dict_prefix_ok(module, dict_type, "create"):
+            raise ConfigError(f"字典类型不属于模块 {module}: {dict_type}")
         if dict_type in creates_by_type:
             raise ConfigError(f"creates 重复 dictType: {dict_type}")
         values = item.get("values")
@@ -1326,6 +1377,8 @@ def _validate_dict_decision(config: ProjectConfig, decision: dict) -> tuple[
         dict_type = item.get("dictType")
         if not dict_type:
             raise ConfigError(f"dict-decision {action} 缺少 dictType: {item.get('column')}")
+        if not _dict_prefix_ok(module, dict_type, action):
+            raise ConfigError(f"字典类型不属于模块 {module}: {dict_type}")
         if action == "bind":
             if not enum_reference(config, dict_type):
                 raise ConfigError(f"enums 对照表缺少字典类型类名: {dict_type}")
@@ -1338,7 +1391,7 @@ def _validate_dict_decision(config: ProjectConfig, decision: dict) -> tuple[
 def apply_dict_decision(config: ProjectConfig, module: str, decision: dict,
                         replace_root: Path, manifest_files: list[dict]) -> None:
     """以 dict-decision.json 为唯一输入：建枚举、消 TODO、补前端键。"""
-    columns, creates_by_type = _validate_dict_decision(config, decision)
+    columns, creates_by_type = _validate_dict_decision(config, decision, module)
     module_dir = config.backend_path_prefix + module
 
     def rewrite_java(dict_type: str, enum_ref: str) -> None:
@@ -1411,6 +1464,9 @@ def apply_column_align_sources(root: Path, manifest: dict, categories: dict) -> 
 
 
 _RANGE_LINE = re.compile(r"模块\s+(\w+)\s+错误码区间\s+\[(\d+(?:-\d+)+)\s*~")
+_README_MODULE_ROW = re.compile(
+    r"\| (\w+) \| \[(\d+), (\d+)\) \| (\d+) \| (\d+) \| (\d+) \| (\d+) \|"
+)
 
 
 def error_code_segment_start(boot: Path, module: str) -> int:
@@ -1423,6 +1479,74 @@ def error_code_segment_start(boot: Path, module: str) -> int:
     if module not in found:
         raise ConfigError(f"模块未登记错误码区间: {module}")
     return found[module]
+
+
+def _register_module_hint(module: str, readme: Path | None, java: Path) -> str:
+    return (
+        f"python3 scripts/register_module.py --module {module} "
+        f"--readme {readme} --java {java}"
+    )
+
+
+def _next_cursor_in_segment(sql: str, table: str, base: int, upper: int) -> int:
+    ids = [value for value in collect_insert_ids(sql, table) if base <= value < upper]
+    return max(ids) + 1 if ids else base
+
+
+def refresh_readme_cursors(readme_text: str, all_sql: str, module: str) -> str:
+    """按段内最大 id+1 回填人工表该模块行的四个「下一个」。"""
+    match = next(
+        (row for row in _README_MODULE_ROW.finditer(readme_text) if row.group(1) == module),
+        None,
+    )
+    if match is None:
+        raise ConfigError(f"missing human table row for module: {module}")
+    base, upper = int(match.group(2)), int(match.group(3))
+    menu_next = _next_cursor_in_segment(all_sql, "system_menu", base, upper)
+    type_next = _next_cursor_in_segment(all_sql, "system_dict_type", base, upper)
+    data_next = _next_cursor_in_segment(all_sql, "system_dict_data", base, upper)
+    job_next = _next_cursor_in_segment(all_sql, "infra_job", base, upper)
+    new_row = (
+        f"| {module} | [{base}, {upper}) | "
+        f"{menu_next} | {type_next} | {data_next} | {job_next} |"
+    )
+    return readme_text[:match.start()] + new_row + readme_text[match.end():]
+
+
+def preflight(config: ProjectConfig, manifest: dict, error_code_file: Path) -> None:
+    """落盘前检查：号段、错误码、骨架键、目标路径可写。不写文件，不绑定分支名。"""
+    module = manifest["moduleName"]
+    hint = _register_module_hint(module, config.sql_rules_path, error_code_file)
+    try:
+        if config.sql_rules_path is None:
+            raise ValueError("sqlRulesPath not configured")
+        rules = load_rules(config.sql_rules_path)
+        segment_bounds(rules, module)
+    except ValueError as error:
+        raise ConfigError(f"{error}; {hint}") from error
+    try:
+        error_code_segment_start(config.boot_root, module)
+    except ConfigError as error:
+        raise ConfigError(f"{error}; {hint}") from error
+    module_pom = config.boot_root / f"{config.backend_path_prefix}{module}" / "pom.xml"
+    scaffold = config.module_scaffold or {}
+    if not module_pom.exists():
+        for key in ("rootPom", "serverPom", "bomPom", "groupId", "parentArtifactId",
+                    "openApiMethod", "starters"):
+            _require_scaffold(scaffold, key)
+    for key in ("rootPom", "serverPom", "bomPom"):
+        rel = scaffold.get(key)
+        if rel:
+            _require_writable_dir(config.boot_root / rel, key)
+    _require_writable_dir(config.sql_dir, "sql_dir")
+    _require_writable_dir(error_code_file, "error_code_file")
+
+
+def _resolve_error_code_file(boot: Path) -> Path:
+    matches = list(boot.rglob("ServiceErrorCodeRange.java"))
+    if len(matches) == 1:
+        return matches[0]
+    return boot / "ServiceErrorCodeRange.java"
 
 
 def _constants_source(config: ProjectConfig, module: str) -> str:
@@ -1579,6 +1703,12 @@ def main() -> int:
     workdir = args.zip.with_suffix("")
     manifest = load_bundle(args.zip, workdir)
     validate_manifest_module(manifest)
+    error_code_file = _resolve_error_code_file(config.boot_root)
+    try:
+        preflight(config, manifest, error_code_file)
+    except ConfigError as error:
+        print(f"配置错误：{error}")
+        return 2
     ensure_module_scaffold(
         config, manifest["moduleName"], args.dry_run,
         tenant=bool(manifest.get("tenantEnabled")),
