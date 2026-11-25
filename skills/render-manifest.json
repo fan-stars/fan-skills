@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-25T02:05:44Z",
+  "generatedAt": "2026-11-25T05:49:16Z",
   "skills": {
     "agent-browser": {
       "contentHash": "ecc7641aea05f85ca3b11e7759d32aaf52fe05946ab4b63739c7bf78a41237a2",
@@ -12,6 +12,10 @@
     },
     "antd": {
       "contentHash": "a16dbdd57ff869e7ae2589258ba6ea84268e4c134409ec920ee0064be905ecd0",
+      "copyCount": 1
+    },
+    "architecture-diagram": {
+      "contentHash": "15f0bbf74366b6743f273b6757252f02b33bd958f1e10d558e2413509dc9b173",
       "copyCount": 1
     },
     "codebase-design": {
@@ -246,8 +250,20 @@
       "contentHash": "542c716c50714598b19d12ba977d6c878d650b5798a8588026700d11bcd854bf",
       "copyCount": 1
     },
+    "rea-analysis-optimization": {
+      "contentHash": "b9d02b37dfe35c98dbb01027ac73aef445b6985ea3f14129b0fea3805492179f",
+      "copyCount": 1
+    },
+    "rea-tool-design": {
+      "contentHash": "cf53ac6dfd083943e043bb485fb2f95d7abb847074741cbd665c5be972d20c33",
+      "copyCount": 1
+    },
     "request-refactor-plan": {
       "contentHash": "8ee013f00ce0c861ac20151351ac9a37e35fe3b1bdff8dde57568a69f9363c31",
+      "copyCount": 1
+    },
+    "reverse-engineer-anything": {
+      "contentHash": "67b9a34bd0f1b6566d0f56691b82b5d5c8d38c9e5a239cb95a1bac7f053171cf",
       "copyCount": 1
     },
     "superpowers-brainstorming": {

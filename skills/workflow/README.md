@@ -19,7 +19,10 @@
 | `grill-with-docs` | `skills/workflow/grill-with-docs/` | 严厉质询方案的同时，用领域建模把 ADR 与词汇表边问边写下来。 | [skills.sh](https://skills.sh/mattpocock/skills/grill-with-docs) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/engineering/grill-with-docs/SKILL.md) |
 | `grilling` | `skills/workflow/grilling/` | 一次只问一个问题，沿决策树严厉追问计划，直到达成共享理解。 | [skills.sh](https://skills.sh/mattpocock/skills/grilling) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md) |
 | `improve-codebase-architecture` | `skills/workflow/improve-codebase-architecture/` | 扫描代码库找加深模块的机会，输出 HTML 报告并质询选定重构方向。 | [skills.sh](https://skills.sh/mattpocock/skills/improve-codebase-architecture) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/engineering/improve-codebase-architecture/SKILL.md) |
+| `rea-analysis-optimization` | `skills/workflow/rea-analysis-optimization/` | 在保持正确性与 Evidence 的前提下，优化 REA 分析路径的上下文、延迟与资源占用。 | [skills.sh](https://skills.sh/morluto/rea/rea-analysis-optimization) | [GitHub](https://github.com/morluto/rea/blob/main/.agents/skills/rea-analysis-optimization/SKILL.md) |
+| `rea-tool-design` | `skills/workflow/rea-tool-design/` | 审计与设计 REA 调查工具、CLI/MCP 契约、provider 能力与 Evidence 语义。 | [skills.sh](https://skills.sh/morluto/rea/rea-tool-design) | [GitHub](https://github.com/morluto/rea/blob/main/.agents/skills/rea-tool-design/SKILL.md) |
 | `request-refactor-plan` | `skills/workflow/request-refactor-plan/` | 通过访谈产出小步可验证的重构计划，并可整理为 GitHub Issue。 | [skills.sh](https://skills.sh/mattpocock/skills/request-refactor-plan) | [GitHub](https://github.com/mattpocock/skills/blob/main/skills/deprecated/request-refactor-plan/SKILL.md) |
+| `reverse-engineer-anything` | `skills/workflow/reverse-engineer-anything/` | 用 REA 对已发布产物做逆向与证据采集，或从线上实例构建 AgentEnv 环境包。 | [skills.sh](https://skills.sh/morluto/rea/reverse-engineer-anything) | [GitHub](https://github.com/morluto/rea/blob/main/.agents/skills/reverse-engineer-anything/SKILL.md) |
 
 ## 详细介绍
 
@@ -243,6 +246,46 @@ Skills CLI 关键命令、先看排行榜再 CLI 搜索、安装来源与更新�
 
 标记 disable-model-invocation，需显式触发。报告写在系统临时目录，不入库。上游已与 codebase-design 配套；本库 path 为 engineering 下正式 skill。
 
+### `rea-analysis-optimization`
+
+**路径**：`skills/workflow/rea-analysis-optimization/`
+
+#### 核心能力
+
+先钉住分析问题与独立正确性预言，再定位最早多余工作，按复用、投影下推、增量解码等策略改所有者实现，并用等价完整调查验证；也可给出有据的「不改」决定。
+
+#### 适用场景
+
+分析链路过慢、上下文膨胀、CPU/内存过高、缓存或查询设计存疑，且目标是分析路径而非整套 CI/测试套件优化时使用。
+
+#### 主要覆盖内容
+
+涵盖基线记录、预言构建、成本表与候选修正、Kuna 等案例参考、测量与正确性并重的验证方式，以及日常清理不必强行走本优化流程的边界。
+
+#### 注意事项
+
+性能测试只服务于明确性能目标或回归疑虑。禁止为「看起来更干净」引入无收益的缓存或编排层。CI/测试套件优化应改用专门审计技能。
+
+### `rea-tool-design`
+
+**路径**：`skills/workflow/rea-tool-design/`
+
+#### 核心能力
+
+按工具设计指南界定边界、输入输出与可发现性，对照现有最近似工具与实机工作流，区分复现缺陷、已知限制与设计机会，并给出验证与恢复策略。
+
+#### 适用场景
+
+新增或改造 REA 工具、评审 MCP/CLI 契约、澄清 Evidence 字段含义、做工具审计或需要在实现前写清边界与验证方式时使用。
+
+#### 主要覆盖内容
+
+覆盖审计流程、设计提案要素（边界、形状、Evidence、替代方案、验证）、provider 工作流核验，以及失败恢复与文档权威版本差异提醒。
+
+#### 注意事项
+
+以当前契约与实机能力为准，文档可能滞后。不要为追求 API 对等而忽视任务证据；实现与验证仍须遵守测试与贡献约定。
+
 ### `request-refactor-plan`
 
 **路径**：`skills/workflow/request-refactor-plan/`
@@ -262,3 +305,23 @@ Skills CLI 关键命令、先看排行榜再 CLI 搜索、安装来源与更新�
 #### 注意事项
 
 上游路径在 deprecated 目录，仍可用但需知可能不再积极演进。创建 GitHub Issue 需仓库权限；也可只输出计划文本。与 grilling/openspec 可组合使用。
+
+### `reverse-engineer-anything`
+
+**路径**：`skills/workflow/reverse-engineer-anything/`
+
+#### 核心能力
+
+指导在依赖二进制、反编译、运行时观测或版本对比时接入 REA，按目标路由到原生/托管/Electron/固件/浏览器等工具链，并维护完整 Evidence；也可从抓包或实机导出 AgentEnv。
+
+#### 适用场景
+
+分析已发布包行为、比较版本差异、反编译关键逻辑、构建可复现的调查环境，或普通源码仓库工具无法支撑结论时启用；完整源码架构梳理则不必用 REA。
+
+#### 主要覆盖内容
+
+涵盖连接与恢复、目标分流、摘要优先工作流、多类制品指南入口，以及不把 skill 安装等同于 MCP/引擎已就绪的边界说明。
+
+#### 注意事项
+
+安装本技能不会自动注册 MCP 或引擎；插件安装例外。超时、权限与注册失败要按恢复指南处理，勿盲目重复 setup。结论须区分观测、推断与未知。

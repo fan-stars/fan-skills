@@ -8,6 +8,7 @@
 
 | Skill 名称 | 路径 | 简介 | skills.sh | GitHub |
 | --- | --- | --- | --- | --- |
+| `architecture-diagram` | `skills/web/design/architecture-diagram/` | 按深色设计体系生成可独立打开的 HTML+SVG 系统与基础设施架构图。 | [skills.sh](https://skills.sh/cocoon-ai/architecture-diagram-generator/architecture-diagram) | [GitHub](https://github.com/Cocoon-AI/architecture-diagram-generator/blob/main/architecture-diagram/SKILL.md) |
 | `extract-design-system` | `skills/web/design/extract-design-system/` | 从任意公开网站逆向提取设计 token（配色/字体/间距/圆角/阴影）生成起步 token 文件。 | [skills.sh](https://skills.sh/arvindrk/extract-design-system/extract-design-system) | [GitHub](https://github.com/arvindrk/extract-design-system/blob/main/skills/extract-design-system/SKILL.md) |
 | `finesse-brief` | `skills/web/design/finesse-brief/` | Workbench 架构师：把模糊一句话收成可构建规格。 | 暂无 | [本仓库](../../../.agents/skills/finesse-brief/SKILL.md) |
 | `finesse-term` | `skills/web/design/finesse-term/` | 把口语化界面描述译成可发给代理的准确说法。。用于目录浏览与选型。 | 暂无 | [本仓库](../../../.agents/skills/finesse-term/SKILL.md) |
@@ -17,6 +18,26 @@
 | `web-design-guidelines` | `skills/web/design/web-design-guidelines/` | 对照最新 Web Interface Guidelines 审查 UI 代码的可访问性与体验。 | [skills.sh](https://skills.sh/vercel-labs/agent-skills/web-design-guidelines) | [GitHub](https://github.com/vercel-labs/agent-skills/blob/main/skills/web-design-guidelines/SKILL.md) |
 
 ## 详细介绍
+
+### `architecture-diagram`
+
+**路径**：`skills/web/design/architecture-diagram/`
+
+#### 核心能力
+
+依据约定色板、字体与间距规则，把系统、云、安全或网络拓扑画成自包含 HTML 文件，内嵌 SVG 与导出控件，无需外部绘图工具即可在浏览器中查看与分享。
+
+#### 适用场景
+
+需要系统分层图、云基础设施拓扑、微服务关系、安全边界或网络示意图，并希望得到可离线打开、可迭代修改的单文件图时使用。
+
+#### 主要覆盖内容
+
+覆盖组件类型语义配色、网格背景、连接箭头与遮罩、安全组/区域虚线框、消息总线示意，以及模板资源与导出工具条约定。
+
+#### 注意事项
+
+输出为手写 HTML/SVG 而非外部 SaaS；布局需遵守垂直间距与箭头遮罩规则。来源为 Cocoon AI 的 architecture-diagram-generator，注意与其它同名第三方 fork 区分。
 
 ### `extract-design-system`
 
