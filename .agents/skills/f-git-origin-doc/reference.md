@@ -67,10 +67,11 @@ symlinks:
 重新生成或更新 `.git-origin/README.md` 时：
 
 1. **读旧 → 合并 → 写回**：先解析既有机器块，再与本机盘点合并，最后写回；禁止仅按本机盘点整表覆盖导致丢条目。
-2. **仅文档有的条目默认保留**：旧机器块中有、本机不存在的 `repos[]` / `symlinks[]` 默认保留，并向用户报告 `kept_absent`（软连接对称报告）。
+2. **仅文档有的条目默认保留**：旧机器块中有、本机不存在的 `repos[]` / `symlinks[]` 默认保留，并向用户报告 `kept_absent`（软连接可用 `kept_absent_symlink`）。
 3. **删除闸门**：不得因本机缺失或「整表按本机重写更干净」等理由缩小清单。仅当用户**点名删除**某项，或声明「**以本机为准**」时，才移除对应仅文档项（「以本机为准」移除全部 kept_absent 类项），并报告 `removed`。
-4. **remotes 并集**：对同一 `path` 两边都存在的仓，按 remote **名**并集：先保留文档中已有 remote 的相对顺序，再追加仅本机有的 remote。同名 remote **URL 不同**时：暂留**文档 URL**，报告 `remote_conflict`（含 path、name、doc_url、local_url），待用户确认后再改写。
-5. **损坏 / 版本不符停止写回**：若 README 已存在，但机器块无法解析或 `version` ≠ `1`，**禁止覆盖写回**，保留原文件，并向用户报告解析错误。
+4. **两边都有的 `repos[]`（按 path）**：`branch` / `purpose` ← 本机盘点；`remotes` 按名并集——先保留文档中已有 remote 的相对顺序，再追加仅本机有的 remote（仅本机新仓则保留本机 `git remote` 顺序）。同名 remote **URL 不同**时：暂留**文档 URL**，报告 `remote_conflict`（含 path、name、doc_url、local_url），待用户确认后再改写。
+5. **两边都有的 `symlinks[]`（按 path）**：规范化后 `target` **相同** → 用本机 `target` / `outside_ancestor`；**不同** → 暂留文档值，报告 `symlink_conflict`，待用户确认。
+6. **损坏 / 版本不符停止写回**：若 README 已存在，但机器块无法解析或 `version` ≠ `1`，**禁止覆盖写回**，保留原文件，并向用户报告解析错误。
 
 ## 人读部分（短模板）
 
@@ -108,7 +109,7 @@ symlinks:
 
 ## 拉取语义（供 pull skill）
 
-前提：机器块 `version` 为 `1`。默认处理**全部** `repos[]`；用户点名 path/用途时仅处理匹配**子集**，未选中的本机缺失仓不 clone，汇报区分 `selected` 与 `not_in_scope`。
+前提：机器块 `version` 为 `1`。默认处理**全部** `repos[]`；用户点名时仅处理**精确匹配**子集（`repos[].path` 全等，或 `repos[].purpose` 全等）；无精确匹配的点名项列入报告且**不得猜测**扩大范围；未点名条目记入 `not_in_scope`（本机缺失也不 clone）。汇报区分 `selected` 与 `not_in_scope`。
 
 对每个纳入范围的 `repos[]` 条目：
 

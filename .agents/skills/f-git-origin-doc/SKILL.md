@@ -24,7 +24,7 @@ description: >-
 - 不要把依赖树内嵌套 `.git`（`vendor/`、`node_modules/` 等）写入 `repos`
 - 不要记录 commit hash
 - 不要提交 git，除非用户明确要求
-- **不得**以全局技能拷贝为编辑真相源（权威在内容库 `fan-skills/.agents/skills/`；用 sync 同步，禁止手改 `~/.cursor/skills` 等全局拷贝）
+- **不得**以全局技能拷贝为编辑真相源（权威在内容库 `fan-skills/.agents/skills/`；用 sync 同步到 Cursor/agents 等全局技能根，禁止手改全局拷贝）
 - 契约细节以 [reference.md](reference.md) 为准；禁止只读 description / 本清单就动手写回
 
 ## 反模式
@@ -102,10 +102,11 @@ git rev-parse --show-toplevel
 按 [reference.md](reference.md)「更新语义」：
 
 1. **读旧 → 合并 → 写回**：禁止仅按本机盘点整表覆盖导致丢条目
-2. **kept_absent**：旧机器块有、本机不存在的 `repos[]` / `symlinks[]` 默认保留，报告 `kept_absent`
+2. **kept_absent**：旧机器块有、本机不存在的 `repos[]` / `symlinks[]` 默认保留，报告 `kept_absent`（软连接可用 `kept_absent_symlink`）
 3. **删除闸门**：仅当用户**点名删除**某项，或声明「**以本机为准**」时，才移除对应仅文档项（「以本机为准」移除全部 kept_absent 类项），并报告 `removed`。无此类指令时**不得**缩小清单
-4. **remotes 并集**：同一 `path` 两边都存在时，按 remote **名**并集（先文档顺序，再追加仅本机有的）；同名 URL 不同则暂留文档 URL，报告 `remote_conflict`（path、name、doc_url、local_url）
-5. 本机新增仓/软连接记入 `added`；相对化过程中改写过的路径记入 `normalized_paths`
+4. **两边都有的仓**：`branch` / `purpose` ← 本机；`remotes` 按名并集（先文档顺序，再追加仅本机有的）；同名 URL 不同则暂留文档 URL，报告 `remote_conflict`（path、name、doc_url、local_url）
+5. **两边都有的软连接**：规范化 target 相同 → 用本机 `target` / `outside_ancestor`；不同 → 暂留文档值，报告 `symlink_conflict`
+6. 本机新增仓/软连接记入 `added`；相对化过程中改写过的路径记入 `normalized_paths`
 
 ### 6. 覆盖写入 README
 
@@ -121,7 +122,7 @@ git rev-parse --show-toplevel
 
 向用户报告：
 
-- `added` / `kept_absent` / `conflicts`（含 `remote_conflict`）/ `removed` / `normalized_paths`
+- `added` / `kept_absent`（或 `kept_absent_symlink`）/ `conflicts`（含 `remote_conflict` / `symlink_conflict`）/ `removed` / `normalized_paths`
 - 写入的仓数、远程数、软连接数、文件路径
 - 提醒 pull 使用 `f-git-origin-pull`
 
