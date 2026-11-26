@@ -24,6 +24,7 @@ description: >-
 - 不要把依赖树内嵌套 `.git`（`vendor/`、`node_modules/` 等）写入 `repos`
 - 不要记录 commit hash
 - 不要提交 git，除非用户明确要求
+- **不得**以全局技能拷贝为编辑真相源（权威在内容库 `fan-skills/.agents/skills/`；用 sync 同步，禁止手改 `~/.cursor/skills` 等全局拷贝）
 - 契约细节以 [reference.md](reference.md) 为准；禁止只读 description / 本清单就动手写回
 
 ## 反模式
